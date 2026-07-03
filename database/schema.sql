@@ -1,224 +1,121 @@
--- QuizTech Database Schema
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- database/schema.sql
+CREATE DATABASE IF NOT EXISTS quiztech1;
+USE quiztech1;
 
-DROP DATABASE IF EXISTS quiztech;
-CREATE DATABASE quiztech CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE quiztech;
-
--- ============================================
--- Bảng Users
--- ============================================
+-- Bảng người dùng
 CREATE TABLE users (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    student_code VARCHAR(20) NOT NULL UNIQUE,
-    fullname VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    avatar VARCHAR(255) NULL,
-    face_encoding TEXT NULL,
-    role ENUM('admin', 'teacher', 'student') NOT NULL DEFAULT 'student',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email),
-    INDEX idx_student_code (student_code),
-    INDEX idx_role (role)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- Bảng Subjects (Môn học)
--- ============================================
-CREATE TABLE subjects (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    slug VARCHAR(120) NOT NULL UNIQUE,
-    description TEXT NULL,
-    icon VARCHAR(50) NULL,
-    color VARCHAR(20) NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_slug (slug)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- ============================================
--- Bảng Questions (Ngân hàng câu hỏi)
--- ============================================
-CREATE TABLE questions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    subject_id INT UNSIGNED NOT NULL,
-    question TEXT NOT NULL,
-    option_a TEXT NOT NULL,
-    option_b TEXT NOT NULL,
-    option_c TEXT NOT NULL,
-    option_d TEXT NOT NULL,
-    correct_answer CHAR(1) NOT NULL CHECK (correct_answer IN ('A', 'B', 'C', 'D')),
-    difficulty ENUM('easy', 'medium', 'hard') NOT NULL DEFAULT 'medium',
-    points INT UNSIGNED NOT NULL DEFAULT 1,
-    explanation TEXT NULL,
-    image VARCHAR(255) NULL,
-    ai_generated BOOLEAN DEFAULT FALSE,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_subject (subject_id),
-    INDEX idx_difficulty (difficulty),
-    CONSTRAINT fk_question_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Bảng môn học
+CREATE TABLE subjects (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    icon VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- ============================================
--- Bảng Exams (Đề thi)
--- ============================================
+-- Bảng đề thi
 CREATE TABLE exams (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    subject_id INT UNSIGNED NOT NULL,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    subject_id INT,
     title VARCHAR(200) NOT NULL,
-    description TEXT NULL,
-    duration INT UNSIGNED NOT NULL DEFAULT 30, -- phút
-    total_questions INT UNSIGNED NOT NULL DEFAULT 20,
-    difficulty ENUM('easy', 'medium', 'hard', 'mixed') NOT NULL DEFAULT 'mixed',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_by INT UNSIGNED NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_subject (subject_id),
-    INDEX idx_created_by (created_by),
-    CONSTRAINT fk_exam_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-    CONSTRAINT fk_exam_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    description TEXT,
+    time_limit INT DEFAULT 20,
+    question_count INT DEFAULT 5,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+);
 
--- ============================================
--- Bảng Exam Questions (Câu hỏi trong đề)
--- ============================================
-CREATE TABLE exam_questions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    exam_id INT UNSIGNED NOT NULL,
-    question_id INT UNSIGNED NOT NULL,
-    question_order INT UNSIGNED NOT NULL,
-    INDEX idx_exam (exam_id),
-    INDEX idx_question (question_id),
-    CONSTRAINT fk_eq_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-    CONSTRAINT fk_eq_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Bảng câu hỏi
+CREATE TABLE questions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    exam_id INT,
+    question_text TEXT NOT NULL,
+    option_a TEXT,
+    option_b TEXT,
+    option_c TEXT,
+    option_d TEXT,
+    correct_answer INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
 
--- ============================================
--- Bảng Results (Kết quả thi)
--- ============================================
-CREATE TABLE results (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    exam_id INT UNSIGNED NOT NULL,
-    score DECIMAL(5,2) NOT NULL,
-    correct_answers INT UNSIGNED NOT NULL,
-    total_questions INT UNSIGNED NOT NULL,
-    time_taken INT UNSIGNED NOT NULL, -- giây
-    answers JSON NULL,
-    ai_analysis TEXT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id),
-    INDEX idx_exam (exam_id),
-    CONSTRAINT fk_result_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_result_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Bảng lịch sử làm bài
+CREATE TABLE exam_attempts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    exam_id INT,
+    score INT DEFAULT 0,
+    total_questions INT DEFAULT 0,
+    time_taken INT DEFAULT 0,
+    answers JSON,
+    is_completed BOOLEAN DEFAULT FALSE,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (exam_id) REFERENCES exams(id)
+);
 
--- ============================================
--- Bảng Rooms (Phòng thi đấu)
--- ============================================
-CREATE TABLE rooms (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    room_code VARCHAR(10) NOT NULL UNIQUE,
-    exam_id INT UNSIGNED NOT NULL,
-    host_id INT UNSIGNED NOT NULL,
-    status ENUM('waiting', 'playing', 'finished') NOT NULL DEFAULT 'waiting',
-    max_players INT UNSIGNED NOT NULL DEFAULT 10,
-    current_question INT UNSIGNED DEFAULT 0,
-    started_at DATETIME NULL,
-    finished_at DATETIME NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_code (room_code),
-    INDEX idx_status (status),
-    CONSTRAINT fk_room_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-    CONSTRAINT fk_room_host FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- === DỮ LIỆU MẪU ===
 
--- ============================================
--- Bảng Room Members (Thành viên phòng)
--- ============================================
-CREATE TABLE room_members (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    room_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
-    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_room_user (room_id, user_id),
-    CONSTRAINT fk_rm_room FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    CONSTRAINT fk_rm_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Môn học
+INSERT INTO subjects (name, description, icon) VALUES
+('Lập trình C', 'Ngôn ngữ C - Cơ bản đến nâng cao', '📚'),
+('PHP', 'Lập trình web với PHP', '🐘'),
+('JavaScript', 'JavaScript hiện đại (ES6+)', '🟨'),
+('SQL', 'Truy vấn cơ sở dữ liệu SQL', '🗄️'),
+('Kiểm thử phần mềm', 'Testing, QA, Test Case', '🧪');
 
--- ============================================
--- Bảng Room Answers (Câu trả lời trong phòng)
--- ============================================
-CREATE TABLE room_answers (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    room_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
-    question_id INT UNSIGNED NOT NULL,
-    answer CHAR(1) NULL,
-    is_correct BOOLEAN DEFAULT FALSE,
-    answer_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_room_user (room_id, user_id),
-    INDEX idx_question (question_id),
-    CONSTRAINT fk_ra_room FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ra_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ra_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Đề thi
+INSERT INTO exams (subject_id, title, description, time_limit, question_count) VALUES
+(1, 'Đề thi Lập trình C - Cơ bản', 'Kiểm tra kiến thức C cơ bản', 20, 5),
+(2, 'Đề thi PHP - Cơ bản', 'PHP cú pháp và mảng', 20, 5),
+(3, 'Đề thi JavaScript - Cơ bản', 'JS ES6+', 20, 5),
+(4, 'Đề thi SQL - Cơ bản', 'SELECT, JOIN, WHERE', 20, 5),
+(5, 'Đề thi Kiểm thử phần mềm', 'Cơ bản về QA/Testing', 20, 5);
 
--- ============================================
--- Bảng Room Results (Kết quả phòng)
--- ============================================
-CREATE TABLE room_results (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    room_id INT UNSIGNED NOT NULL,
-    user_id INT UNSIGNED NOT NULL,
-    score INT UNSIGNED NOT NULL DEFAULT 0,
-    correct_count INT UNSIGNED NOT NULL DEFAULT 0,
-    rank INT UNSIGNED NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_room_user_result (room_id, user_id),
-    CONSTRAINT fk_rr_room FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    CONSTRAINT fk_rr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Câu hỏi cho môn Lập trình C (exam_id = 1)
+INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer) VALUES
+(1, 'C là ngôn ngữ lập trình gì?', 'Thông dịch', 'Biên dịch', 'Script', 'Markup', 1),
+(1, 'Hàm printf() dùng để làm gì?', 'Nhập dữ liệu', 'Xuất dữ liệu', 'Khởi tạo biến', 'Kết thúc chương trình', 1),
+(1, 'Kiểu dữ liệu int trong C chiếm bao nhiêu byte?', '2', '4', '8', '16', 1),
+(1, 'Cấu trúc if...else dùng để làm gì?', 'Vòng lặp', 'Rẽ nhánh', 'Khai báo hàm', 'Định nghĩa biến', 1),
+(1, 'Hàm main() trong C là gì?', 'Hàm bắt buộc', 'Hàm tùy chọn', 'Hàm không có', 'Hàm thư viện', 0);
 
--- ============================================
--- Bảng AI Logs (Lịch sử AI)
--- ============================================
-CREATE TABLE ai_logs (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NULL,
-    type ENUM('generate_questions', 'ocr', 'analyze', 'chat', 'explain') NOT NULL,
-    input TEXT NULL,
-    output TEXT NULL,
-    model VARCHAR(50) NULL,
-    tokens_used INT UNSIGNED DEFAULT 0,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id),
-    INDEX idx_type (type),
-    CONSTRAINT fk_ai_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Câu hỏi cho môn PHP (exam_id = 2)
+INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer) VALUES
+(2, 'PHP là viết tắt của?', 'Personal Home Page', 'PHP: Hypertext Preprocessor', 'Preprocessor Hypertext PHP', 'Programming Home Page', 1),
+(2, 'Cú pháp đúng để khai báo biến trong PHP?', '$var', 'var', '&var', '@var', 0),
+(2, 'Hàm nào dùng để kết nối MySQL trong PHP?', 'mysql_connect()', 'mysqli_connect()', 'pdo_connect()', 'db_connect()', 1),
+(2, 'PHP là ngôn ngữ?', 'Phía client', 'Phía server', 'Cả hai', 'Không phải ngôn ngữ lập trình', 1),
+(2, 'Cách comment đúng trong PHP?', '// comment', '/* comment */', 'Cả hai đều đúng', 'Không có cách nào', 2);
 
--- ============================================
--- Bảng Flags (Cờ đánh dấu câu hỏi)
--- ============================================
-CREATE TABLE question_flags (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    question_id INT UNSIGNED NOT NULL,
-    exam_id INT UNSIGNED NOT NULL,
-    flag_type ENUM('review', 'unsure', 'important') NOT NULL DEFAULT 'review',
-    note TEXT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_user_question_exam (user_id, question_id, exam_id),
-    CONSTRAINT fk_qf_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_qf_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
-    CONSTRAINT fk_qf_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Câu hỏi cho môn JavaScript (exam_id = 3)
+INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer) VALUES
+(3, 'JavaScript được phát triển bởi ai?', 'Microsoft', 'Google', 'Netscape', 'Apple', 2),
+(3, 'Phương thức nào dùng để thêm phần tử vào cuối mảng?', 'push()', 'pop()', 'shift()', 'unshift()', 0),
+(3, 'Từ khóa nào dùng để khai báo biến trong ES6?', 'var', 'let', 'const', 'Tất cả đều đúng', 3),
+(3, 'Hàm setTimeout() thuộc loại gì?', 'Đồng bộ', 'Bất đồng bộ', 'Callback', 'Promise', 1),
+(3, 'DOM là viết tắt của?', 'Document Object Model', 'Data Object Model', 'Document Oriented Model', 'Data Oriented Model', 0);
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- Câu hỏi cho môn SQL (exam_id = 4)
+INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer) VALUES
+(4, 'SQL dùng để làm gì?', 'Thiết kế web', 'Quản lý CSDL', 'Viết ứng dụng', 'Xử lý ảnh', 1),
+(4, 'Câu lệnh SELECT dùng để?', 'Xóa dữ liệu', 'Thêm dữ liệu', 'Truy vấn dữ liệu', 'Cập nhật dữ liệu', 2),
+(4, 'JOIN dùng để?', 'Kết nối bảng', 'Tách bảng', 'Xóa bảng', 'Tạo bảng', 0),
+(4, 'WHERE dùng để?', 'Lọc dữ liệu', 'Sắp xếp dữ liệu', 'Nhóm dữ liệu', 'Thêm dữ liệu', 0),
+(4, 'Câu lệnh INSERT dùng để?', 'Xóa dữ liệu', 'Thêm dữ liệu', 'Truy vấn dữ liệu', 'Cập nhật dữ liệu', 1);
+
+-- Câu hỏi cho môn Kiểm thử (exam_id = 5)
+INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer) VALUES
+(5, 'Kiểm thử phần mềm là gì?', 'Quá trình tìm lỗi', 'Quá trình viết code', 'Quá trình thiết kế', 'Quá trình triển khai', 0),
+(5, 'Unit test là kiểm thử?', 'Từng đơn vị', 'Toàn hệ thống', 'Giao diện', 'Hiệu năng', 0),
+(5, 'QA là viết tắt của?', 'Quality Assurance', 'Quantity Assurance', 'Quick Action', 'Quality Action', 0),
+(5, 'Bug là gì?', 'Lỗi phần mềm', 'Tính năng mới', 'Yêu cầu khách hàng', 'Tài liệu', 0),
+(5, 'TDD là viết tắt của?', 'Test Driven Development', 'Test Design Document', 'Technical Design Document', 'Test Data Definition', 0);
