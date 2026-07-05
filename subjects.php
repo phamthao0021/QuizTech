@@ -38,7 +38,7 @@ if ($subject_id > 0) {
     <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.php">
-                <i class="bi bi-code-square"></i> QuizTech
+                <img src="assets/images/Cardmoi_PLT_Trang.png" alt="" style="height:60px; width:65px; margin: right 10px;">  QuizTech
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

@@ -1,0 +1,76 @@
+/* assets/css/admin.css */
+.sidebar {
+    background: #1a1a2e;
+    min-height: 100vh;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+}
+
+.sidebar .nav-link {
+    color: rgba(255,255,255,0.7);
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.sidebar .nav-link.active {
+    background: rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+}
+
+.main-content {
+    padding: 20px 30px;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+.stat-card {
+    padding: 20px;
+    border-radius: 12px;
+    color: white;
+}
+
+.stat-card h2 {
+    font-weight: 700;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid #f1f3f5;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        position: relative;
+    }
+    .main-content {
+        padding: 15px;
+    }
+}

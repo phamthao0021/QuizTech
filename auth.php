@@ -1,8 +1,7 @@
 <?php
-// auth.php - Đăng nhập/Đăng ký
+// auth.php
 require_once 'config/database.php';
 
-// Nếu đã đăng nhập thì chuyển về trang chủ
 if (isLoggedIn()) {
     header('Location: index.php');
     exit();
@@ -21,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $_POST['password'];
             $confirm_password = $_POST['confirm_password'];
             
-            // Validate
             if (empty($name) || empty($email) || empty($password)) {
                 $error = 'Vui lòng điền đầy đủ thông tin!';
             } elseif ($password !== $confirm_password) {
@@ -33,8 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
                     $stmt->execute([$name, $email, $hashed_password]);
-                    $success = 'Đăng ký thành công! Vui lòng đăng nhập.';
-                    $active_tab = 'login';
+                    $error = 'success'; // Đăng ký thành công
                 } catch(PDOException $e) {
                     if ($e->getCode() == 23000) {
                         $error = 'Email đã được sử dụng!';
@@ -60,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($user && password_verify($password, $user['password'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['name'];
+                    $_SESSION['role'] = $user['role'];
                     header('Location: index.php');
                     exit();
                 } else {
@@ -70,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<!-- HTML Form -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
