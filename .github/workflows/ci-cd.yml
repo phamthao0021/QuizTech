@@ -158,4 +158,8 @@ jobs:
           local-dir: ./
 
       - name: Deployment Completed
+<<<<<<< HEAD
         run: echo "Deploy Success"
+=======
+        run: echo "Deploy Success"
+>>>>>>> d282780 (update)

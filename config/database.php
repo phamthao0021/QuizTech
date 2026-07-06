@@ -13,7 +13,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMOD E, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
-    die("❌ Lỗi kết nối database: " . $e->getMessage());
+    die("Lỗi kết nối database: " . $e->getMessage());
 }
 
 function isLoggedIn() {
