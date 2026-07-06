@@ -9,6 +9,8 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -18,16 +20,16 @@ concurrency:
 
 jobs:
 
-  # ======================================================
-  # JOB 1 : LINT
-  # ======================================================
+  ####################################################
+  # JOB 1 - LINT
+  ####################################################
 
   lint:
     name: Lint PHP
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup PHP
@@ -35,17 +37,21 @@ jobs:
         with:
           php-version: "8.2"
 
-      - name: PHP Syntax Check
+      - name: Check PHP Syntax
         run: |
           error=0
-          while IFS= read -r file; do
+
+          while IFS= read -r file
+          do
             php -l "$file" || error=1
           done < <(find . -name "*.php")
+
           exit $error
 
-  # ======================================================
-  # JOB 2 : BUILD
-  # ======================================================
+
+  ####################################################
+  # JOB 2 - BUILD
+  ####################################################
 
   build:
     name: Build & Test
@@ -56,36 +62,34 @@ jobs:
 
     steps:
 
-      - name: Checkout Source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
 
       - name: Show PHP Version
         run: php -v
 
-      - name: Start PHP Built-in Server
+      - name: Start PHP Server
         run: |
-          php -S 127.0.0.1:8000 > /dev/null 2>&1 &
+          php -S 127.0.0.1:8000 &
           sleep 5
 
       - name: Smoke Test
         run: |
-          curl --fail http://127.0.0.1:8000
+          curl -I http://127.0.0.1:8000
 
-      - name: Upload Build Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: quiztech
           path: .
-          retention-days: 1
 
-  # ======================================================
-  # JOB 3 : SECURITY
-  # ======================================================
+
+  ####################################################
+  # JOB 3 - SECURITY
+  ####################################################
 
   security:
     name: Security Scan
@@ -105,9 +109,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ======================================================
-  # JOB 4 : DEPLOY
-  # ======================================================
+
+  ####################################################
+  # JOB 4 - DEPLOY
+  ####################################################
 
   deploy:
     name: Deploy Website
@@ -116,11 +121,9 @@ jobs:
       - build
       - security
 
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
-
-    timeout-minutes: 15
 
     steps:
 
@@ -131,21 +134,18 @@ jobs:
           path: .
 
       - name: Check FTP Secrets
-        shell: bash
         run: |
-          for key in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_SERVER_DIR
+          for key in FTP_SERVER FTP_USERNAME FTP_PASSWORD
           do
             if [ -z "${!key}" ]; then
               echo "::error::$key is missing"
               exit 1
             fi
           done
-
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
 
       - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -153,21 +153,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-
           protocol: ftps
           port: 21
-
           local-dir: ./
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-
-          exclude: |
-            **/.git/**
-            **/.github/**
-            **/.gitignore
-            **/.vscode/**
-            **/docs/**
-            **/README.md
-            **/node_modules/**
 
       - name: Deployment Completed
         run: echo "Deploy Success"
