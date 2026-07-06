@@ -1,28 +1,28 @@
-<?php
-// config/database.php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+    <?php
+    // config/database.php
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
 
-$host = 'localhost';
-$dbname = 'pltprov1_jindo_plt_quiztech';
-$username = 'pltprov1_jindo_plt_quiztech';
-$password = 'Q%tY}~Wr&gXI6[0@';
+    $host = 'localhost';
+    $dbname = 'pltprov1_jindo_plt_quiztech';
+    $username = 'pltprov1_jindo_plt_quiztech';
+    $password = 'Q%tY}~Wr&gXI6[0@';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMOD E, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch(PDOException $e) {
-    die("Lỗi kết nối database: " . $e->getMessage());
-}
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch(PDOException $e) {
+        die("Lỗi kết nối database: " . $e->getMessage());
+    }
 
-function isLoggedIn() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-}
+    function isLoggedIn() {
+        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    }
 
-function isAdmin() {
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-}
+    function isAdmin() {
+        return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+    }
 
 function isTeacher() {
     return isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'teacher']);
