@@ -147,6 +147,7 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ./
+          server-dir: ./
           exclude: |
             **/.git*
             **/.github/**
