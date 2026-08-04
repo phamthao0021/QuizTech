@@ -1,0 +1,411 @@
+/* assets/css/style.css - Tối ưu Ràng buộc (Constraints) & Margin/Padding */
+
+/* ============================================
+   1. BASE & VARIABLES
+   ============================================ */
+:root {
+    --primary: #6c5ce7;
+    --primary-dark: #5a4bd1;
+    --secondary: #00b894;
+    --danger: #e17055;
+    --warning: #fdcb6e;
+    --dark: #1a1a2e;
+    --light: #f8f9fa;
+    --gray: #636e72;
+    --border: #dfe6e9;
+    --shadow: 0 2px 10px rgba(0,0,0,0.08);
+    --shadow-hover: 0 4px 20px rgba(0,0,0,0.12);
+    --radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #2d3436;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* ============================================
+   2. LAYOUT & CONTAINER SPACING
+   ============================================ */
+.page-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 1.5rem; /* 24px padding chuẩn */
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.topbar {
+    background: #ffffff;
+    padding: 1.125rem 1.5rem; /* 18px 24px */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem; /* 24px margin bottom */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============================================
+   3. AVATAR & RÀNG BUỘC KHUNG ẢNH
+   ============================================ */
+/* Khung chứa cố định tỷ lệ */
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* Ràng buộc ảnh luôn tròn và không biến dạng */
+.avatar-preview, #avatarPreview {
+    width: 140px;
+    height: 140px;
+    object-fit: cover; /* Chống móp ảnh */
+    aspect-ratio: 1 / 1; /* Ràng buộc tỷ lệ 1:1 */
+    border-radius: 50% !important;
+    border: 4px solid #ffffff;
+    box-shadow: var(--shadow);
+}
+
+/* Ràng buộc nút bấm máy ảnh đè góc dưới bên phải */
+.avatar-upload-btn, 
+.avatar-container label[for="avatarInput"] {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    z-index: 2;
+}
+
+.avatar-upload-btn:hover,
+.avatar-container label[for="avatarInput"]:hover {
+    transform: scale(1.1);
+}
+
+/* ============================================
+   4. FORM & INPUT CONSTRAINTS
+   ============================================ */
+/* Đánh dấu trường bắt buộc nhập */
+.form-label.required::after {
+    content: " *";
+    color: var(--danger);
+    font-weight: bold;
+}
+
+/* Khoảng cách các ô nhập trong form */
+.form-label {
+    margin-bottom: 0.375rem; /* 6px */
+    font-size: 0.9rem;
+}
+
+/* Ràng buộc Input Group không bị gãy icon */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: var(--border);
+    color: var(--gray);
+    flex-shrink: 0; /* Không cho icon bị co lại khi hết chỗ */
+}
+
+.form-control {
+    border-color: var(--border);
+    padding: 0.5625rem 0.75rem; /* 9px 12px */
+    border-radius: 8px;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.15);
+}
+
+/* ============================================
+   5. CARDS & BUTTON SPACING
+   ============================================ */
+.card {
+    border-radius: var(--radius) !important;
+    margin-bottom: 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem; /* Padding trong Card */
+}
+
+.stat-card {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.stat-card .number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.stat-card .label {
+    color: var(--gray);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Tối ưu margin/padding các nút */
+.btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd6 0%, #6a3f8f 100%);
+    transform: translateY(-1px);
+    color: white;
+}
+
+/* ============================================
+   6. RESPONSIVE BREAKPOINTS (MARGIN/PADDING & CONSTRAINTS)
+   ============================================ */
+/* Màn hình Tablet (< 992px) */
+@media (max-width: 991.98px) {
+    .main-content {
+        padding: 1rem; /* Giảm padding chính xuống 16px */
+    }
+}
+
+/* Màn hình Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    .main-content {
+        padding: 0.75rem !important; /* Giảm padding xuống 12px */
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .topbar .badge {
+        align-self: flex-start;
+    }
+
+    .card-body {
+        padding: 1rem; /* Thu nhỏ padding trong card trên mobile */
+    }
+
+    /* Ràng buộc kích thước Avatar nhỏ lại trên điện thoại */
+    .avatar-preview, #avatarPreview {
+        width: 110px !important;
+        height: 110px !important;
+    }
+
+    /* Ràng buộc nút bấm Form chiếm hết chiều rộng trên Mobile */
+    .card-body form .text-end {
+        text-align: stretch !important;
+    }
+
+    .card-body form .text-end .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}
+/* ============================================
+   SIDEBAR BRAND STYLING
+   ============================================ */
+.sidebar-brand {
+    display: flex;
+    align-items: center;       /* Căn giữa logo và chữ theo chiều dọc */
+    justify-content: flex-start; /* Căn trái toàn bộ phần tử */
+    gap: 12px;                 /* Khoảng cách giữa Logo và Chữ */
+    padding: 16px 20px;        /* Khoảng cách lề trong gọn gàng */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Đường gạch chân nhẹ */
+}
+
+/* Ràng buộc kích thước logo chuẩn không bị móp méo */
+.sidebar-logo {
+    width: 45px;               /* Kích thước vừa vặn cho Sidebar (thay vì 100px quá to) */
+    height: 45px;
+    object-fit: contain;       /* Giữ nguyên tỷ lệ gốc của ảnh */
+    flex-shrink: 0;            /* Không cho logo bị co lại khi Sidebar hẹp */
+}
+
+/* Định dạng Chữ thương hiệu QuizTech */
+.sidebar-title {
+    font-size: 1.25rem;        /* ~20px */
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    white-space: nowrap;       /* Không cho chữ tự ngắt dòng */
+}
+
+/* Responsive khi thu nhỏ hoặc trên màn hình di động */
+@media (max-width: 767.98px) {
+    .sidebar-brand {
+        padding: 12px 15px;
+        gap: 8px;
+    }
+    
+    .sidebar-logo {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .sidebar-title {
+        font-size: 1.1rem;
+    }
+}
+/* ============================================
+   FIX LỖI SIDEBAR BRAND & AVATAR TỤT DÒNG
+   ============================================ */
+
+/* Khung tổng Sidebar */
+.sidebar-wrapper {
+    width: 260px;
+    background: #1e1e2d;
+    color: #a2a3b7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column !important; /* Ép hiển thị dọc từ trên xuống */
+    justify-content: flex-start !important; /* Không cho đẩy phần tử xuống đáy */
+}
+
+/* Khung Chứa Logo & QuizTech */
+.sidebar-brand {
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important; /* Logo và Chữ nằm ngang */
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    height: 65px; /* Cố định chiều cao thanh Brand */
+    box-sizing: border-box;
+}
+
+/* Ảnh Logo */
+.sidebar-logo {
+    width: 38px !important;
+    height: 38px !important;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Icon thay thế nếu ảnh vỡ */
+.sidebar-logo-fallback {
+    width: 38px;
+    height: 38px;
+    background: #6c5ce7;
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* Tên thương hiệu QuizTech */
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Khung chứa User / Role (Ngay dưới Brand) */
+.sidebar-user {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px;
+    padding: 12px 15px;
+    margin: 15px 15px 10px 15px !important; /* Xóa margin top bị thừa */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.sidebar-user .user-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.sidebar-user .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.sidebar-user .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #6c5ce7;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.sidebar-user .user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* Hỗ trợ text-truncate hoạt động */
+}
+
+.sidebar-user .user-name {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.sidebar-user .user-role {
+    font-size: 0.75rem;
+    color: #80809e;
+    margin-top: 2px;
+}

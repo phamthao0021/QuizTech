@@ -1,0 +1,4 @@
+<Files "hash_password.php">
+    Order Allow,Deny
+    Deny from all
+</Files>

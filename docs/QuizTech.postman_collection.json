@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "QuizTech API",
+    "description": "API for QuizTech - Online Exam System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@quiztech.com\",\n    \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login.php"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"student_code\": \"STU001\",\n    \"fullname\": \"Nguyen Van A\",\n    \"email\": \"student@example.com\",\n    \"password\": \"Student@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register.php"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout.php"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "Get All Subjects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/subject.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subject.php"]
+            }
+          }
+        },
+        {
+          "name": "Get Subject by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/subject.php?id=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subject.php"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"React\",\n    \"description\": \"React JS Framework\",\n    \"icon\": \"fa-react\",\n    \"color\": \"#61dafb\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subject.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subject.php"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Get All Questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/question.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "question.php"]
+            }
+          }
+        },
+        {
+          "name": "Get Questions by Subject",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/question.php?subject_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "question.php"],
+              "query": [
+                {
+                  "key": "subject_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"subject_id\": 1,\n    \"question\": \"What is PHP?\",\n    \"option_a\": \"Personal Home Page\",\n    \"option_b\": \"PHP: Hypertext Preprocessor\",\n    \"option_c\": \"Programming Hypertext Protocol\",\n    \"option_d\": \"Public Hosting Platform\",\n    \"correct_answer\": \"B\",\n    \"difficulty\": \"easy\",\n    \"points\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/question.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "question.php"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exams",
+      "item": [
+        {
+          "name": "Get All Exams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/exam.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exam.php"]
+            }
+          }
+        },
+        {
+          "name": "Get Exam by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/exam.php?id=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exam.php"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"subject_id\": 1,\n    \"title\": \"C Programming Test\",\n    \"description\": \"Test your C knowledge\",\n    \"duration\": 30,\n    \"total_questions\": 20,\n    \"difficulty\": \"easy\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exam.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exam.php"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Results",
+      "item": [
+        {
+          "name": "Submit Exam Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"exam_id\": 1,\n    \"answers\": {\"1\":\"A\",\"2\":\"B\",\"3\":\"C\"},\n    \"time_taken\": 900\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/result.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "result.php"]
+            }
+          }
+        },
+        {
+          "name": "Get My Results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/result.php",
+              "host": ["{{base_url}}"],
+              "path": ["api", "result.php"]
+            }
+          }
+        },
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/result.php?leaderboard=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "result.php"],
+              "query": [
+                {
+                  "key": "leaderboard",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/QuizTech",
+      "type": "string"
+    }
+  ]
+}

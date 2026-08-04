@@ -1,0 +1,492 @@
+/* assets/css/guest.css - CSS riêng cho Guest pages */
+
+/* ==========================================================
+   QuizTech Guest Styles — Namespaced with "qt-"
+   ========================================================== */
+:root {
+    --qt-ink: #0B0E14;
+    --qt-ink-soft: #4B5468;
+    --qt-paper: #F7F7FB;
+    --qt-panel: #FFFFFF;
+    --qt-violet-1: #667eea;
+    --qt-violet-2: #764ba2;
+    --qt-mint: #2DD4BF;
+    --qt-amber: #F5A524;
+    --qt-line: #E6E6F0;
+    --qt-radius: 18px;
+}
+
+/* ---------- Navbar polish ---------- */
+.navbar {
+    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.25);
+}
+.navbar-brand {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.qt-mono {
+    font-family: 'IBM Plex Mono', monospace;
+}
+.qt-display {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ---------- Hero ---------- */
+.qt-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(1100px 480px at 85% -10%, rgba(102, 126, 234, 0.16), transparent 60%),
+        var(--qt-paper);
+    padding: 76px 0 88px;
+    border-bottom: 1px solid var(--qt-line);
+}
+
+.qt-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--qt-violet-2);
+    background: rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+}
+
+.qt-eyebrow .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--qt-mint);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+}
+
+.qt-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 4vw, 3.2rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+}
+
+.qt-hero h1 .grad {
+    background: linear-gradient(135deg, var(--qt-violet-1), var(--qt-violet-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.qt-hero p.lead-copy {
+    color: var(--qt-ink-soft);
+    font-size: 1.08rem;
+    max-width: 520px;
+}
+
+.qt-btn-primary {
+    background: linear-gradient(135deg, var(--qt-violet-1), var(--qt-violet-2));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(102, 126, 234, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qt-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(102, 126, 234, 0.42);
+    color: #fff;
+}
+
+.qt-btn-ghost {
+    border: 1.5px solid var(--qt-line);
+    color: var(--qt-ink);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    background: #fff;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.qt-btn-ghost:hover {
+    border-color: var(--qt-violet-1);
+    color: var(--qt-ink);
+    transform: translateY(-2px);
+}
+
+/* ---------- Terminal mockup ---------- */
+.qt-terminal {
+    background: var(--qt-ink);
+    border-radius: var(--qt-radius);
+    box-shadow: 0 30px 60px -20px rgba(11, 14, 20, 0.45);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qt-terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qt-terminal-bar .qt-tlbtn {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.qt-terminal-bar .fname {
+    margin-left: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.qt-terminal-body {
+    padding: 1.4rem 1.4rem 1.6rem;
+}
+
+.qt-terminal-q {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--qt-mint);
+    margin-bottom: 0.4rem;
+}
+
+.qt-terminal-body h6 {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.qt-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.qt-opt .ring {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    flex: none;
+}
+
+.qt-opt.correct {
+    border-color: rgba(45, 212, 191, 0.5);
+    background: rgba(45, 212, 191, 0.08);
+    color: #fff;
+}
+
+.qt-opt.correct .ring {
+    border-color: var(--qt-mint);
+    background: var(--qt-mint);
+}
+
+.qt-terminal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.qt-badge-live {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--qt-mint);
+}
+
+.qt-caret {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    background: var(--qt-mint);
+    margin-left: 2px;
+    animation: qt-blink 1s steps(1) infinite;
+    vertical-align: middle;
+}
+
+@keyframes qt-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ---------- Section shell ---------- */
+.qt-section {
+    padding: 70px 0;
+}
+
+.qt-section-head {
+    max-width: 640px;
+    margin-bottom: 2.5rem;
+}
+
+.qt-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--qt-violet-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.qt-section-head h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+    margin-top: 0.4rem;
+}
+
+.qt-section-head p {
+    color: var(--qt-ink-soft);
+}
+
+/* ---------- Stat strip ---------- */
+.qt-stat-strip {
+    background: var(--qt-panel);
+    border: 1px solid var(--qt-line);
+    border-radius: var(--qt-radius);
+    padding: 1.75rem 1rem;
+    box-shadow: 0 12px 30px -18px rgba(20, 20, 50, 0.15);
+}
+
+.qt-stat {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.qt-stat .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 2.1rem;
+}
+
+.qt-stat .lbl {
+    color: var(--qt-ink-soft);
+    font-size: 0.85rem;
+}
+
+.qt-stat + .qt-stat {
+    border-left: 1px solid var(--qt-line);
+}
+
+/* ---------- Feature cards ---------- */
+.qt-feature {
+    height: 100%;
+    background: var(--qt-panel);
+    border: 1px solid var(--qt-line);
+    border-radius: 16px;
+    padding: 1.6rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.qt-feature:hover {
+    transform: translateY(-4px);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 16px 34px -20px rgba(102, 126, 234, 0.4);
+}
+
+.qt-feature .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--qt-violet-2);
+    background: rgba(102, 126, 234, 0.08);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.9rem;
+}
+
+.qt-feature .icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--qt-violet-1), var(--qt-violet-2));
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 0.9rem;
+}
+
+.qt-feature h5 {
+    font-weight: 700;
+}
+
+.qt-feature p {
+    color: var(--qt-ink-soft);
+    font-size: 0.92rem;
+    margin-bottom: 0;
+}
+
+/* ---------- How it works ---------- */
+.qt-step {
+    position: relative;
+    padding-left: 2.6rem;
+}
+
+.qt-step .qt-step-no {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--qt-mint);
+}
+
+.qt-step h6 {
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.qt-step p {
+    color: var(--qt-ink-soft);
+    font-size: 0.92rem;
+}
+
+/* ---------- Subject / exam cards (Guest) ---------- */
+.qt-subject-card {
+    height: 100%;
+    background: var(--qt-panel);
+    border: 1px solid var(--qt-line);
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qt-subject-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px -22px rgba(20, 20, 50, 0.35);
+}
+
+.qt-subject-card .emoji {
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+}
+
+.qt-subject-card h5 {
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.qt-subject-card p {
+    color: var(--qt-ink-soft);
+}
+
+.qt-exam-card {
+    height: 100%;
+    background: var(--qt-panel);
+    border: 1px solid var(--qt-line);
+    border-radius: 16px;
+    padding: 1.4rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qt-exam-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px -22px rgba(20, 20, 50, 0.35);
+}
+
+.qt-exam-card .subject-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--qt-violet-2);
+}
+
+.qt-exam-card h6 {
+    font-weight: 700;
+    margin: 0.35rem 0 0.9rem;
+}
+
+/* ---------- CTA banner ---------- */
+.qt-cta {
+    background: linear-gradient(135deg, var(--qt-violet-1), var(--qt-violet-2));
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    color: #fff;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.qt-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px 260px at 15% 0%, rgba(255, 255, 255, 0.18), transparent 60%);
+}
+
+.qt-cta h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    position: relative;
+}
+
+.qt-cta p {
+    opacity: 0.9;
+    position: relative;
+}
+
+.qt-cta .qt-cta-actions {
+    position: relative;
+}
+
+.qt-cta .btn-light {
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+.qt-cta .btn-outline-light {
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+/* ---------- Reveal-on-scroll ---------- */
+.qt-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.qt-reveal.qt-in {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qt-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+    .qt-caret {
+        animation: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .qt-stat + .qt-stat {
+        border-left: none;
+        border-top: 1px solid var(--qt-line);
+    }
+}

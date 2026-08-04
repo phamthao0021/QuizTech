@@ -1,0 +1,169 @@
+name: CI/CD - QuizTech
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quiztech-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  ####################################################
+  # JOB 1 - LINT
+  ####################################################
+
+  lint:
+    name: Lint PHP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Check PHP Syntax
+        run: |
+          error=0
+          while IFS= read -r file
+          do
+            php -l "$file" || error=1
+          done < <(find . -name "*.php")
+          exit $error
+
+
+  ####################################################
+  # JOB 2 - BUILD
+  ####################################################
+
+  build:
+    name: Build & Test
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Show PHP Version
+        run: php -v
+
+      - name: Start PHP Server
+        run: |
+          php -S 127.0.0.1:8000 &
+          sleep 3
+
+      - name: Smoke Test
+        run: |
+          curl -I http://127.0.0.1:8000
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiztech
+          path: .
+
+
+  ####################################################
+  # JOB 3 - SECURITY
+  ####################################################
+
+  security:
+    name: Security Scan
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan Secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  ####################################################
+  # JOB 4 - DEPLOY
+  ####################################################
+
+  deploy:
+    name: Deploy Website
+    needs:
+      - build
+      - security
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: quiztech
+          path: .
+
+      - name: Check FTP Secrets
+        run: |
+          for key in FTP_SERVER FTP_USERNAME FTP_PASSWORD
+          do
+            if [ -z "${!key}" ]; then
+              echo "::error::$key is missing"
+              exit 1
+            fi
+          done
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/.gitignore
+            **/.env
+            **/.vscode/**
+            **/.idea/**
+            **/node_modules/**
+            **/venv/**
+            **/__pycache__/**
+            **/*.pyc
+            **/*.pyo
+            **/*.log
+            **/*.zip
+            **/*.rar
+            **/dataset/**
+            **/models/**
+
+      - name: Deployment Finished
+        run: echo "QuizTech deployed successfully."
