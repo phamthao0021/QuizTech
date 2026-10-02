@@ -4,3 +4,7 @@ php.ini
 *.zip
 __pycache__/
 uploads/temp/
+
+/uploads/avatars/*
+!/uploads/avatars/.gitkeep
+/uploads/temp/
