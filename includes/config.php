@@ -2,9 +2,9 @@
 // includes/config.php
 
 $host = 'localhost';
-$db   = 'quiztech';
-$user = 'root';
-$pass = '';
+$db   = 'pltprov1_jindo_plt_quiztech';
+$user = 'pltprov1_jindo_plt_quiztech';
+$pass = 'Q%tY}~Wr&gXI6[0@';
 
 try {
     $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";

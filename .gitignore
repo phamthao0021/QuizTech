@@ -8,3 +8,5 @@ uploads/temp/
 /uploads/avatars/*
 !/uploads/avatars/.gitkeep
 /uploads/temp/
+
+/includes/config.local.php
