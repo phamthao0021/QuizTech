@@ -1,9 +1,8 @@
 <?php
-// includes/header_guest.php - Header cho Guest
+// includes/header_guest.php - Header dành riêng cho Khách (chưa đăng nhập)
 $page_title = $page_title ?? 'QuizTech';
 $current_page = basename($_SERVER['PHP_SELF']);
-$user = currentUser();
-$is_logged_in = isLoggedIn();
+$active_tab = $_GET['tab'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -15,107 +14,50 @@ $is_logged_in = isLoggedIn();
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/guest.css" rel="stylesheet">
+    <style>
+        :root{--qt-primary:#5b4df7;--qt-purple:#8b5cf6;--qt-navy:#17164a}
+        body{font-family:Inter,"Segoe UI",sans-serif;background:#fff;color:#111827}
+        .qt-guest-nav{background:rgba(255,255,255,.96)!important;border-bottom:1px solid #edf0f6;backdrop-filter:blur(16px);box-shadow:0 4px 18px rgba(15,23,42,.04)}
+        .qt-guest-nav .navbar-brand{color:var(--qt-navy)!important;font-family:"Space Grotesk",sans-serif;font-size:1.35rem}
+        .qt-guest-nav .navbar-brand img{height:43px;width:auto}
+        .qt-guest-nav .nav-link{color:#475569!important;font-weight:600;padding:.7rem .9rem!important;border-radius:10px}
+        .qt-guest-nav .nav-link:hover,.qt-guest-nav .nav-link.active{color:var(--qt-primary)!important;background:#f5f3ff}
+        .qt-register-btn{background:linear-gradient(135deg,#6558f5,#4f46e5);color:#fff!important;border:0;border-radius:12px;padding:.65rem 1rem!important;box-shadow:0 8px 18px rgba(79,70,229,.22)}
+        .qt-register-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(79,70,229,.28)}
+        .qt-login-link{border:1px solid transparent}
+        main{min-height:55vh}
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    <div class="container">
+<nav class="navbar navbar-expand-lg navbar-light sticky-top qt-guest-nav">
+    <div class="container py-1">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
-            <img src="assets/images/Cardmoi_PLT_Trang.png" alt="" style="height:60px; width:65px; margin-right:10px;">
+            <img src="assets/images/CARD MOI.png" alt="QuizTech Logo" class="me-2">
             QuizTech
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mở menu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <!-- Public Menu -->
-                <li class="nav-item">
-                    <a class="nav-link <?= $current_page == 'index.php' ? 'active' : '' ?>" href="index.php">
-                        Trang chủ
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $current_page == 'subjects.php' ? 'active' : '' ?>" href="subjects.php">
-                        Môn học
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $current_page == 'exams.php' ? 'active' : '' ?>" href="exams.php">
-                        Đề thi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $current_page == 'rooms.php' ? 'active' : '' ?>" href="rooms.php">
-                        Phòng thi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= $current_page == 'leaderboard.php' ? 'active' : '' ?>" href="leaderboard.php">
-                        Bảng xếp hạng
-                    </a>
-                </li>
-                
-                <?php if ($is_logged_in): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $current_page == 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $current_page == 'history.php' ? 'active' : '' ?>" href="history.php">
-                            <i class="bi bi-clock-history"></i> Lịch sử
-                        </a>
-                    </li>
-                <?php endif; ?>
+            <ul class="navbar-nav me-auto ms-lg-4 align-items-lg-center">
+                <li class="nav-item"><a class="nav-link <?= $current_page === 'index.php' ? 'active fw-bold' : '' ?>" href="index.php">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php#about">Giới thiệu</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php#method">Phương pháp học</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php#features">Tính năng</a></li>
+                <li class="nav-item"><a class="nav-link <?= $current_page === 'demo.php' ? 'active fw-bold' : '' ?>" href="demo.php"><i class="bi bi-play-circle me-1"></i>Dùng thử</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php#contact">Liên hệ</a></li>
             </ul>
-            
-            <ul class="navbar-nav">
-                <?php if ($is_logged_in): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-5 me-1"></i>
-                            <span><?= e($_SESSION['name'] ?? 'User') ?></span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="profile.php">
-                                <i class="bi bi-person"></i> Hồ sơ
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="logout.php">
-                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                            </a></li>
-                        </ul>
-                    </li>
-                <?php else: ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $current_page == 'login.php' ? 'active' : '' ?>" href="login.php">
-                            <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-light btn-sm text-primary ms-2 px-3" href="register.php">
-                            <i class="bi bi-person-plus"></i> Đăng ký
-                        </a>
-                    </li>
-                <?php endif; ?>
+            <ul class="navbar-nav ms-auto align-items-lg-center mt-3 mt-lg-0">
+                <li class="nav-item"><a class="nav-link qt-login-link <?= ($current_page === 'login.php' && $active_tab !== 'register') ? 'active fw-bold' : '' ?>" href="login.php?tab=login"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a></li>
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0"><a class="btn btn-sm qt-register-btn <?= ($current_page === 'login.php' && $active_tab === 'register') ? 'active' : '' ?>" href="login.php?tab=register"><i class="bi bi-person-plus me-1"></i>Đăng ký ngay</a></li>
             </ul>
         </div>
     </div>
 </nav>
-
-<!-- Flash Messages -->
-<?php
-$flash = getFlash();
-if ($flash && isset($flash['type']) && isset($flash['message'])): ?>
-    <div class="container mt-3">
-        <div class="alert alert-<?= $flash['type'] ?> alert-dismissible fade show" role="alert">
-            <?= e($flash['message']) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    </div>
+<?php $flash = getFlash(); if ($flash && isset($flash['type'],$flash['message'])): ?>
+<div class="container mt-3"><div class="alert alert-<?= e($flash['type']) ?> alert-dismissible fade show shadow-sm" role="alert"><?= e($flash['message']) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
 <?php endif; ?>
-
 <main>

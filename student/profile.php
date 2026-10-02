@@ -4,11 +4,22 @@ require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/data.php';
-requireLogin(); // Đảm bảo quyền học viên
+if (!isLoggedIn()) {
+    setFlash('danger', 'Vui lòng đăng nhập để tiếp tục!');
+    redirect('../login.php');
+    exit;
+}
 
+// Kiểm tra quyền Sinh viên (Thay 'student' theo đúng giá trị role trong DB của bạn)
+$currentRole = $_SESSION['role'] ?? $_SESSION['user']['role'] ?? '';
+if ($currentRole !== 'student') {
+    setFlash('danger', 'Bạn không có quyền truy cập vào trang này!');
+    redirect('../index.php');
+    exit;
+}
 $user_id = $_SESSION['user_id'] ?? 0;
 
-// Lấy thông tin học viên hiện tại từ CSDL
+// Lấy thông tin sinh viên hiện tại từ CSDL
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $currentUser = $stmt->fetch();
@@ -19,7 +30,7 @@ if (!$currentUser) {
 }
 
 // -------------------------------------------------------------
-// XỬ LÝ CẬP NHẬT THÔNG TIN CÁ NHÂN & UP ẢNH ĐẠI DIỆN
+// XỬ LÝ CẬP NHẬT THÔNG TIN CÁ NHÂN & UPLOAD ẢNH ĐẠI DIỆN
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     verify_csrf();
@@ -40,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         if ($checkEmail->fetchColumn() > 0) {
             setFlash('danger', 'Email này đã được sử dụng bởi tài khoản khác!');
         } else {
-            $avatarPath = $currentUser['avatar'] ?? ''; // Giữ lại đường dẫn ảnh cũ mặc định
+            // Giữ lại đường dẫn ảnh cũ mặc định
+            $avatarPath = $currentUser['avatar'] ?? '';
 
             // Xử lý upload ảnh đại diện mới
             if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
@@ -59,8 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                     redirect('profile.php');
                 } else {
                     $uploadDir = '../uploads/avatars/';
-                    
-                    // Tự động tạo thư mục uploads/avatars nếu chưa tồn tại
+
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0777, true);
                     }
@@ -69,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                     $destPath    = $uploadDir . $newFileName;
 
                     if (move_uploaded_file($fileTmpPath, $destPath)) {
-                        // Xóa tệp ảnh cũ nếu tồn tại trong thư mục cục bộ
+                        // Xóa tệp ảnh cũ nếu tồn tại
                         if (!empty($currentUser['avatar']) && file_exists('../' . $currentUser['avatar'])) {
                             @unlink('../' . $currentUser['avatar']);
                         }
@@ -84,7 +95,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             // Cập nhật CSDL
             $updateStmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, avatar = ? WHERE id = ?");
             if ($updateStmt->execute([$name, $email, $phone, $avatarPath, $user_id])) {
-                $_SESSION['user_name'] = $name; // Cập nhật Session tên
+                // Cập nhật Session
+                $_SESSION['user_name'] = $name;
+                $_SESSION['avatar']    = $avatarPath;
+                if (isset($_SESSION['user'])) {
+                    $_SESSION['user']['name']   = $name;
+                    $_SESSION['user']['avatar'] = $avatarPath;
+                }
+
                 setFlash('success', 'Cập nhật thông tin cá nhân thành công!');
                 redirect('profile.php');
             } else {
@@ -104,17 +122,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $new_password     = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
+    // Hệ thống hiện tại lưu mật khẩu ở cột password_hash.
+    // Fallback password chỉ để tương thích nếu CSDL cũ vẫn còn cột này.
+    $storedPassword = $currentUser['password_hash'] ?? (($currentUser['password_hash'] ?? $currentUser['password'] ?? '') ?? '');
+
+    $passwordPattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,20}$/';
+
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
         setFlash('danger', 'Vui lòng điền đầy đủ thông tin mật khẩu!');
-    } elseif (!password_verify($current_password, $currentUser['password'])) {
+    } elseif (empty($storedPassword) || !password_verify($current_password, $storedPassword)) {
         setFlash('danger', 'Mật khẩu hiện tại không chính xác!');
-    } elseif (strlen($new_password) < 6) {
-        setFlash('danger', 'Mật khẩu mới phải có ít nhất 6 ký tự!');
+    } elseif (strlen($new_password) < 8 || strlen($new_password) > 20) {
+        setFlash('danger', 'Mật khẩu mới phải từ 8–20 ký tự!');
+    } elseif (!preg_match('/[A-Z]/', $new_password)) {
+        setFlash('danger', 'Mật khẩu mới phải có ít nhất 1 chữ hoa!');
+    } elseif (!preg_match('/[a-z]/', $new_password)) {
+        setFlash('danger', 'Mật khẩu mới phải có ít nhất 1 chữ thường!');
+    } elseif (!preg_match('/[0-9]/', $new_password)) {
+        setFlash('danger', 'Mật khẩu mới phải có ít nhất 1 chữ số!');
+    } elseif (!preg_match('/[^A-Za-z0-9\s]/', $new_password)) {
+        setFlash('danger', 'Mật khẩu mới phải có ít nhất 1 ký tự đặc biệt!');
+    } elseif (preg_match('/\s/', $new_password)) {
+        setFlash('danger', 'Mật khẩu mới không được chứa khoảng trắng!');
     } elseif ($new_password !== $confirm_password) {
         setFlash('danger', 'Mật khẩu xác nhận không trùng khớp!');
+    } elseif (password_verify($new_password, $storedPassword)) {
+        setFlash('danger', 'Mật khẩu mới không được trùng mật khẩu hiện tại!');
     } else {
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        $passStmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $passStmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
 
         if ($passStmt->execute([$hashed_password, $user_id])) {
             setFlash('success', 'Đã thay đổi mật khẩu thành công!');
@@ -127,24 +163,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 
 // Định dạng ảnh hiển thị
 $avatarUrl = !empty($currentUser['avatar']) && file_exists('../' . $currentUser['avatar'])
-    ? '../' . e($currentUser['avatar'])
+    ? '../' . e($currentUser['avatar']) . '?v=' . time()
     : 'https://ui-avatars.com/api/?name=' . urlencode($currentUser['name']) . '&background=0D6EFD&color=fff&size=200';
 
-$page_title = 'Hồ sơ học viên';
-include '../includes/header.php';
+$page_title = 'Hồ sơ cá nhân Sinh viên';
+include '../includes/header_student.php';
 ?>
 
 <div class="page-wrapper">
-    <?php include '../includes/sidebar.php'; ?>
     <div class="main-content">
 
         <!-- Topbar -->
         <div class="topbar">
             <div>
-                <h4 class="mb-1">Thẻ cá nhân Học viên</h4>
-                <p class="text-muted mb-0">Quản lý hồ sơ, ảnh đại diện và thiết lập bảo mật</p>
+                <h4 class="mb-1">Hồ sơ cá nhân</h4>
+                <p class="text-muted mb-0">Quản lý thông tin tài khoản, ảnh đại diện và bảo mật</p>
             </div>
-            <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-person-badge me-1"></i> Học viên</span>
+            <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-mortarboard-fill me-1"></i> Sinh viên</span>
         </div>
 
         <div class="row g-4">
@@ -152,15 +187,15 @@ include '../includes/header.php';
             <div class="col-lg-4">
                 <div class="card shadow-sm border-0 text-center">
                     <div class="card-body p-4">
-                        
+
                         <!-- Avatar Container với nút chọn ảnh overlay -->
                         <div class="position-relative d-inline-block mb-3">
-                            <img id="avatarPreview" src="<?= $avatarUrl ?>" 
-                                 class="rounded-circle img-thumbnail shadow-sm" 
-                                 style="width: 140px; height: 140px; object-fit: cover;" 
-                                 alt="Avatar Học viên">
-                            <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer" 
-                                   style="cursor: pointer; width: 40px; height: 40px;" title="Tải ảnh mới lên">
+                            <img id="avatarPreview" src="<?= $avatarUrl ?>"
+                                class="rounded-circle img-thumbnail shadow-sm"
+                                style="width: 140px; height: 140px; object-fit: cover;"
+                                alt="Avatar Student">
+                            <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer"
+                                style="cursor: pointer; width: 40px; height: 40px;" title="Tải ảnh mới lên">
                                 <i class="bi bi-camera-fill"></i>
                             </label>
                         </div>
@@ -170,7 +205,7 @@ include '../includes/header.php';
 
                         <div class="d-flex justify-content-center gap-2 mb-3">
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
-                                <i class="bi bi-mortarboard"></i> Student
+                                <i class="bi bi-person-badge"></i> Sinh viên
                             </span>
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
                                 <i class="bi bi-check-circle"></i> Hoạt động
@@ -182,7 +217,7 @@ include '../includes/header.php';
                         <!-- Chi tiết thông tin thêm -->
                         <div class="text-start">
                             <div class="d-flex justify-content-between py-2 border-bottom">
-                                <span class="text-muted"><i class="bi bi-hash me-1"></i> ID Học viên:</span>
+                                <span class="text-muted"><i class="bi bi-hash me-1"></i> Mã sinh viên (ID):</span>
                                 <strong>#<?= $currentUser['id'] ?></strong>
                             </div>
                             <div class="d-flex justify-content-between py-2 border-bottom">
@@ -190,7 +225,7 @@ include '../includes/header.php';
                                 <strong><?= e($currentUser['phone'] ?? 'Chưa cập nhật') ?></strong>
                             </div>
                             <div class="d-flex justify-content-between py-2">
-                                <span class="text-muted"><i class="bi bi-calendar-check me-1"></i> Ngày gia nhập:</span>
+                                <span class="text-muted"><i class="bi bi-calendar-check me-1"></i> Ngày tham gia:</span>
                                 <strong><?= format_date($currentUser['created_at'] ?? date('Y-m-d')) ?></strong>
                             </div>
                         </div>
@@ -211,7 +246,7 @@ include '../includes/header.php';
                     <div class="card-body p-4">
                         <form method="POST" enctype="multipart/form-data">
                             <?php csrf_field(); ?>
-                            
+
                             <!-- Input chọn ảnh đại diện ẩn -->
                             <input type="file" id="avatarInput" name="avatar" class="d-none" accept="image/*" onchange="previewImage(this);">
 
@@ -228,7 +263,7 @@ include '../includes/header.php';
                                     <label class="form-label fw-semibold required">Email liên hệ</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" name="email" class="form-control" value="<?= e($currentUser['email']) ?>" required placeholder="name@example.com">
+                                        <input type="email" name="email" class="form-control" value="<?= e($currentUser['email']) ?>" required placeholder="student@example.com">
                                     </div>
                                 </div>
 
@@ -241,17 +276,17 @@ include '../includes/header.php';
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Vai trò hệ thống</label>
+                                    <label class="form-label fw-semibold">Vai trò</label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-shield"></i></span>
-                                        <input type="text" class="form-control bg-light" value="Học viên (Student)" readonly disabled>
+                                        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                        <input type="text" class="form-control bg-light" value="Sinh viên / Học sinh" readonly disabled>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="alert alert-info d-flex align-middle mt-3 mb-0 p-2 small">
+                            <div class="alert alert-info d-flex align-items-center mt-3 mb-0 p-2 small">
                                 <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                                <div>Bấm vào biểu tượng <strong>máy ảnh</strong> trên hình đại diện bên trái để tải ảnh mới lên (định dạng JPG, PNG, WEBP, tối đa 2MB).</div>
+                                <div>Bấm vào biểu tượng <strong>máy ảnh</strong> trên ảnh đại diện để chọn hình mới (JPG, PNG, WEBP, tối đa 2MB), sau đó bấm <strong>Lưu thay đổi</strong>.</div>
                             </div>
 
                             <div class="mt-4 text-end">
@@ -278,7 +313,12 @@ include '../includes/header.php';
                                 <label class="form-label fw-semibold required">Mật khẩu hiện tại</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" name="current_password" class="form-control" placeholder="Nhập mật khẩu đang dùng..." required>
+                                    <input type="password" id="currentPassword" name="current_password" class="form-control"
+                                        placeholder="Nhập mật khẩu hiện tại..."
+                                        autocomplete="current-password" required>
+                                    <button class="input-group-text" type="button" onclick="togglePassword('currentPassword', this)" title="Hiện/ẩn mật khẩu">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -287,14 +327,14 @@ include '../includes/header.php';
                                     <label class="form-label fw-semibold required">Mật khẩu mới</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-key"></i></span>
-                                        <input type="password" name="new_password" class="form-control" placeholder="Tối thiểu 6 ký tự..." required>
+                                        <input type="password" name="new_password" class="form-control" placeholder="8–20 ký tự..." minlength="8" maxlength="20" required minlength="8" maxlength="20" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{8,20}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold required">Xác nhận mật khẩu mới</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-check2-circle"></i></span>
-                                        <input type="password" name="confirm_password" class="form-control" placeholder="Nhập lại mật khẩu mới..." required>
+                                        <input type="password" name="confirm_password" class="form-control" placeholder="Nhập lại mật khẩu mới..." minlength="8" maxlength="20" required>
                                     </div>
                                 </div>
                             </div>
@@ -315,16 +355,62 @@ include '../includes/header.php';
 </div>
 
 <script>
-// JavaScript xem trước ảnh ngay khi chọn file
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('avatarPreview').src = e.target.result;
-        }
-        reader.readAsDataURL(input.files[0]);
+    function togglePassword(id, button) {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        const icon = button.querySelector('i');
+        if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
     }
-}
+
+    // Xem trước ảnh đại diện lập tức khi chọn file
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+
+<script>
+    (function() {
+        const p = document.querySelector('input[name="new_password"]'),
+            c = document.querySelector('input[name="confirm_password"]');
+        if (!p || !c) return;
+        const valid = v => v.length >= 8 && v.length <= 20 && /[A-Z]/.test(v) && /[a-z]/.test(v) && /[0-9]/.test(v) && /[^A-Za-z0-9\s]/.test(v) && !/\s/.test(v);
+
+        function paint(el, ok, msg) {
+            let b = el.parentElement.nextElementSibling;
+            if (!b || !b.classList.contains("password-live")) {
+                b = document.createElement("div");
+                b.className = "password-live small mt-1";
+                el.parentElement.insertAdjacentElement("afterend", b)
+            }
+            const g = el.closest(".input-group") || el;
+            g.style.boxShadow = el.value ? "0 0 0 3px " + (ok ? "rgba(34,197,94,.10)" : "rgba(239,68,68,.10)") : "";
+            el.style.borderColor = el.value ? (ok ? "#22c55e" : "#ef4444") : "";
+            b.style.color = ok ? "#16a34a" : "#dc2626";
+            b.textContent = el.value ? (ok ? "✓ Mật khẩu hợp lệ" : msg) : ""
+        }
+
+        function check() {
+            const a = valid(p.value),
+                b = c.value === p.value && valid(c.value);
+            paint(p, a, "8–20 ký tự, cần chữ hoa, chữ thường, số, ký tự đặc biệt và không khoảng trắng.");
+            paint(c, b, c.value !== p.value ? "Mật khẩu xác nhận không trùng khớp." : "Mật khẩu xác nhận chưa hợp lệ.");
+            return a && b
+        }
+        p.addEventListener("input", check);
+        c.addEventListener("input", check);
+        p.form?.addEventListener("submit", e => {
+            if (!check()) e.preventDefault()
+        });
+    })();
 </script>
 
 <?php include '../includes/footer.php'; ?>

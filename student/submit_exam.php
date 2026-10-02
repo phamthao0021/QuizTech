@@ -1,122 +1,153 @@
 <?php
 // student/submit_exam.php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
-require_once '../includes/data.php';
-requireLogin();
+
+// Tự động định vị thư mục gốc (root)
+$rootDir = dirname(__DIR__);
+
+require_once $rootDir . '/includes/config.php';
+require_once $rootDir . '/includes/functions.php';
+require_once $rootDir . '/includes/auth.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isLoggedIn()) {
+    header('Location: ../login.php');
+    exit();
+}
+
+$user = currentUser();
+$user_id = (int)($user['id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: exams.php');
-    exit;
+    header('Location: dashboard.php');
+    exit();
 }
 
-global $pdo;
-
+// 1. LẤY DỮ LIỆU TỪ FORM NỘP BÀI
 $exam_id          = (int)($_POST['exam_id'] ?? 0);
-$student_id       = (int)($_SESSION['user_id'] ?? 0);
+$room_id          = (int)($_POST['room_id'] ?? 0);
 $duration_seconds = (int)($_POST['duration_seconds'] ?? 0);
-$user_answers     = $_POST['answers'] ?? []; // Mảng [question_id => "A/B/C/D"]
+$user_answers     = $_POST['answers'] ?? []; // Dạng [question_id => 'A']
 
-if (!$exam_id || !$student_id) {
-    header('Location: exams.php');
-    exit;
-}
-
-// 1. Lấy danh sách câu hỏi chuẩn thuộc đề thi
-try {
-    $stmt_q = $pdo->prepare("
-        SELECT q.id, q.correct_answer 
-        FROM questions q
-        JOIN exam_questions eq ON q.id = eq.question_id
+// 2. TRUY VẤN CÂU HỎI TỪ CSDL
+if ($exam_id === 0) {
+    // Đề thi thử / ôn tập tự do
+    $question_ids = array_keys($user_answers);
+    if (empty($question_ids)) {
+        header('Location: dashboard.php');
+        exit();
+    }
+    $in_clause = implode(',', array_map('intval', $question_ids));
+    $questions = $pdo->query("SELECT * FROM questions WHERE id IN ($in_clause)")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    // Bài thi chính thức: lấy qua bảng trung gian exam_questions
+    $stmtQ = $pdo->prepare("
+        SELECT q.* FROM questions q 
+        JOIN exam_questions eq ON q.id = eq.question_id 
         WHERE eq.exam_id = ?
+        ORDER BY eq.question_order ASC, q.id ASC
     ");
-    $stmt_q->execute([$exam_id]);
-    $questions = $stmt_q->fetchAll();
-} catch (PDOException $e) {
-    $questions = [];
-}
+    $stmtQ->execute([$exam_id]);
+    $questions = $stmtQ->fetchAll(PDO::FETCH_ASSOC);
 
-// Backup: Lấy câu hỏi theo subject_id nếu không xài bảng exam_questions
-if (empty($questions)) {
-    $stmt_exam = $pdo->prepare("SELECT subject_id FROM exams WHERE id = ?");
-    $stmt_exam->execute([$exam_id]);
-    $exam_data = $stmt_exam->fetch();
-    
-    if (!empty($exam_data['subject_id'])) {
-        $stmt_q = $pdo->prepare("SELECT id, correct_answer FROM questions WHERE subject_id = ?");
-        $stmt_q->execute([$exam_data['subject_id']]);
-        $questions = $stmt_q->fetchAll();
+    // Fallback: Nếu không có bảng trung gian, lấy trực tiếp theo exam_id
+    if (empty($questions)) {
+        $stmtQ = $pdo->prepare("SELECT * FROM questions WHERE exam_id = ? ORDER BY id ASC");
+        $stmtQ->execute([$exam_id]);
+        $questions = $stmtQ->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
-// 2. Chấm điểm bài thi
+if (empty($questions)) {
+    die("Không tìm thấy dữ liệu câu hỏi cho bài thi này!");
+}
+
+// 3. TÍNH ĐIỂM VÀ THỐNG KÊ CHI TIẾT
 $total_questions = count($questions);
-$correct_answers = 0;
-$wrong_answers   = 0;
-$unanswered      = 0;
+$correct_count   = 0;
+$detailed_results = [];
+
+$map_letters = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D'];
 
 foreach ($questions as $q) {
     $q_id = $q['id'];
-    $right_ans = strtoupper(trim($q['correct_answer'] ?? ''));
 
-    if (isset($user_answers[$q_id]) && $user_answers[$q_id] !== '') {
-        $user_ans = strtoupper(trim($user_answers[$q_id]));
-        if ($user_ans === $right_ans) {
-            $correct_answers++;
-        } else {
-            $wrong_answers++;
-        }
-    } else {
-        $unanswered++;
+    // Chuẩn hóa đáp án đúng từ DB
+    $raw_correct = $q['correct_option'] ?? $q['correct_answer'] ?? $q['answer'] ?? 'A';
+    $correct_opt = strtoupper(trim((string)$raw_correct));
+    if (isset($map_letters[$correct_opt])) {
+        $correct_opt = $map_letters[$correct_opt];
     }
+
+    // Đáp án của học sinh
+    $user_opt = isset($user_answers[$q_id]) ? strtoupper(trim((string)$user_answers[$q_id])) : '';
+
+    $is_correct = ($user_opt !== '' && $user_opt === $correct_opt);
+    if ($is_correct) {
+        $correct_count++;
+    }
+
+    // Lưu lại thông tin giải thích để hiển thị tại trang result.php
+    $detailed_results[$q_id] = [
+        'user_answer'    => $user_opt,
+        'correct_answer' => $correct_opt,
+        'is_correct'     => $is_correct,
+        'explanation'    => $q['explanation'] ?? $q['explain_text'] ?? $q['solution'] ?? ''
+    ];
 }
 
-// Tính thang điểm 10 và phần trăm
-$score = $total_questions > 0 ? round(($correct_answers / $total_questions) * 10, 2) : 0;
-$percentage = $total_questions > 0 ? round(($correct_answers / $total_questions) * 100, 2) : 0;
-
+$score = $total_questions > 0 ? round(($correct_count / $total_questions) * 10, 2) : 0;
 $answers_json = json_encode($user_answers, JSON_UNESCAPED_UNICODE);
-$now = date('Y-m-d H:i:s');
 
-// 3. Lưu lượt làm bài vào bảng exam_attempts
-$stmt_insert = $pdo->prepare("
-    INSERT INTO exam_attempts (
-        exam_id, 
-        student_id, 
-        started_at, 
-        submitted_at, 
-        duration_seconds, 
-        score, 
-        total_questions, 
-        correct_answers, 
-        wrong_answers, 
-        unanswered, 
-        answers_json, 
-        percentage, 
-        status, 
-        created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?)
-");
+// 4. THÍCH ỨNG CỘT CSDL VÀ LƯU KẾT QUẢ ĐỘNG (CHỐNG LỖI MISSING COLUMN)
+try {
+    $targetTable = $pdo->query("SHOW TABLES LIKE 'results'")->fetch() ? 'results' : 'exam_attempts';
+    $existingCols = $pdo->query("SHOW COLUMNS FROM {$targetTable}")->fetchAll(PDO::FETCH_COLUMN);
 
-$stmt_insert->execute([
-    $exam_id,
-    $student_id,
-    $now, // tạm lấy mốc thời gian hoàn thành làm mốc started_at nếu chưa lưu lúc bắt đầu
-    $now,
-    $duration_seconds,
-    $score,
-    $total_questions,
-    $correct_answers,
-    $wrong_answers,
-    $unanswered,
-    $answers_json,
-    $percentage,
-    $now
-]);
+    $insertData = [];
+    
+    // Ghép dữ liệu tương ứng với cột có sẵn trong CSDL
+    if (in_array('user_id', $existingCols))      $insertData['user_id'] = $user_id;
+    if (in_array('student_id', $existingCols))   $insertData['student_id'] = $user_id;
+    if (in_array('exam_id', $existingCols))      $insertData['exam_id'] = $exam_id;
+    if (in_array('room_id', $existingCols))      $insertData['room_id'] = $room_id;
+    if (in_array('score', $existingCols))        $insertData['score'] = $score;
+    if (in_array('correct_answers', $existingCols)) $insertData['correct_answers'] = $correct_count;
+    if (in_array('total_questions', $existingCols)) $insertData['total_questions'] = $total_questions;
+    if (in_array('answers', $existingCols))      $insertData['answers'] = $answers_json;
+    if (in_array('answers_json', $existingCols)) $insertData['answers_json'] = $answers_json;
+    if (in_array('time_taken', $existingCols))   $insertData['time_taken'] = $duration_seconds;
+    if (in_array('duration_seconds', $existingCols)) $insertData['duration_seconds'] = $duration_seconds;
+    if (in_array('created_at', $existingCols))   $insertData['created_at'] = date('Y-m-d H:i:s');
 
-$attempt_id = $pdo->lastInsertId();
+    $fields = array_keys($insertData);
+    $placeholders = array_map(fn($f) => ":{$f}", $fields);
 
-// 4. Chuyển hướng tới trang chi tiết kết quả
-header("Location: result.php?id=" . $attempt_id);
-exit;
+    $sqlInsert = "INSERT INTO {$targetTable} (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+    $stmtInsert = $pdo->prepare($sqlInsert);
+    $stmtInsert->execute($insertData);
+    
+    $result_id = $pdo->lastInsertId();
+
+    // Lưu tạm kết quả giải thích vào Session để hiển thị ở result.php
+    $_SESSION['last_exam_result'] = [
+        'result_id'        => $result_id,
+        'exam_id'          => $exam_id,
+        'score'            => $score,
+        'correct_count'    => $correct_count,
+        'total_questions'  => $total_questions,
+        'duration_seconds' => $duration_seconds,
+        'detailed_results' => $detailed_results
+    ];
+
+    // Chuyển hướng sang trang kết quả
+    header("Location: exam_result.php?id=" . $result_id);
+    exit();
+
+} catch (PDOException $e) {
+    die("<div style='padding:20px; color:red; font-family:sans-serif;'>
+            <h3>Lỗi CSDL khi lưu kết quả:</h3> " . htmlspecialchars($e->getMessage()) . "
+         </div>");
+}

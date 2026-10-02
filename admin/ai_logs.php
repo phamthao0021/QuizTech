@@ -1,14 +1,11 @@
 <?php
-// admin/ai_logs.php hoặc admin/activity_logs.php
-session_start();
-require_once __DIR__ . '/../includes/data.php'; // Điều chỉnh lại đường dẫn file db chuẩn của bạn nếu cần
+// admin/ai_logs.php
+require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/data.php';
 
-// Kiểm tra quyền truy cập (Chỉ Admin và Teacher)
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'teacher'])) {
-    header('Location: ../login.php');
-    exit;
-}
+requireAdmin();
 
 // KHỞI TẠO BIẾN TÌM KIẾM & PHÂN TRANG
 $search_keyword = trim($_GET['search'] ?? '');
@@ -19,12 +16,6 @@ $offset         = ($page - 1) * $limit;
 // XÂY DỰNG CÂU QUERY
 $whereClauses = ["1=1"];
 $params = [];
-
-// Nếu là Giáo viên, chỉ xem nhật ký do chính mình thực hiện
-if ($_SESSION['role'] === 'teacher') {
-    $whereClauses[] = "l.user_id = ?";
-    $params[] = $_SESSION['user_id'];
-}
 
 if (!empty($search_keyword)) {
     $whereClauses[] = "(l.action LIKE ? OR l.description LIKE ?)";
@@ -55,7 +46,7 @@ $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Nạp Header giao diện sẵn có của dự án
-include_once __DIR__ . '/../includes/header.php';
+include_once __DIR__ . '/../includes/header_admin.php';
 ?>
 
 <div class="page-wrapper d-flex">

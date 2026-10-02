@@ -83,7 +83,7 @@ $subjects = getSubjects();
 $questions = getQuestions();
 
 $page_title = 'AI Generator';
-include '../includes/header.php';
+include '../includes/header_admin.php';
 ?>
 <style>
   /* ============================================

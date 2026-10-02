@@ -1,23 +1,24 @@
 <?php
 // includes/config.php
+
 $host = 'localhost';
-$dbname = 'pltprov1_jindo_plt_quiztech';
-$username = 'pltprov1_jindo_plt_quiztech';
-$password = 'Q%tY}~Wr&gXI6[0@';
+$db   = 'quiztech';
+$user = 'root';
+$pass = '';
 
-// Kết nối PDO
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch(PDOException $e) {
-    die("Lỗi kết nối database: " . $e->getMessage());
-}
+    $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
 
-// Cấu hình session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+];
 
-// Cấu hình timezone
-date_default_timezone_set('Asia/Ho_Chi_Minh');
+$pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+    die('Kết nối cơ sở dữ liệu thất bại: ' . $e->getMessage());
+}
+// Require file chứa các hàm hệ thống
+require_once __DIR__ . '/functions.php';

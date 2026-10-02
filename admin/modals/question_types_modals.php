@@ -231,8 +231,8 @@ MODAL THÊM TRUE/FALSE (ĐÚNG/SAI)
                     <div class="mb-3">
                         <label class="form-label">Đáp án</label>
                         <select name="is_true" class="form-select">
-                            <option value="1">✅ Đúng</option>
-                            <option value="0">❌ Sai</option>
+                            <option value="1">Đúng</option>
+                            <option value="0">Sai</option>
                         </select>
                     </div>
                     <div class="row">
