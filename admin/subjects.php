@@ -204,8 +204,18 @@ XML;
 /* =========================================================
    XỬ LÝ CÁC THAO TÁC POST
    ========================================================= */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+   
+// Lấy và chuẩn hóa phương thức HTTP
+$requestMethod = strtoupper(
+    (string) (filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET')
+);
+
+// Xử lý các thao tác POST
+if ($requestMethod === 'POST') {
+
+    $action = isset($_POST['action']) && is_string($_POST['action'])
+        ? trim($_POST['action'])
+        : '';
 
     try {
         // 1. Thêm môn học
@@ -627,8 +637,111 @@ include '../includes/header_admin.php';
 .data-import-drop{border:1.5px dashed #c4b5fd;background:linear-gradient(180deg,#faf8ff,#fff);border-radius:1rem;padding:1.1rem}
 .data-import-format{background:#f8fafc;border:1px solid #e7ebf1;border-radius:.85rem;padding:.85rem 1rem;font-size:.85rem}
 .data-import-format code{color:#6d28d9;line-height:1.8}
+/* ===== PHÂN TRANG MÔN HỌC ===== */
+
+.subjects-wrapper .qt-subject-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    padding: 18px 4px 4px;
+    margin-top: 16px;
+
+    border-top: 1px solid #e8eaf2;
+}
+
+.subjects-wrapper .qt-subject-pager-info {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.subjects-wrapper .qt-subject-pager-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subjects-wrapper .qt-subject-pager-controls label {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.subjects-wrapper #qtSubjectPageSize {
+    width: 85px;
+    min-height: 38px;
+    border: 1px solid #dce3ef;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.subjects-wrapper #qtSubjectPrev,
+.subjects-wrapper #qtSubjectNext {
+    min-height: 38px;
+    padding: 7px 15px;
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+
+    color: #4f46e5;
+    background: #fff;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.subjects-wrapper #qtSubjectPrev:hover:not(:disabled),
+.subjects-wrapper #qtSubjectNext:hover:not(:disabled) {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.subjects-wrapper #qtSubjectPrev:disabled,
+.subjects-wrapper #qtSubjectNext:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.subjects-wrapper #qtSubjectPageNumber {
+    min-width: 45px;
+    text-align: center;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+@media (max-width: 767px) {
+    .subjects-wrapper .qt-subject-pager {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .subjects-wrapper .qt-subject-pager-info {
+        text-align: center;
+    }
+
+    .subjects-wrapper .qt-subject-pager-controls {
+        justify-content: center;
+    }
+}
+
+/* Refresh — shared Admin toolbar */
+.qt-refresh-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:8px 16px;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#475569;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.qt-refresh-btn:hover{background:#f5f3ff;border-color:#8b5cf6;color:#6d28d9}
+.qt-refresh-btn:focus-visible{outline:3px solid #ddd6fe;outline-offset:2px}
+.qt-refresh-btn:disabled{opacity:.65;cursor:wait}
+.qt-refresh-btn.is-loading i{animation:qtRefreshSpin .7s linear infinite}
+@keyframes qtRefreshSpin{to{transform:rotate(360deg)}}
+@media(max-width:575.98px){.qt-refresh-btn{width:100%}}
+
 </style>
 
+
+<link rel="stylesheet" href="../assets/css/qt-admin-five-pages-import-safe.css?v=20261027">
 <div class="container-fluid px-0 subjects-wrapper">
 
   <!-- Header Banner -->
@@ -692,6 +805,7 @@ include '../includes/header_admin.php';
                placeholder="Tìm môn học, mô tả, giảng viên..." oninput="filterSubjects()">
       </div>
     </div>
+    <button type="button" class="qt-refresh-btn" id="qtRefreshBtn" title="Tải lại dữ liệu" aria-label="Làm mới dữ liệu"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i><span>Làm mới</span></button>
     <div class="ms-auto">
       <span class="subjects-count"><i class="bi bi-journals"></i><?= count($subjects) ?> môn học</span>
     </div>
@@ -855,6 +969,63 @@ include '../includes/header_admin.php';
               </tbody>
             </table>
           </div>
+
+          <!-- PHÂN TRANG MÔN HỌC -->
+          <div class="qt-subject-pager" id="qtSubjectPager">
+
+              <!-- Thống kê bản ghi -->
+              <div
+                  class="qt-subject-pager-info"
+                  id="qtSubjectPageInfo"
+                  aria-live="polite"
+              >
+                  Hiển thị 0 / 0 môn học
+              </div>
+
+              <!-- Điều khiển phân trang -->
+              <div class="qt-subject-pager-controls">
+
+                  <label for="qtSubjectPageSize">
+                      Số dòng / trang
+                  </label>
+
+                  <select
+                      id="qtSubjectPageSize"
+                      class="form-select form-select-sm"
+                  >
+                      <option value="10" selected>10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                  </select>
+
+                  <button
+                      type="button"
+                      id="qtSubjectPrev"
+                      class="btn btn-sm"
+                      disabled
+                  >
+                      <i class="bi bi-chevron-left"></i>
+                      Trước
+                  </button>
+
+                  <span id="qtSubjectPageNumber">
+                      1 / 1
+                  </span>
+
+                  <button
+                      type="button"
+                      id="qtSubjectNext"
+                      class="btn btn-sm"
+                      disabled
+                  >
+                      Sau
+                      <i class="bi bi-chevron-right"></i>
+                  </button>
+
+              </div>
+          </div>
+
         <?php endif; ?>
       </div>
     </div>
@@ -936,67 +1107,464 @@ include '../includes/header_admin.php';
 </div>
 
 <script>
-  function filterSubjects() {
-    const keyword = (document.getElementById('subjectSearch')?.value || '').toLocaleLowerCase('vi').trim();
-    document.querySelectorAll('.subject-row').forEach(row => {
-      const haystack = (row.dataset.search || '').toLocaleLowerCase('vi');
-      row.style.display = (!keyword || haystack.includes(keyword)) ? '' : 'none';
-    });
-  }
+"use strict";
 
+/* =========================================================
+   QUIZTECH ADMIN - SUBJECTS
+   SEARCH + PAGINATION + BULK DELETE + CRUD ACTIONS
+   ========================================================= */
 
-  // ===== Chọn tất cả / bỏ chọn tất cả + hiện thanh xóa hàng loạt =====
-  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-  const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-  const bulkToolbar = document.getElementById('bulkToolbar');
-  const bulkSelectedCount = document.getElementById('bulkSelectedCount');
+let qtSubjectPage = 1;
+let qtSubjectPageSize = 10;
 
-  function updateBulkToolbar() {
-    const checked = document.querySelectorAll('.row-checkbox:checked').length;
-    bulkSelectedCount.textContent = checked;
-    bulkToolbar.classList.toggle('show', checked > 0);
-  }
+/* =========================================================
+   1. LẤY DANH SÁCH DÒNG
+   ========================================================= */
 
-  if (selectAllCheckbox) {
-    selectAllCheckbox.addEventListener('change', () => {
-      rowCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-      updateBulkToolbar();
-    });
-  }
+function getSubjectRows() {
+    return Array.from(
+        document.querySelectorAll(".subject-row")
+    );
+}
 
-  rowCheckboxes.forEach(cb => cb.addEventListener('change', updateBulkToolbar));
+/* =========================================================
+   2. TÌM KIẾM VÀ PHÂN TRANG
+   ========================================================= */
 
-  // ===== Xóa 1 môn học (dùng lại form ẩn) =====
-  function deleteSingle(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa môn học này? Dữ liệu phân công cũng sẽ bị xóa.')) return;
-    document.getElementById('hiddenAction').value = 'delete';
-    document.getElementById('hiddenId').value = id;
-    document.getElementById('hiddenActionForm').submit();
-  }
+function filterSubjects(resetPage = true) {
 
-  // ===== Gán giảng viên =====
-  function assignTeacher(subjectId, btnEl) {
-    const select = document.querySelector(`.assign-teacher-select[data-subject-id="${subjectId}"]`);
-    const teacherId = select ? select.value : '';
-    if (!teacherId) {
-      alert('Vui lòng chọn giảng viên trước khi gán.');
-      return;
+    if (resetPage) {
+        qtSubjectPage = 1;
     }
-    document.getElementById('hiddenAction').value = 'assign_teacher';
-    document.getElementById('hiddenSubjectId').value = subjectId;
-    document.getElementById('hiddenTeacherId').value = teacherId;
-    document.getElementById('hiddenActionForm').submit();
-  }
 
-  // ===== Hủy gán giảng viên =====
-  function removeTeacher(subjectId, teacherId) {
-    if (!confirm('Hủy phân công giảng viên này khỏi môn học?')) return;
-    document.getElementById('hiddenAction').value = 'remove_teacher';
-    document.getElementById('hiddenSubjectId').value = subjectId;
-    document.getElementById('hiddenTeacherId').value = teacherId;
-    document.getElementById('hiddenActionForm').submit();
-  }
+    const searchInput =
+        document.getElementById("subjectSearch");
+
+    const keyword = (
+        searchInput ? searchInput.value : ""
+    ).trim().toLocaleLowerCase("vi");
+
+    const rows = getSubjectRows();
+
+    // Lọc dữ liệu theo từ khóa
+    const matchedRows = rows.filter(row => {
+
+        const searchText = (
+            row.dataset.search || ""
+        ).toLocaleLowerCase("vi");
+
+        return (
+            keyword === "" ||
+            searchText.includes(keyword)
+        );
+    });
+
+    const totalRecords = matchedRows.length;
+
+    // Tính tổng số trang
+    const totalPages = Math.max(
+        1,
+        Math.ceil(totalRecords / qtSubjectPageSize)
+    );
+
+    // Giới hạn trang hiện tại
+    qtSubjectPage = Math.max(
+        1,
+        Math.min(qtSubjectPage, totalPages)
+    );
+
+    const startIndex =
+        (qtSubjectPage - 1) * qtSubjectPageSize;
+
+    const endIndex = Math.min(
+        startIndex + qtSubjectPageSize,
+        totalRecords
+    );
+
+    // Ẩn tất cả dòng
+    rows.forEach(row => {
+        row.hidden = true;
+        row.style.display = "none";
+    });
+
+    // Hiển thị dòng thuộc trang hiện tại
+    matchedRows
+        .slice(startIndex, endIndex)
+        .forEach(row => {
+            row.hidden = false;
+            row.style.display = "";
+        });
+
+    /* ------------------------------
+       Cập nhật thông tin phân trang
+       ------------------------------ */
+
+    const pageInfo =
+        document.getElementById("qtSubjectPageInfo");
+
+    if (pageInfo) {
+
+        if (totalRecords === 0) {
+
+            pageInfo.textContent =
+                "Không tìm thấy môn học phù hợp";
+
+        } else {
+
+            pageInfo.textContent =
+                `Hiển thị ${startIndex + 1}–${endIndex} / ${totalRecords} môn học`;
+
+        }
+    }
+
+    /* ------------------------------
+       Cập nhật số trang
+       ------------------------------ */
+
+    const pageNumber =
+        document.getElementById("qtSubjectPageNumber");
+
+    if (pageNumber) {
+        pageNumber.textContent =
+            `${qtSubjectPage} / ${totalPages}`;
+    }
+
+    /* ------------------------------
+       Trạng thái nút Trước / Sau
+       ------------------------------ */
+
+    const prevButton =
+        document.getElementById("qtSubjectPrev");
+
+    const nextButton =
+        document.getElementById("qtSubjectNext");
+
+    if (prevButton) {
+        prevButton.disabled = qtSubjectPage <= 1;
+    }
+
+    if (nextButton) {
+        nextButton.disabled =
+            qtSubjectPage >= totalPages;
+    }
+
+    // Đồng bộ checkbox chọn tất cả
+    updateSelectAllState();
+}
+
+/* =========================================================
+   3. CHUYỂN TRANG
+   ========================================================= */
+
+function changeSubjectPage(direction) {
+
+    const nextPage = qtSubjectPage + direction;
+
+    if (nextPage < 1) {
+        return;
+    }
+
+    qtSubjectPage = nextPage;
+
+    filterSubjects(false);
+}
+
+/* =========================================================
+   4. CHECKBOX VÀ XÓA HÀNG LOẠT
+   ========================================================= */
+
+function getVisibleSubjectCheckboxes() {
+
+    return Array.from(
+        document.querySelectorAll(".row-checkbox")
+    ).filter(checkbox => {
+
+        const row = checkbox.closest(".subject-row");
+
+        return row && !row.hidden;
+    });
+}
+
+function updateBulkToolbar() {
+
+    const checkedCount =
+        document.querySelectorAll(
+            ".row-checkbox:checked"
+        ).length;
+
+    const bulkToolbar =
+        document.getElementById("bulkToolbar");
+
+    const bulkSelectedCount =
+        document.getElementById("bulkSelectedCount");
+
+    if (bulkSelectedCount) {
+        bulkSelectedCount.textContent = checkedCount;
+    }
+
+    if (bulkToolbar) {
+        bulkToolbar.classList.toggle(
+            "show",
+            checkedCount > 0
+        );
+    }
+}
+
+function updateSelectAllState() {
+
+    const selectAll =
+        document.getElementById("selectAllCheckbox");
+
+    if (!selectAll) {
+        return;
+    }
+
+    const visibleCheckboxes =
+        getVisibleSubjectCheckboxes();
+
+    const selectedCount =
+        visibleCheckboxes.filter(
+            checkbox => checkbox.checked
+        ).length;
+
+    selectAll.checked =
+        visibleCheckboxes.length > 0 &&
+        selectedCount === visibleCheckboxes.length;
+
+    selectAll.indeterminate =
+        selectedCount > 0 &&
+        selectedCount < visibleCheckboxes.length;
+
+    updateBulkToolbar();
+}
+
+/* =========================================================
+   5. XÓA MỘT MÔN HỌC
+   ========================================================= */
+
+function deleteSingle(id) {
+
+    const confirmed = confirm(
+        "Bạn có chắc chắn muốn xóa môn học này?\n" +
+        "Dữ liệu phân công giảng viên liên quan cũng sẽ bị xóa."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    document.getElementById(
+        "hiddenAction"
+    ).value = "delete";
+
+    document.getElementById(
+        "hiddenId"
+    ).value = id;
+
+    document.getElementById(
+        "hiddenActionForm"
+    ).submit();
+}
+
+/* =========================================================
+   6. GÁN GIẢNG VIÊN
+   ========================================================= */
+
+function assignTeacher(subjectId, btnEl) {
+
+    const select = document.querySelector(
+        `.assign-teacher-select[data-subject-id="${subjectId}"]`
+    );
+
+    const teacherId = select ? select.value : "";
+
+    if (!teacherId) {
+
+        alert(
+            "Vui lòng chọn giảng viên trước khi gán."
+        );
+
+        return;
+    }
+
+    document.getElementById(
+        "hiddenAction"
+    ).value = "assign_teacher";
+
+    document.getElementById(
+        "hiddenSubjectId"
+    ).value = subjectId;
+
+    document.getElementById(
+        "hiddenTeacherId"
+    ).value = teacherId;
+
+    document.getElementById(
+        "hiddenActionForm"
+    ).submit();
+}
+
+/* =========================================================
+   7. HỦY PHÂN CÔNG GIẢNG VIÊN
+   ========================================================= */
+
+function removeTeacher(subjectId, teacherId) {
+
+    const confirmed = confirm(
+        "Bạn có chắc chắn muốn hủy phân công " +
+        "giảng viên này khỏi môn học?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    document.getElementById(
+        "hiddenAction"
+    ).value = "remove_teacher";
+
+    document.getElementById(
+        "hiddenSubjectId"
+    ).value = subjectId;
+
+    document.getElementById(
+        "hiddenTeacherId"
+    ).value = teacherId;
+
+    document.getElementById(
+        "hiddenActionForm"
+    ).submit();
+}
+
+/* =========================================================
+   8. KHỞI TẠO
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput =
+        document.getElementById("subjectSearch");
+
+    const pageSizeSelect =
+        document.getElementById("qtSubjectPageSize");
+
+    const prevButton =
+        document.getElementById("qtSubjectPrev");
+
+    const nextButton =
+        document.getElementById("qtSubjectNext");
+
+    const selectAll =
+        document.getElementById("selectAllCheckbox");
+
+    /* Tìm kiếm */
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+                filterSubjects(true);
+            }
+        );
+    }
+
+    /* Chọn số dòng */
+
+    if (pageSizeSelect) {
+
+        pageSizeSelect.addEventListener(
+            "change",
+            function () {
+
+                qtSubjectPageSize =
+                    parseInt(this.value, 10) || 10;
+
+                filterSubjects(true);
+            }
+        );
+    }
+
+    /* Trang trước */
+
+    if (prevButton) {
+
+        prevButton.addEventListener(
+            "click",
+            function () {
+                changeSubjectPage(-1);
+            }
+        );
+    }
+
+    /* Trang sau */
+
+    if (nextButton) {
+
+        nextButton.addEventListener(
+            "click",
+            function () {
+                changeSubjectPage(1);
+            }
+        );
+    }
+
+    /* Chọn tất cả trên trang hiện tại */
+
+    if (selectAll) {
+
+        selectAll.addEventListener(
+            "change",
+            function () {
+
+                const visibleCheckboxes =
+                    getVisibleSubjectCheckboxes();
+
+                visibleCheckboxes.forEach(
+                    checkbox => {
+                        checkbox.checked =
+                            selectAll.checked;
+                    }
+                );
+
+                updateSelectAllState();
+            }
+        );
+    }
+
+    /* Chọn từng dòng */
+
+    document.querySelectorAll(
+        ".row-checkbox"
+    ).forEach(checkbox => {
+
+        checkbox.addEventListener(
+            "change",
+            updateSelectAllState
+        );
+    });
+
+    /* Khởi tạo trang đầu */
+
+    filterSubjects(true);
+});
+
 </script>
 
-</main> <!-- Đóng thẻ main từ header_admin.php -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const button = document.getElementById('qtRefreshBtn');
+    if (!button) return;
+    button.addEventListener('click', function () {
+        if (button.disabled) return;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        const label = button.querySelector('span');
+        if (label) label.textContent = 'Đang tải...';
+        // Giữ nguyên query string, bộ lọc và trang hiện tại nếu được lưu trên URL.
+        window.location.reload();
+    });
+});
+</script>
+
 <?php include '../includes/footer.php'; ?>

@@ -18,37 +18,32 @@ if (!isLoggedIn()) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Phương thức không hợp lệ!']);
     exit;
 }
 
-$user_id     = $_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? 0;
+$expected=(string)($_SESSION['csrf_token']??'');
+$actual=(string)($_SERVER['HTTP_X_CSRF_TOKEN']??'');
+if (!$expected || !hash_equals($expected,$actual)) {
+    http_response_code(419);echo json_encode(['success'=>false,'message'=>'CSRF hết hạn. Hãy tải lại trang.']);exit;
+}
+$current=currentUser();
+if (!$current || normalizeRole($current['role']??'')!=='student') {
+    http_response_code(403);echo json_encode(['success'=>false,'message'=>'Không có quyền báo lỗi.']);exit;
+}
+$user_id=(int)$current['id'];
 $question_id = isset($_POST['question_id']) ? intval($_POST['question_id']) : 0;
 $exam_id     = isset($_POST['exam_id']) ? intval($_POST['exam_id']) : 0;
 $report_type = trim($_POST['report_type'] ?? 'Khác');
 $content     = trim($_POST['content'] ?? '');
 
-if (empty($content)) {
+if ($question_id<1 || strlen($content)<10 || strlen($content)>8000 || strlen($report_type)>320) {
     echo json_encode(['success' => false, 'message' => 'Vui lòng nhập nội dung chi tiết báo lỗi!']);
     exit;
 }
 
 try {
-    // Tự động kiểm tra & tạo bảng nếu chưa tồn tại
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `practice_feedback` (
-        `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `user_id` INT NOT NULL,
-        `type` VARCHAR(50) NOT NULL DEFAULT 'question_report',
-        `exam_id` INT NULL,
-        `question_id` INT NULL,
-        `title` VARCHAR(255) NULL,
-        `content` TEXT NOT NULL,
-        `status` VARCHAR(20) DEFAULT 'pending',
-        `admin_note` TEXT NULL,
-        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
     $title = "Báo lỗi câu hỏi #" . $question_id . " (" . $report_type . ")";
 
     $stmt = $pdo->prepare("
@@ -56,10 +51,18 @@ try {
         VALUES (?, 'question_report', ?, ?, ?, ?, 'pending', NOW())
     ");
     $stmt->execute([$user_id, $exam_id ?: null, $question_id, $title, $content]);
+    $feedbackId = (int)$pdo->lastInsertId();
+    try {
+        require_once dirname(__DIR__) . '/includes/qt_feedback_admin_notice.php';
+        qt_feedback_alert_admin($pdo, (int)$user_id, $feedbackId, 'question_report', (string)$title);
+    } catch (Throwable $noticeError) {
+        error_log('Feedback saved but admin notification failed for feedback #' . $feedbackId . ': ' . $noticeError->getMessage());
+    }
 
     echo json_encode(['success' => true, 'message' => 'Đã gửi báo cáo câu hỏi thành công!']);
     exit;
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Lỗi lưu báo cáo: ' . $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('Student report error: '.$e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Chưa lưu được báo cáo. Kiểm tra dữ liệu hoặc liên hệ quản trị viên.']);
     exit;
 }

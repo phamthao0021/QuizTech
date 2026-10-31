@@ -231,13 +231,14 @@ require_once $rootDir . '/includes/header_student.php';
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Nội dung góp ý / Chi tiết lỗi:</label>
-                    <textarea class="form-control rounded-3" id="reportContent" rows="4" placeholder="Mô tả chi tiết nội dung bị lỗi..."></textarea>
+                    <textarea class="form-control rounded-3" id="reportContent" rows="4" minlength="10" maxlength="2000" aria-describedby="reportContentHelp" placeholder="Ví dụ: Đáp án đúng phải là let, nhưng hệ thống đang chấm sai."></textarea>
+                    <div id="reportContentHelp" class="form-text">Nhập ít nhất 10 ký tự để gửi báo cáo. <span id="reportCharCount">0/10</span></div>
                 </div>
                 <div id="reportAlert" class="alert d-none py-2 px-3 mb-0 rounded-3 small"></div>
             </div>
             <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
                 <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary bg-gradient-purple border-0 rounded-pill px-4 fw-semibold" id="btnSubmitReport" onclick="executeSubmitReport()">
+                <button type="button" class="btn btn-primary bg-gradient-purple border-0 rounded-pill px-4 fw-semibold" id="btnSubmitReport">
                     <i class="bi bi-send me-1"></i>Gửi báo cáo
                 </button>
             </div>
@@ -410,63 +411,137 @@ require_once $rootDir . '/includes/header_student.php';
         reportModal.show();
     }
 
-    function executeSubmitReport() {
+    // Thông báo cố định ngoài modal: không bị backdrop che khuất.
+    function qtShowReportToast(message, success) {
+        let toast = document.getElementById('qtReportGlobalToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'qtReportGlobalToast';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:20000;max-width:min(420px,calc(100vw - 40px));padding:14px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.2);font-weight:600;';
+            document.body.appendChild(toast);
+        }
+        toast.style.background = success ? '#dcfce7' : '#fee2e2';
+        toast.style.color = success ? '#166534' : '#991b1b';
+        toast.textContent = (success ? '✓ ' : '⚠ ') + message;
+        toast.style.display = 'block';
+        clearTimeout(window.qtReportToastTimer);
+        window.qtReportToastTimer = setTimeout(() => { toast.style.display = 'none'; }, 5000);
+    }
+
+    function qtCloseReportModal() {
+        const element = document.getElementById('reportModal');
+        if (!element) return;
+        try {
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(element).hide();
+            }
+        } catch (e) { console.warn('Bootstrap modal hide:', e); }
+        // Bảo đảm modal được đóng nếu có xung đột Bootstrap hoặc transition bị treo.
+        window.setTimeout(function () {
+            if (element.classList.contains('show') || getComputedStyle(element).display !== 'none') {
+                element.classList.remove('show');
+                element.style.display = 'none';
+                element.setAttribute('aria-hidden', 'true');
+                element.removeAttribute('aria-modal');
+                document.querySelectorAll('.modal-backdrop').forEach(node => node.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }
+        }, 450);
+    }
+
+    async function executeSubmitReport() {
         const questionId = document.getElementById('reportQuestionId').value;
         const examId = document.getElementById('reportExamId').value;
         const reportType = document.getElementById('reportType').value;
         const content = document.getElementById('reportContent').value.trim();
         const alertBox = document.getElementById('reportAlert');
         const btnSubmit = document.getElementById('btnSubmitReport');
-
-        if (content === '') {
-            alertBox.className = 'alert alert-danger py-2 px-3 mb-0 rounded-3 small';
-            alertBox.innerText = 'Vui lòng nhập nội dung chi tiết lỗi!';
-            alertBox.classList.remove('d-none');
+        if (!btnSubmit || btnSubmit.disabled) return;
+        function showReportMessage(message, success) {
+            alertBox.className = 'alert alert-' + (success ? 'success' : 'danger') + ' py-2 px-3 mb-0 rounded-3 small';
+            alertBox.textContent = message;
+        }
+        if (content.length < 10) {
+            showReportMessage('Bạn mới nhập ' + content.length + '/10 ký tự. Vui lòng mô tả lỗi rõ hơn để gửi báo cáo.', false);
+            document.getElementById('reportContent').focus();
             return;
         }
-
+        if (content.length > 2000) {
+            showReportMessage('Nội dung báo lỗi không được vượt quá 2000 ký tự.', false);
+            return;
+        }
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang gửi...';
-
         const formData = new FormData();
         formData.append('question_id', questionId);
         formData.append('exam_id', examId);
         formData.append('report_type', reportType);
         formData.append('content', content);
-
-        fetch('ajax_submit_report.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alertBox.className = 'alert alert-success py-2 px-3 mb-0 rounded-3 small';
-                alertBox.innerText = data.message;
-                alertBox.classList.remove('d-none');
-
-                setTimeout(() => {
-                    const reportModal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
-                    if (reportModal) reportModal.hide();
-                }, 1500);
-            } else {
-                alertBox.className = 'alert alert-danger py-2 px-3 mb-0 rounded-3 small';
-                alertBox.innerText = data.message || 'Có lỗi xảy ra!';
-                alertBox.classList.remove('d-none');
-                
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Gửi báo cáo';
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+            const response = await fetch('ajax_submit_report.php', {
+                method: 'POST',
+                headers: {'X-CSRF-Token': <?= json_encode(csrf_token()) ?>},
+                body: formData,
+                credentials: 'same-origin',
+                cache: 'no-store',
+                signal: controller.signal
+            });
+            const raw = await response.text();
+            let data;
+            try { data = JSON.parse(raw.trim()); }
+            catch (_) {
+                console.error('Phản hồi gửi báo lỗi không phải JSON:', response.status, raw);
+                throw new Error('Máy chủ không trả JSON hợp lệ (HTTP ' + response.status + '). Vui lòng kiểm tra nhật ký PHP.');
             }
-        })
-        .catch(error => {
-            alertBox.className = 'alert alert-danger py-2 px-3 mb-0 rounded-3 small';
-            alertBox.innerText = 'Lỗi kết nối máy chủ!';
-            alertBox.classList.remove('d-none');
-
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Không gửi được báo cáo (HTTP ' + response.status + ').');
+            }
+            // Backend xác nhận thành công: thông báo và đóng modal, kể cả khi Bootstrap lỗi.
+            const successMessage = data.message || 'Đã gửi báo cáo câu hỏi thành công!';
+            qtCloseReportModal();
+            qtShowReportToast(successMessage, true);
+            document.getElementById('reportContent').value = '';
+            const counter = document.getElementById('reportCharCount');
+            if (counter) counter.textContent = '0/10';
+        } catch (error) {
+            const errorMessage = error.name === 'AbortError'
+                ? 'Yêu cầu quá 15 giây. Kiểm tra phản hồi trước khi gửi lại để tránh trùng.'
+                : (error.message || 'Lỗi kết nối máy chủ!');
+            showReportMessage(errorMessage, false);
+            qtShowReportToast(errorMessage, false);
+        } finally {
+            clearTimeout(timeout);
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Gửi báo cáo';
-        });
+        }
     }
+
+    // Gắn sự kiện trực tiếp, tránh lỗi handler inline không tìm được hàm.
+    document.getElementById('btnSubmitReport')?.addEventListener('click', function (event) {
+        event.preventDefault();
+        executeSubmitReport();
+    });
+
+    // Hiển thị ràng buộc ngay khi sinh viên nhập nội dung báo cáo.
+    document.getElementById('reportContent')?.addEventListener('input', function () {
+        const count = this.value.trim().length;
+        const indicator = document.getElementById('reportCharCount');
+        if (indicator) {
+            indicator.textContent = count + '/10';
+            indicator.className = count >= 10 ? 'text-success fw-semibold' : 'text-danger fw-semibold';
+        }
+        const alert = document.getElementById('reportAlert');
+        if (alert && count >= 10 && alert.textContent.includes('ký tự')) {
+            alert.className = 'alert d-none py-2 px-3 mb-0 rounded-3 small';
+            alert.textContent = '';
+        }
+    });
 
     // ==========================================
     // LOGIC CHỐNG GIAN LẬN (ANTI-CHEAT SYSTEM)

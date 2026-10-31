@@ -5,7 +5,7 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
 
 $page_title   = $page_title ?? 'QuizTech - Quản trị hệ thống';
-$current_page = basename($_SERVER['PHP_SELF']);
+$current_page = basename($_SERVER['PHP_SELF'] ?? '');
 
 // Xác định vị trí file gọi để tính toán prefix đường dẫn
 $scriptPath = str_replace('\\', '/', $_SERVER['PHP_SELF'] ?? '');
@@ -38,13 +38,15 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" crossorigin="anonymous">
 
-  <!-- OCR Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+  <!-- OCR chỉ tải ở các trang xử lý câu hỏi/đề thi; không chặn render các trang khác. -->
+  <?php if (preg_match('~/(questions|create_exam|edit_exam|exams|import_questions|ocr)\.php$~', $scriptPath)): ?>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+  <?php endif; ?>
 
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <!-- Vietnamese typography: Be Vietnam Pro -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Custom CSS -->
   <link href="<?= $prefix ?>assets/css/style.css" rel="stylesheet">
@@ -64,7 +66,7 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
       background-color: var(--bg-canvas);
       color: var(--text-dark);
       overflow-x: hidden;
@@ -93,31 +95,42 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
     }
 
     .sidebar-brand-wrapper {
-      padding: 1.25rem 1.5rem;
+      padding: 0.85rem 1.25rem;
       background: rgba(0, 0, 0, 0.15);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .brand-logo-img {
-      height: 38px;
+      height: 36px;
       width: auto;
       filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
     }
 
     .sidebar-menu-wrapper {
-      padding: 1rem 0;
+      padding: 0.35rem 0;
       flex-grow: 1;
       overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .sidebar-menu-wrapper::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-menu-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
     }
 
     .sidebar-label {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #c084fc;
       font-weight: 700;
-      padding: 0.85rem 1.5rem 0.35rem;
+      padding: 0.4rem 1.35rem 0.15rem;
       opacity: 0.85;
     }
 
@@ -125,20 +138,20 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
     .admin-sidebar .nav-link,
     #mobileAdminSidebar .nav-link {
       color: #e9d5ff !important;
-      padding: 0.75rem 1.15rem;
-      border-radius: 14px;
-      margin: 0.25rem 1rem;
+      padding: 0.45rem 0.95rem;
+      border-radius: 11px;
+      margin: 0.1rem 0.85rem;
       font-weight: 500;
-      font-size: 0.925rem;
+      font-size: 0.86rem;
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.75rem;
       transition: all 0.25s ease;
     }
 
     .admin-sidebar .nav-link i,
     #mobileAdminSidebar .nav-link i {
-      font-size: 1.15rem;
+      font-size: 1rem;
       transition: transform 0.25s ease;
     }
 
@@ -481,7 +494,8 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
     /* Sidebar desktop đồng bộ với giao diện giảng viên */
     :root { --sidebar-collapsed-width: 82px; }
     .admin-sidebar { min-width: var(--sidebar-width); flex: 0 0 var(--sidebar-width); overflow: hidden; position: sticky; top: 0; height: 100vh; }
-    .admin-sidebar .sidebar-brand-wrapper { min-height: 78px; height: 78px; padding: 0 1rem 0 1.35rem; gap: .7rem !important; white-space: nowrap; overflow: hidden; }
+    .admin-sidebar .sidebar-brand-wrapper { height: 76px;
+    min-height: 76px; padding: 0 1rem 0 1.25rem; gap: .7rem !important; white-space: nowrap; overflow: hidden; }
     .admin-sidebar .brand-logo-img { flex-shrink: 0; }
     .admin-sidebar .brand-text { min-width: 0; overflow: hidden; }
     .admin-sidebar .sidebar-menu-wrapper { overflow-x: hidden; }
@@ -501,11 +515,108 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
     .admin-wrapper.sidebar-collapsed .admin-sidebar .nav-link:hover { transform: none; }
     .admin-wrapper.sidebar-collapsed .admin-sidebar .sidebar-toggle-btn i { transform: rotate(180deg); }
     @media (prefers-reduced-motion: reduce) { .admin-sidebar, .admin-sidebar * { transition: none !important; } }
+  
+/* Đồng bộ đường kẻ logo và Header Admin */
+@media (min-width: 992px) {
+
+    .admin-sidebar .sidebar-brand-wrapper {
+        height: 76px !important;
+        min-height: 76px !important;
+        flex-shrink: 0;
+        box-sizing: border-box;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .admin-navbar {
+        height: 76px;
+        min-height: 76px;
+        box-sizing: border-box;
+
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* Khi thu gọn sidebar vẫn giữ đường kẻ ngang */
+    .admin-wrapper.sidebar-collapsed
+    .admin-sidebar .sidebar-brand-wrapper {
+        height: 76px !important;
+        min-height: 76px !important;
+    }
+}
+
+/* FIX: Sidebar Admin luôn cao toàn màn hình */
+
+@media (min-width: 992px) {
+
+    .admin-wrapper {
+        display: flex;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    aside.admin-sidebar {
+        position: sticky !important;
+        top: 0;
+        align-self: flex-start;
+
+        height: 100vh !important;
+        min-height: 100vh !important;
+        max-height: 100vh;
+
+        width: var(--sidebar-width);
+        flex: 0 0 var(--sidebar-width);
+
+        display: flex !important;
+        flex-direction: column;
+
+        overflow: hidden;
+        background: linear-gradient(
+            180deg,
+            #2e1065 0%,
+            #4c1d95 60%,
+            #3b0764 100%
+        ) !important;
+    }
+
+    aside.admin-sidebar .sidebar-brand-wrapper {
+        flex-shrink: 0;
+    }
+
+    aside.admin-sidebar .sidebar-menu-wrapper {
+        flex: 1 1 auto;
+        min-height: 0;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        scrollbar-width: thin;
+    }
+
+    .admin-content {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .admin-wrapper.sidebar-collapsed aside.admin-sidebar {
+        width: var(--sidebar-collapsed-width);
+        min-width: var(--sidebar-collapsed-width);
+        flex-basis: var(--sidebar-collapsed-width);
+    }
+}
+
   </style>
 <?php require_once __DIR__ . '/admin_theme.php'; ?>
+  <link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-crud-v39.css">
+  <script defer src="<?= e($prefix) ?>assets/js/qt-crud-v39.js"></script>
+  <!-- QuizTech Admin scoped UI refinement -->
+  <link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-admin-unified.css?v=20261026a">
 </head>
 
 <body>
+<link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-admin-ui-20261027.css?v=2">
+<link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-admin-consistency.css?v=3">
+<link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-admin-unified-v4.css?v=20261027c">
+<script src="<?= e($prefix) ?>assets/js/qt-admin-unified-v4.js?v=20261027c" defer></script>
 <div class="admin-wrapper" id="adminWrapper">
 
   <!-- SIDEBAR DESKTOP -->
@@ -568,6 +679,11 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
         <li class="nav-item">
           <a class="nav-link <?= $current_page == 'leaderboard.php' ? 'active' : '' ?>" href="<?= $base_url ?>leaderboard.php">
             <i class="bi bi-trophy" aria-hidden="true"></i><span class="nav-text">Bảng xếp hạng</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <?= $current_page == 'notifications.php' ? 'active' : '' ?>" href="<?= $base_url ?>notifications.php">
+            <i class="bi bi-bell" aria-hidden="true"></i><span class="nav-text">Thông báo</span>
           </a>
         </li>
         <?php if ($is_super_admin): ?>
@@ -650,6 +766,11 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
             <i class="bi bi-trophy"></i> Bảng xếp hạng
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link <?= $current_page == 'notifications.php' ? 'active' : '' ?>" href="<?= $base_url ?>notifications.php">
+            <i class="bi bi-bell"></i> Thông báo
+          </a>
+        </li>
         <?php if ($is_super_admin): ?>
         <li class="nav-item">
           <a class="nav-link <?= $current_page == 'settings.php' ? 'active' : '' ?>" href="<?= $base_url ?>settings.php">
@@ -683,7 +804,7 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
        class="admin-mobile-brand-link">
 
         <span class="admin-mobile-logo">
-            <img src="../assets/images/Cardmoi_PLT_Trang.png"
+            <img src="<?= $prefix ?>assets/images/Cardmoi_PLT_Trang.png"
                  alt="QuizTech">
         </span>
 
@@ -697,6 +818,7 @@ $role_badge_text = $user_role === 'admin_test' ? 'ADMIN KIỂM THỬ' : 'QUẢN 
       </div>
 
       <div class="ms-auto d-flex align-items-center gap-3">
+        <?php include __DIR__ . '/qt_notice_widget.php'; ?>
         <div class="dropdown">
           <a class="d-flex align-items-center gap-2 text-decoration-none user-profile-badge" href="#" id="adminProfileDrop" data-bs-toggle="dropdown" aria-expanded="false">
             <?php

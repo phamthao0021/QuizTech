@@ -11,15 +11,15 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 pa_guard();
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $a = $_POST['action'] ?? '';
     if ($a === 'delete' || $a === 'bulk_delete') {
         $ids = $a === 'delete' ? [(int)$_POST['id']] : pa_ids($_POST['ids'] ?? []);
         if ($ids) {
             $in = implode(',', array_fill(0, count($ids), '?'));
-            $pdo->prepare("DELETE FROM practice_sessions WHERE id IN($in)")->execute($ids);
-            setFlash('success', 'Đã xóa kết quả đã chọn.');
+            setFlash('warning', 'Không được xóa lịch sử luyện tập vì ảnh hưởng bảng xếp hạng và báo cáo.');
+            
         }
         header('Location: results.php');
         exit;

@@ -1,0 +1,57 @@
+STT,Nhóm hạng mục,Chức năng / Màn hình,Mô tả cần sửa và nâng cấp,Ưu tiên
+1,1. Dùng chung,Header; Sidebar; Footer,Đồng bộ màu sắc, font, icon, menu, nút thu gọn sidebar và responsive.,P1
+2,1. Dùng chung,Dashboard,Chuẩn hóa bố cục, thẻ thống kê, biểu đồ và thông tin tổng quan.,P1
+3,1. Dùng chung,Hồ sơ cá nhân,Đồng bộ giao diện 3 role; chỉnh sửa thông tin, avatar, đổi mật khẩu.,P1
+4,1. Dùng chung,Bảng dữ liệu,Chuẩn hóa DataTable, checkbox, phân trang, sắp xếp và trạng thái.,P1
+5,1. Dùng chung,Thanh công cụ,Thống nhất tìm kiếm, bộ lọc, làm mới, thêm mới, import/export.,P1
+6,1. Dùng chung,Import/Export,Hỗ trợ Excel/CSV, file mẫu, kiểm tra dữ liệu và báo lỗi theo dòng.,P1
+7,1. Dùng chung,Xóa hàng loạt,Chọn nhiều, chọn tất cả trong trang, xác nhận trước khi xóa.,P1
+8,1. Dùng chung,Thông báo,Badge chưa đọc, danh sách, xem chi tiết và đánh dấu đã đọc.,P1
+9,1. Dùng chung,Form và Modal,Đồng bộ giao diện thêm/sửa/xóa, validation và phản hồi thao tác.,P1
+10,1. Dùng chung,Responsive,Tối ưu giao diện desktop, tablet, mobile.,P2
+11,1. Dùng chung,Phân quyền,Kiểm soát truy cập màn hình, chức năng, API và dữ liệu theo role.,P0
+12,1. Dùng chung,Hiệu năng; bảo mật,Tối ưu SQL, tải trang, session, CSRF, XSS và upload file.,P0
+13,2. Admin,Dashboard Admin,Thống kê người dùng, môn học, câu hỏi, đề thi, kết quả và biểu đồ.,P1
+14,2. Admin,Quản lý người dùng,CRUD, tìm kiếm, lọc role/trạng thái, import/export, khóa và xóa hàng loạt.,P1
+15,2. Admin,Quản lý môn học,CRUD, tìm kiếm, lọc, import/export và xóa hàng loạt.,P1
+16,2. Admin,Ngân hàng câu hỏi,Quản lý dạng câu hỏi; import Excel/CSV, lọc theo môn, xóa hàng loạt.,P0
+17,2. Admin,Quản lý đề thi,CRUD, cấu hình đề, câu hỏi, trạng thái xuất bản.,P0
+18,2. Admin,Quản lý phòng thi,Tạo phòng, mã phòng, thành viên, thời gian và trạng thái.,P0
+19,2. Admin,Quản lý kết quả,Xem điểm, lọc, thống kê và xuất Excel.,P1
+20,2. Admin,Quản lý Practice,Quản lý trò chơi, bộ câu hỏi, dữ liệu, điểm và lịch sử.,P1
+21,2. Admin,Quản lý góp ý,Danh sách góp ý, phản hồi, trạng thái, tìm kiếm và lọc.,P1
+22,2. Admin,Quản lý thông báo,Tạo thông báo, chọn đối tượng nhận và theo dõi trạng thái.,P1
+23,2. Admin,Nhật ký hệ thống/AI,Tìm kiếm, lọc, xem chi tiết và kiểm tra nhật ký.,P2
+24,2. Admin,Cấu hình hệ thống,Kiểm tra cấu hình chung, phân quyền và thiết lập quản trị.,P0
+25,3. Teacher,Dashboard Teacher,Thống kê môn học, câu hỏi, đề thi, phòng thi và kết quả.,P1
+26,3. Teacher,Quản lý môn học,Hiển thị và quản lý môn học đúng quyền được cấp.,P1
+27,3. Teacher,Ngân hàng câu hỏi,CRUD, import/export Excel/CSV, tìm kiếm, lọc, xóa hàng loạt.,P0
+28,3. Teacher,Quản lý đề thi,Tạo, chỉnh sửa, cấu hình, xuất bản và quản lý đề thi.,P0
+29,3. Teacher,Quản lý phòng thi,Tạo phòng, quản lý sinh viên và theo dõi làm bài.,P0
+30,3. Teacher,Kết quả và thống kê,Xem kết quả, lọc sinh viên/môn/đề và xuất báo cáo.,P1
+31,3. Teacher,Quản lý Practice,CRUD, import bộ câu hỏi và nội dung trò chơi thuộc quyền.,P1
+32,3. Teacher,Thông báo Teacher,Xem thông báo, đánh dấu đã đọc và xem chi tiết.,P1
+33,3. Teacher,Hồ sơ Teacher,Đồng bộ hồ sơ với Admin/Student, giữ phân quyền riêng.,P1
+34,4. Student,Dashboard Student,Đồng bộ giao diện, thống kê học tập, đề thi và điểm số.,P1
+35,4. Student,Danh sách đề thi,Tìm kiếm, lọc, hiển thị chi tiết và trạng thái đề thi.,P1
+36,4. Student,Tham gia phòng thi,Nhập mã phòng, kiểm tra điều kiện và báo lỗi phù hợp.,P0
+37,4. Student,Làm bài thi,Câu hỏi, đồng hồ, lưu đáp án, điều hướng và nộp bài.,P0
+38,4. Student,Kết quả thi,Điểm, chi tiết bài làm, đáp án theo quyền và lịch sử.,P0
+39,4. Student,Bảng xếp hạng,Xếp hạng, điểm và bộ lọc phù hợp.,P2
+40,4. Student,Luyện tập Practice,Chọn trò chơi, xem điểm, lịch sử và tiến độ.,P1
+41,4. Student,Thông báo Student,Card thông báo, badge chưa đọc, xem chi tiết, đánh dấu đã đọc.,P1
+42,4. Student,Hồ sơ Student,Avatar, thông tin cá nhân, đổi mật khẩu và lịch sử hoạt động.,P1
+43,5. Practice,Daily Crossword – Ô chữ CNTT,Ô chữ, gợi ý ngang/dọc, highlight, kiểm tra đáp án và tính điểm.,P1
+44,5. Practice,Concept Matcher – Nối cặp,Đồng bộ hai cột, nối đáp án, đúng/sai, tính điểm và chơi lại.,P1
+45,5. Practice,IT Quick Quiz – Phản xạ nhanh,5 giây/câu, cộng/trừ điểm, đúng/sai và điểm cao nhất.,P1
+46,5. Practice,Word Guess – Đoán từ,Bộ từ, gợi ý, lượt đoán, điểm, thời gian, kết quả, chơi lại.,P1
+47,5. Practice,Quản lý dữ liệu Practice,Admin/Teacher CRUD, import/export, tìm kiếm, lọc, xóa hàng loạt.,P1
+48,5. Practice,Lịch sử và thống kê Practice,Lưu lượt chơi, kết quả, điểm cao nhất và thống kê theo người dùng.,P1
+49,6. Luồng & phi chức năng,Đăng nhập/Đăng ký,Validation, điều hướng đúng role và session.,P0
+50,6. Luồng & phi chức năng,Luồng tạo đề thi,Teacher tạo câu hỏi → tạo đề → xuất bản → Student làm bài.,P0
+51,6. Luồng & phi chức năng,Luồng phòng thi,Tạo phòng → tham gia → làm bài → nộp bài → xem kết quả.,P0
+52,6. Luồng & phi chức năng,Luồng Practice,Admin/Teacher tạo dữ liệu → Student chơi → lưu điểm → thống kê.,P1
+53,6. Luồng & phi chức năng,Đồng bộ dữ liệu,Đối chiếu dữ liệu giữa role, API và DB; không trùng hoặc mất dữ liệu.,P0
+54,6. Luồng & phi chức năng,Bảo mật,Kiểm tra RBAC, CSRF, XSS, SQL Injection, IDOR và upload.,P0
+55,6. Luồng & phi chức năng,Hiệu năng,Server-side pagination, tối ưu SQL, kiểm thử tải đồng thời.,P1
+56,6. Luồng & phi chức năng,Kiểm thử hồi quy,Kiểm tra lại các tính năng hiện tại sau mỗi thay đổi.,P1

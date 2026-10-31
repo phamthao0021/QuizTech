@@ -14,10 +14,15 @@ $error = '';
 $success = '';
 $devOtp = '';
 $emailValue = trim($_POST['email'] ?? '');
+// Kiểm tra phương thức POST và yêu cầu gửi OTP.
+$requestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_otp'])) {
-    if (function_exists('verify_csrf')) verify_csrf();
+if ($requestMethod === 'POST' && isset($_POST['send_otp'])) {
 
+    // Kiểm tra CSRF nếu hệ thống có hỗ trợ.
+    if (function_exists('verify_csrf')) {
+        verify_csrf();
+    }
     if (!filter_var($emailValue, FILTER_VALIDATE_EMAIL)) {
         $error = 'Vui lòng nhập đúng định dạng email.';
     } else {

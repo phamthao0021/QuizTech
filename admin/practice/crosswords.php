@@ -21,11 +21,13 @@ if (!function_exists('pa_page_size')) {
 if (function_exists('pa_guard')) {
     pa_guard();
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $a = $_POST['action'] ?? '';
     try {
         if ($a === 'save') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = $auditId ? pa_record($pdo, 'practice_crosswords', $auditId) : null;
             $id = (int)($_POST['id'] ?? 0);
             $title = trim($_POST['title'] ?? '');
             $desc = trim($_POST['description'] ?? '');
@@ -37,16 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $active = isset($_POST['is_active']) ? 1 : 0;
             if ($title === '') throw new RuntimeException('Tên ô chữ không được trống.');
             if ($id) $pdo->prepare("UPDATE practice_crosswords SET title=?,description=?,rows_count=?,cols_count=?,difficulty=?,time_limit_seconds=?,is_active=? WHERE id=?")->execute([$title, $desc, $rows, $cols, $diff, $time, $active, $id]);
-            else $pdo->prepare("INSERT INTO practice_crosswords(title,description,rows_count,cols_count,difficulty,time_limit_seconds,is_active) VALUES(?,?,?,?,?,?,?)")->execute([$title, $desc, $rows, $cols, $diff, $time, $active]);
+            else $pdo->prepare("INSERT INTO practice_crosswords(title,description,rows_count,cols_count,difficulty,time_limit_seconds,is_active,created_by) VALUES(?,?,?,?,?,?,?,?)")->execute([$title, $desc, $rows, $cols, $diff, $time, $active, pa_actor_id()]);
             setFlash('success', 'Đã lưu bộ ô chữ.');
+                    pa_audit_change($pdo, 'practice_crosswords', $auditId ?: (int)$pdo->lastInsertId(), $auditId ? 'update' : 'create', $auditBefore);
         } elseif ($a === 'toggle') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = pa_record($pdo, 'practice_crosswords', $auditId);
             $pdo->prepare("UPDATE practice_crosswords SET is_active=1-is_active WHERE id=?")->execute([(int)$_POST['id']]);
             setFlash('success', 'Đã đổi trạng thái.');
+                    pa_audit_change($pdo, 'practice_crosswords', $auditId, 'toggle', $auditBefore);
         } elseif ($a === 'delete' || $a === 'bulk_delete') {
             $ids = $a === 'delete' ? [(int)$_POST['id']] : pa_ids($_POST['ids'] ?? []);
             if ($ids) {
                 $in = implode(',', array_fill(0, count($ids), '?'));
-                $pdo->prepare("DELETE FROM practice_crosswords WHERE id IN($in)")->execute($ids);
+                pa_soft_delete($pdo, 'practice_crosswords', $ids);
             }
             setFlash('success', 'Đã xóa ô chữ và clue liên quan.');
         }
@@ -61,7 +67,7 @@ $status = $_GET['status'] ?? '';
 $diff = $_GET['difficulty'] ?? '';
 $limit = pa_page_size();
 $page = pa_page();
-$where = [];
+$where = ['c.is_deleted=0'];
 $par = [];
 if ($q !== '') {
     $where[] = 'c.title LIKE ? ESCAPE "\\\\"';

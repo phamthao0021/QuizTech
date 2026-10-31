@@ -26,7 +26,7 @@ $message_type = '';
 // ==========================================
 // XỬ LÝ LƯU / SỬA CÂU HỎI (TƯƠNG THÍCH MỌI DẠNG)
 // ==========================================
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $action        = $_POST['action'] ?? '';
     $q_id          = intval($_POST['question_id'] ?? 0);
     $question_type = $_POST['question_type'] ?? 'single';

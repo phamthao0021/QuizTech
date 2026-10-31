@@ -8,7 +8,8 @@ requireRole('student');
 $user = currentUser();
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    verify_csrf();
     $question_id = intval($_POST['question_id'] ?? 0);
     $reason = trim($_POST['reason'] ?? '');
 
@@ -35,6 +36,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                 <?php endif; ?>
 
                 <form method="POST">
+                    <?php csrf_field(); ?>
                     <div class="mb-3">
                         <label class="form-label">ID câu hỏi</label>
                         <input type="number" name="question_id" class="form-control" placeholder="Nhập ID câu hỏi" required>

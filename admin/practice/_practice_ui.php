@@ -7,6 +7,7 @@ $practiceNav = [
     'concepts.php'   => ['Nối cặp', 'bi-diagram-3'],
     'quick_quiz.php' => ['Phản xạ nhanh', 'bi-lightning-charge'],
     'results.php'    => ['Kết quả', 'bi-clipboard-data'],
+    'audit.php'      => ['Nhật ký CRUD', 'bi-clock-history'],
     'statistics.php' => ['Thống kê', 'bi-bar-chart-line'],
 ];
 ?>

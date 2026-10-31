@@ -7,7 +7,7 @@ require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 
 // 1. KIỂM TRA PHƯƠNG THỨC REQUEST (Chỉ chấp nhận POST)
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     http_response_code(405);
     echo json_encode([
         'success' => false, 

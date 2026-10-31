@@ -6,7 +6,7 @@ require_once 'includes/auth.php';
 require_once 'includes/data.php';
 requireLogin();
 
-$history = getHistory($_SESSION['user_id']);
+$history = getHistory($_SESSION['user_id']??"");
 
 $page_title = 'Lịch sử thi';
 

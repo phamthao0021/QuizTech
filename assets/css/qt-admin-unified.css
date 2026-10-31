@@ -1,0 +1,49 @@
+/* Scoped Admin refinements: no modifications to Student/Teacher */
+#adminWrapper {--qt-purple:#6d28d9;--qt-indigo:#4f46e5;--qt-surface:#fff;--qt-border:#e8e3f2;--qt-muted:#64748b;--qt-text:#1e1b4b;--qt-radius:16px;font-family:"Be Vietnam Pro",Arial,sans-serif!important;color:var(--qt-text)}
+#adminWrapper :is(button,input,select,textarea,.btn,.form-control,.form-select,.dropdown-menu,.modal,.table,.badge,.pagination,.nav-link,.sidebar,.card){font-family:"Be Vietnam Pro",Arial,sans-serif!important}
+#adminWrapper :is(input,textarea,select){letter-spacing:normal}
+#adminWrapper :is(.admin-content,main){min-width:0}
+#adminWrapper :is(.admin-content main,main .container-fluid){max-width:1600px;margin-inline:auto}
+#adminWrapper main :is(.card,.creative-table-card,.table-card){background:#fff;border:1px solid var(--qt-border);border-radius:var(--qt-radius);box-shadow:0 4px 16px rgba(46,16,101,.045)}
+#adminWrapper main :is(.card-header,.modal-header){border-bottom:1px solid var(--qt-border)}
+#adminWrapper main :is(.form-control,.form-select){border-radius:10px;border-color:#ded9e9;min-height:42px;font-size:14px}
+#adminWrapper main :is(.form-control,.form-select):focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+#adminWrapper main :is(.btn,.page-link){border-radius:10px;font-weight:600;letter-spacing:normal}
+#adminWrapper main .btn-primary{background:linear-gradient(110deg,#6d28d9,#4f46e5);border-color:transparent}
+#adminWrapper main .btn-primary:hover{filter:brightness(.95)}
+#adminWrapper main .table-responsive{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#adminWrapper main :is(.table,table){font-size:14px}
+#adminWrapper main :is(.table,table) thead th{font-size:12px;font-weight:700;letter-spacing:normal;white-space:nowrap;vertical-align:middle}
+#adminWrapper main :is(.table,table) tbody td{vertical-align:middle}
+#adminWrapper main :is(.table,table) tbody tr:hover{background-color:#faf8ff}
+#adminWrapper main .pagination .page-link{color:#6d28d9;border-color:#e9e3f5}
+#adminWrapper main .pagination .active .page-link{background:#6d28d9;color:white;border-color:#6d28d9}
+#adminWrapper main :is(.modal-content,.offcanvas){border-radius:16px;border:1px solid var(--qt-border)}
+#adminWrapper main .modal-dialog-scrollable .modal-body{overflow-y:auto}
+#adminWrapper main :is(.alert,.toast){border-radius:12px}
+#adminWrapper main :is(.btn,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #a78bfa;outline-offset:2px}
+/* Compact consistent page banners without overriding their layout/markup */
+#adminWrapper main :is(.page-header,.admin-page-head,.page-banner){border-radius:18px}
+#adminWrapper main :is(.page-header,.admin-page-head,.page-banner) h1,#adminWrapper main :is(.page-header,.admin-page-head,.page-banner) h2{font-weight:700;letter-spacing:-.02em}
+#adminWrapper main .badge{letter-spacing:normal;font-weight:600}
+@media(max-width:767.98px){#adminWrapper main :is(.container-fluid,.container){padding-inline:14px!important}#adminWrapper main .card{border-radius:14px}#adminWrapper main :is(.page-header,.admin-page-head,.page-banner){padding:16px!important}#adminWrapper main .table-responsive{border-radius:10px}#adminWrapper main .modal-dialog{margin:10px}#adminWrapper main .modal-content{max-height:calc(100dvh - 20px)}#adminWrapper main .modal-body{overflow-y:auto}}
+@media(prefers-reduced-motion:reduce){#adminWrapper main *,#adminWrapper main *::before,#adminWrapper main *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Release alignment layer: Admin only */
+#adminWrapper,#adminWrapper input,#adminWrapper select,#adminWrapper textarea,#adminWrapper button,#adminWrapper .dropdown-menu,#adminWrapper .modal,#adminWrapper .table{font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif!important}
+#adminWrapper .admin-main-content,#adminWrapper main{min-width:0}
+#adminWrapper .container-fluid{max-width:1640px;margin-inline:auto}
+#adminWrapper .admin-page-head,#adminWrapper .page-header.admin-page-head{background:linear-gradient(112deg,#4f46e5 0%,#6d28d9 65%,#7e22ce 100%);border-radius:20px;padding:24px 28px;color:#fff;min-height:110px;margin-bottom:22px;box-shadow:0 12px 28px #4c1d9524}
+#adminWrapper .admin-page-head h1,#adminWrapper .admin-page-head h2,#adminWrapper .admin-page-head h3,#adminWrapper .admin-page-head .text-dark,#adminWrapper .admin-page-head .text-muted{color:#fff!important}
+#adminWrapper .admin-page-head p{color:#ece6ff!important}
+#adminWrapper .admin-page-head .btn{min-height:40px}
+#adminWrapper .content-card,#adminWrapper .stat-card,#adminWrapper .card{border-color:#eae5f4}
+#adminWrapper .form-control:focus,#adminWrapper .form-select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf626}
+#adminWrapper .table-responsive{max-width:100%;overflow-x:auto}
+#adminWrapper .table th{white-space:nowrap;font-size:12px;letter-spacing:0}
+#adminWrapper .table td{font-size:13px;vertical-align:middle}
+#adminWrapper .btn:focus-visible,#adminWrapper a:focus-visible{outline:3px solid #a78bfa;outline-offset:2px}
+#adminWrapper .modal-content{border-radius:18px;overflow:hidden}
+#adminWrapper .modal-dialog-scrollable .modal-body{overflow-y:auto}
+#adminWrapper .pagination .page-item.active .page-link{background:#6d28d9;border-color:#6d28d9}
+@media(max-width:767px){#adminWrapper .admin-page-head{padding:20px 18px;min-height:0}#adminWrapper .admin-page-head h1,#adminWrapper .admin-page-head h2,#adminWrapper .admin-page-head h3{font-size:23px}}

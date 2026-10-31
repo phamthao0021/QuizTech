@@ -34,8 +34,9 @@ function qt_password_errors($password)
     if (preg_match('/\s/', $password)) $errors[] = 'Mật khẩu không được chứa khoảng trắng.';
     return $errors;
 }
+$requestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($requestMethod === 'POST') {
     verify_csrf();
     $form_type = $_POST['form_type'] ?? 'login';
 
@@ -740,7 +741,7 @@ $page_title = 'Đăng nhập & Đăng ký';
                         <button type="submit" class="btn btn-gradient w-100">Đăng nhập <i class="bi bi-arrow-right ms-1"></i></button>
                     </form>
 
-                    
+
                 </div>
 
                 <!-- Tab Content: REGISTER -->

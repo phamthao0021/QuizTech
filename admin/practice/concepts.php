@@ -12,11 +12,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 pa_guard();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $a = $_POST['action'] ?? '';
     try {
         if ($a === 'save') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = $auditId ? pa_record($pdo, 'practice_concepts', $auditId) : null;
             $id = (int)($_POST['id'] ?? 0);
             $term = trim($_POST['term'] ?? '');
             $def = trim($_POST['definition'] ?? '');
@@ -28,32 +30,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $s = $pdo->prepare("UPDATE practice_concepts SET term=?,definition=?,category=?,explanation=?,is_active=? WHERE id=?");
                 $s->execute([$term, $def, $cat, $exp, $active, $id]);
             } else {
-                $s = $pdo->prepare("INSERT INTO practice_concepts(term,definition,category,explanation,is_active) VALUES(?,?,?,?,?)");
-                $s->execute([$term, $def, $cat, $exp, $active]);
+                $s = $pdo->prepare("INSERT INTO practice_concepts(term,definition,category,explanation,is_active,created_by) VALUES(?,?,?,?,?,?)");
+                $s->execute([$term, $def, $cat, $exp, $active, pa_actor_id()]);
             }
             setFlash('success', $id ? 'Đã cập nhật nối cặp.' : 'Đã thêm nối cặp.');
+                    pa_audit_change($pdo, 'practice_concepts', $auditId ?: (int)$pdo->lastInsertId(), $auditId ? 'update' : 'create', $auditBefore);
         } elseif ($a === 'toggle') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = pa_record($pdo, 'practice_concepts', $auditId);
             $id = (int)$_POST['id'];
             $pdo->prepare("UPDATE practice_concepts SET is_active=1-is_active WHERE id=?")->execute([$id]);
             setFlash('success', 'Đã đổi trạng thái.');
+                    pa_audit_change($pdo, 'practice_concepts', $auditId, 'toggle', $auditBefore);
         } elseif ($a === 'delete' || $a === 'bulk_delete') {
             $ids = $a === 'delete' ? [(int)$_POST['id']] : pa_ids($_POST['ids'] ?? []);
             if ($ids) {
                 $in = implode(',', array_fill(0, count($ids), '?'));
-                $pdo->prepare("DELETE FROM practice_concepts WHERE id IN($in)")->execute($ids);
+                pa_soft_delete($pdo, 'practice_concepts', $ids);
             }
             setFlash('success', 'Đã xóa dữ liệu đã chọn.');
         } elseif ($a === 'import') {
             $rows = pa_assoc_rows(pa_csv_rows($_FILES['import_file'] ?? []));
             if (!$rows) throw new RuntimeException('File không có dữ liệu.');
             $pdo->beginTransaction();
-            $s = $pdo->prepare("INSERT INTO practice_concepts(term,definition,category,explanation,is_active) VALUES(?,?,?,?,?)");
+            $s = $pdo->prepare("INSERT INTO practice_concepts(term,definition,category,explanation,is_active,created_by) VALUES(?,?,?,?,?,?)");
             $n = 0;
             foreach ($rows as $i => $r) {
                 $term = trim($r['term'] ?? '');
                 $def = trim($r['definition'] ?? '');
                 if ($term === '' || $def === '') throw new RuntimeException('Dòng ' . ($i + 2) . ' thiếu term/definition.');
-                $s->execute([$term, $def, trim($r['category'] ?? ''), trim($r['explanation'] ?? ''), (int)($r['is_active'] ?? 1) ? 1 : 0]);
+                $s->execute([$term, $def, trim($r['category'] ?? ''), trim($r['explanation'] ?? ''), (int)($r['is_active'] ?? 1) ? 1 : 0, pa_actor_id()]);
+                pa_audit_change($pdo, 'practice_concepts', (int)$pdo->lastInsertId(), 'create', null);
                 $n++;
             }
             $pdo->commit();
@@ -71,7 +78,7 @@ $status = $_GET['status'] ?? '';
 $cat = trim($_GET['category'] ?? '');
 $limit = pa_page_size();
 $page = pa_page();
-$where = [];
+$where = ['is_deleted=0'];
 $par = [];
 if ($q !== '') {
     $where[] = '(term LIKE ? ESCAPE "\\\\" OR definition LIKE ? ESCAPE "\\\\" OR category LIKE ? ESCAPE "\\\\")';

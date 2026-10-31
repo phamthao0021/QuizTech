@@ -158,11 +158,73 @@ function adminNormalizeImportHeader($value)
     $value = preg_replace('/^\xEF\xBB\xBF/', '', trim((string)$value));
     if (function_exists('mb_strtolower')) $value = mb_strtolower($value, 'UTF-8');
     $value = strtr($value, [
-        'ă'=>'a','â'=>'a','á'=>'a','à'=>'a','ả'=>'a','ã'=>'a','ạ'=>'a','ấ'=>'a','ầ'=>'a','ẩ'=>'a','ẫ'=>'a','ậ'=>'a','ắ'=>'a','ằ'=>'a','ẳ'=>'a','ẵ'=>'a','ặ'=>'a',
-        'ê'=>'e','é'=>'e','è'=>'e','ẻ'=>'e','ẽ'=>'e','ẹ'=>'e','ế'=>'e','ề'=>'e','ể'=>'e','ễ'=>'e','ệ'=>'e',
-        'ô'=>'o','ơ'=>'o','ó'=>'o','ò'=>'o','ỏ'=>'o','õ'=>'o','ọ'=>'o','ố'=>'o','ồ'=>'o','ổ'=>'o','ỗ'=>'o','ộ'=>'o','ớ'=>'o','ờ'=>'o','ở'=>'o','ỡ'=>'o','ợ'=>'o',
-        'ư'=>'u','ú'=>'u','ù'=>'u','ủ'=>'u','ũ'=>'u','ụ'=>'u','ứ'=>'u','ừ'=>'u','ử'=>'u','ữ'=>'u','ự'=>'u',
-        'í'=>'i','ì'=>'i','ỉ'=>'i','ĩ'=>'i','ị'=>'i','ý'=>'y','ỳ'=>'y','ỷ'=>'y','ỹ'=>'y','ỵ'=>'y','đ'=>'d'
+        'ă' => 'a',
+        'â' => 'a',
+        'á' => 'a',
+        'à' => 'a',
+        'ả' => 'a',
+        'ã' => 'a',
+        'ạ' => 'a',
+        'ấ' => 'a',
+        'ầ' => 'a',
+        'ẩ' => 'a',
+        'ẫ' => 'a',
+        'ậ' => 'a',
+        'ắ' => 'a',
+        'ằ' => 'a',
+        'ẳ' => 'a',
+        'ẵ' => 'a',
+        'ặ' => 'a',
+        'ê' => 'e',
+        'é' => 'e',
+        'è' => 'e',
+        'ẻ' => 'e',
+        'ẽ' => 'e',
+        'ẹ' => 'e',
+        'ế' => 'e',
+        'ề' => 'e',
+        'ể' => 'e',
+        'ễ' => 'e',
+        'ệ' => 'e',
+        'ô' => 'o',
+        'ơ' => 'o',
+        'ó' => 'o',
+        'ò' => 'o',
+        'ỏ' => 'o',
+        'õ' => 'o',
+        'ọ' => 'o',
+        'ố' => 'o',
+        'ồ' => 'o',
+        'ổ' => 'o',
+        'ỗ' => 'o',
+        'ộ' => 'o',
+        'ớ' => 'o',
+        'ờ' => 'o',
+        'ở' => 'o',
+        'ỡ' => 'o',
+        'ợ' => 'o',
+        'ư' => 'u',
+        'ú' => 'u',
+        'ù' => 'u',
+        'ủ' => 'u',
+        'ũ' => 'u',
+        'ụ' => 'u',
+        'ứ' => 'u',
+        'ừ' => 'u',
+        'ử' => 'u',
+        'ữ' => 'u',
+        'ự' => 'u',
+        'í' => 'i',
+        'ì' => 'i',
+        'ỉ' => 'i',
+        'ĩ' => 'i',
+        'ị' => 'i',
+        'ý' => 'y',
+        'ỳ' => 'y',
+        'ỷ' => 'y',
+        'ỹ' => 'y',
+        'ỵ' => 'y',
+        'đ' => 'd'
     ]);
     $value = preg_replace('/[^a-z0-9]+/', '_', $value);
     return trim($value, '_');
@@ -260,10 +322,10 @@ function adminReadRoomImportFile(array $file): array
 function adminImportBool($value): int
 {
     $v = strtolower(trim((string)$value));
-    return in_array($v, ['1','true','yes','y','co','có','x'], true) ? 1 : 0;
+    return in_array($v, ['1', 'true', 'yes', 'y', 'co', 'có', 'x'], true) ? 1 : 0;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: ($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
     if (function_exists('verify_csrf')) verify_csrf();
     $action = $_POST['action'] ?? '';
     $id = (int)($_POST['id'] ?? 0);
@@ -274,41 +336,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $headers = array_map('adminNormalizeImportHeader', array_shift($rawRows));
             $aliases = [
-                'room_name' => ['room_name','ten_phong','phong','name'],
-                'exam_code' => ['exam_code','ma_de','ma_de_thi'],
-                'exam_id' => ['exam_id','id_de','id_de_thi'],
-                'teacher_email' => ['teacher_email','email_giang_vien','email_gv'],
-                'teacher_id' => ['teacher_id','giang_vien_id','id_giang_vien'],
-                'max_students' => ['max_students','suc_chua','so_luong','capacity'],
-                'start_time' => ['start_time','bat_dau','thoi_gian_bat_dau'],
-                'end_time' => ['end_time','ket_thuc','thoi_gian_ket_thuc'],
-                'room_password' => ['room_password','mat_khau_phong','password'],
-                'status' => ['status','trang_thai'],
-                'description' => ['description','mo_ta'],
-                'allow_late_join' => ['allow_late_join','cho_phep_vao_tre'],
-                'late_minutes' => ['late_minutes','phut_tre'],
-                'auto_start' => ['auto_start','tu_dong_bat_dau'],
-                'auto_close' => ['auto_close','tu_dong_ket_thuc']
+                'room_name' => ['room_name', 'ten_phong', 'phong', 'name'],
+                'exam_code' => ['exam_code', 'ma_de', 'ma_de_thi'],
+                'exam_id' => ['exam_id', 'id_de', 'id_de_thi'],
+                'teacher_email' => ['teacher_email', 'email_giang_vien', 'email_gv'],
+                'teacher_id' => ['teacher_id', 'giang_vien_id', 'id_giang_vien'],
+                'max_students' => ['max_students', 'suc_chua', 'so_luong', 'capacity'],
+                'start_time' => ['start_time', 'bat_dau', 'thoi_gian_bat_dau'],
+                'end_time' => ['end_time', 'ket_thuc', 'thoi_gian_ket_thuc'],
+                'room_password' => ['room_password', 'mat_khau_phong', 'password'],
+                'status' => ['status', 'trang_thai'],
+                'description' => ['description', 'mo_ta'],
+                'allow_late_join' => ['allow_late_join', 'cho_phep_vao_tre'],
+                'late_minutes' => ['late_minutes', 'phut_tre'],
+                'auto_start' => ['auto_start', 'tu_dong_bat_dau'],
+                'auto_close' => ['auto_close', 'tu_dong_ket_thuc']
             ];
             $map = [];
             foreach ($aliases as $key => $names) {
                 foreach ($names as $name) {
                     $idx = array_search($name, $headers, true);
-                    if ($idx !== false) { $map[$key] = $idx; break; }
+                    if ($idx !== false) {
+                        $map[$key] = $idx;
+                        break;
+                    }
                 }
             }
             if (!isset($map['room_name']) || (!isset($map['exam_code']) && !isset($map['exam_id']))) {
                 throw new Exception('File import phải có ít nhất cột room_name (Tên phòng) và exam_code hoặc exam_id.');
             }
 
-            $inserted = 0; $skipped = 0; $errors = [];
+            $inserted = 0;
+            $skipped = 0;
+            $errors = [];
             foreach ($rawRows as $i => $row) {
                 $excelRow = $i + 2;
-                $get = function($key, $default = '') use ($row, $map) {
+                $get = function ($key, $default = '') use ($row, $map) {
                     return isset($map[$key]) ? trim((string)($row[$map[$key]] ?? $default)) : $default;
                 };
                 $roomName = $get('room_name');
-                if ($roomName === '') { $skipped++; $errors[] = "Dòng {$excelRow}: thiếu tên phòng."; continue; }
+                if ($roomName === '') {
+                    $skipped++;
+                    $errors[] = "Dòng {$excelRow}: thiếu tên phòng.";
+                    continue;
+                }
 
                 $exam = null;
                 if ($get('exam_id') !== '') {
@@ -320,7 +391,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $q->execute([$get('exam_code')]);
                     $exam = $q->fetch(PDO::FETCH_ASSOC);
                 }
-                if (!$exam) { $skipped++; $errors[] = "Dòng {$excelRow}: không tìm thấy đề thi."; continue; }
+                if (!$exam) {
+                    $skipped++;
+                    $errors[] = "Dòng {$excelRow}: không tìm thấy đề thi.";
+                    continue;
+                }
 
                 $teacherId = (int)($exam['teacher_id'] ?? 0);
                 if ($get('teacher_id') !== '') $teacherId = (int)$get('teacher_id');
@@ -330,23 +405,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $teacherId = (int)$q->fetchColumn();
                 }
                 if ($teacherId <= 0 || $teacherId !== (int)$exam['teacher_id']) {
-                    $skipped++; $errors[] = "Dòng {$excelRow}: giảng viên không hợp lệ hoặc không sở hữu đề thi."; continue;
+                    $skipped++;
+                    $errors[] = "Dòng {$excelRow}: giảng viên không hợp lệ hoặc không sở hữu đề thi.";
+                    continue;
                 }
 
                 $subjectId = (int)($exam['subject_id'] ?? 0);
-                if ($subjectId <= 0) { $skipped++; $errors[] = "Dòng {$excelRow}: đề thi chưa có môn học."; continue; }
+                if ($subjectId <= 0) {
+                    $skipped++;
+                    $errors[] = "Dòng {$excelRow}: đề thi chưa có môn học.";
+                    continue;
+                }
 
                 $statusRaw = strtolower($get('status', 'waiting'));
-                $statusMap = ['cho_bat_dau'=>'waiting','chờ_bắt_đầu'=>'waiting','dang_dien_ra'=>'running','đang_diễn_ra'=>'running','da_ket_thuc'=>'finished','đã_kết_thúc'=>'finished','da_huy'=>'cancelled','đã_hủy'=>'cancelled'];
+                $statusMap = ['cho_bat_dau' => 'waiting', 'chờ_bắt_đầu' => 'waiting', 'dang_dien_ra' => 'running', 'đang_diễn_ra' => 'running', 'da_ket_thuc' => 'finished', 'đã_kết_thúc' => 'finished', 'da_huy' => 'cancelled', 'đã_hủy' => 'cancelled'];
                 $status = $statusMap[$statusRaw] ?? $statusRaw;
-                if (!in_array($status, ['waiting','running','finished','cancelled'], true)) $status = 'waiting';
+                if (!in_array($status, ['waiting', 'running', 'finished', 'cancelled'], true)) $status = 'waiting';
 
                 $max = max(1, min(10000, (int)$get('max_students', '50')));
                 $startRaw = $get('start_time');
                 $endRaw = $get('end_time');
                 $start = $startRaw !== '' && strtotime($startRaw) ? date('Y-m-d H:i:s', strtotime($startRaw)) : date('Y-m-d H:i:s');
                 $end = $endRaw !== '' && strtotime($endRaw) ? date('Y-m-d H:i:s', strtotime($endRaw)) : date('Y-m-d H:i:s', strtotime($start . ' +30 minutes'));
-                if (strtotime($end) <= strtotime($start)) { $skipped++; $errors[] = "Dòng {$excelRow}: thời gian kết thúc phải sau bắt đầu."; continue; }
+                if (strtotime($end) <= strtotime($start)) {
+                    $skipped++;
+                    $errors[] = "Dòng {$excelRow}: thời gian kết thúc phải sau bắt đầu.";
+                    continue;
+                }
 
                 try {
                     $code = adminGenerateRoomCode($pdo, $subjectId);
@@ -354,11 +439,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $lateMin = max(0, min(1440, (int)$get('late_minutes', '0')));
                     $stmt = $pdo->prepare("INSERT INTO exam_rooms(exam_id,teacher_id,room_code,room_name,room_password,description,max_students,start_time,end_time,allow_late_join,late_minutes,auto_start,auto_close,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())");
                     $stmt->execute([
-                        (int)$exam['id'], $teacherId, $code, $roomName,
+                        (int)$exam['id'],
+                        $teacherId,
+                        $code,
+                        $roomName,
                         $get('room_password') !== '' ? $get('room_password') : null,
                         $get('description') !== '' ? $get('description') : null,
-                        $max, $start, $end, $late, $late ? $lateMin : 0,
-                        adminImportBool($get('auto_start')), adminImportBool($get('auto_close')), $status
+                        $max,
+                        $start,
+                        $end,
+                        $late,
+                        $late ? $lateMin : 0,
+                        adminImportBool($get('auto_start')),
+                        adminImportBool($get('auto_close')),
+                        $status
                     ]);
                     $inserted++;
                 } catch (Throwable $rowEx) {
@@ -480,6 +574,7 @@ require_once '../includes/header_admin.php';
     .rooms-wrap {
         animation: fadeIn .3s ease
     }
+
     .hero {
         border-radius: 1.25rem;
         color: #fff;
@@ -773,47 +868,451 @@ require_once '../includes/header_admin.php';
     }
 
     /* ===== Đồng bộ phong cách với Quản lý người dùng ===== */
-    .rooms-wrap { animation: fadeIn .35s ease-in-out; }
-    .rooms-wrap .admin-page-head { border:0; border-radius:1.25rem; overflow:hidden; box-shadow:0 .35rem 1rem rgba(46,16,101,.12)!important; }
-    .rooms-wrap .main-card { border:1px solid #eef2f7; border-radius:1.25rem; box-shadow:0 8px 26px rgba(15,23,42,.055); }
-    .rooms-wrap .toolbar-row { background:#fff; border:1px solid #eef2f7; border-radius:1rem; padding:.85rem; }
-    .rooms-wrap .filter-control, .rooms-wrap .rows-control select { border:1px solid #e2e8f0!important; background:#f8fafc!important; }
-    .rooms-wrap .filter-control:focus, .rooms-wrap .rows-control select:focus { background:#fff!important; border-color:#a78bfa!important; box-shadow:0 0 0 .2rem rgba(124,58,237,.10)!important; }
-    .rooms-wrap .room-table { border-collapse:separate; border-spacing:0 .5rem; }
-    .rooms-wrap .room-table tbody td { background:#f8fafc; padding:.9rem 1rem; }
-    .rooms-wrap .room-table tbody tr:hover td { background:#f1f5f9; }
-    .rooms-wrap .icon-btn { border:1px solid #e9edf4; background:#fff!important; box-shadow:0 2px 8px rgba(15,23,42,.04); }
-    .rooms-wrap .icon-btn:hover { transform:translateY(-1px) scale(1.04); }
-    .rooms-wrap .toolbar-action-btn { height:40px; border-radius:.65rem; font-weight:600; white-space:nowrap; }
-    .rooms-wrap .btn-import { border-color:#16a34a; color:#15803d; background:#fff; }
-    .rooms-wrap .btn-import:hover { background:#16a34a; color:#fff; }
-    .rooms-wrap .stat-card { border:1px solid #eef2f7; }
-    .rooms-wrap .pagination .page-link { min-width:34px; text-align:center; border:1px solid #e9edf4; background:#fff; }
-    .rooms-wrap .pagination .page-item.active .page-link { border-color:var(--purple); background:var(--purple); }
-    .data-import-modal .modal-content{border:0!important;border-radius:1.25rem!important;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.22)!important}
-    .data-import-modal .modal-header{background:#fff!important;color:#172033!important;border:0!important;padding:1.15rem 1.25rem .7rem!important}
-    .data-import-modal .modal-title{color:#172033!important;font-weight:800!important}
-    .data-import-modal .btn-close{filter:none!important;opacity:.55}
-    .data-import-modal .modal-body{background:#fff!important;padding: .7rem 1.25rem 1.25rem!important}
-    .data-import-modal .modal-footer{background:#fff!important;border:0!important;padding:0 1.25rem 1.25rem!important}
-    .data-import-modal .modal-footer .btn{min-height:42px;border-radius:.65rem!important;font-weight:700}
-    .room-import-drop { border:1.5px dashed #c4b5fd; background:linear-gradient(180deg,#faf8ff,#fff); border-radius:1rem; padding:1.1rem; }
-    .room-import-format { background:#f8fafc; border:1px solid #e7ebf1; border-radius:.85rem; padding:.85rem 1rem; font-size:.85rem; }
-    .room-import-format code { color:#6d28d9; line-height:1.8; }
+    .rooms-wrap {
+        animation: fadeIn .35s ease-in-out;
+    }
+
+    .rooms-wrap .admin-page-head {
+        border: 0;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 .35rem 1rem rgba(46, 16, 101, .12) !important;
+    }
+
+    .rooms-wrap .main-card {
+        border: 1px solid #eef2f7;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 26px rgba(15, 23, 42, .055);
+    }
+
+    .rooms-wrap .toolbar-row {
+        background: #fff;
+        border: 1px solid #eef2f7;
+        border-radius: 1rem;
+        padding: .85rem;
+    }
+
+    .rooms-wrap .filter-control,
+    .rooms-wrap .rows-control select {
+        border: 1px solid #e2e8f0 !important;
+        background: #f8fafc !important;
+    }
+
+    .rooms-wrap .filter-control:focus,
+    .rooms-wrap .rows-control select:focus {
+        background: #fff !important;
+        border-color: #a78bfa !important;
+        box-shadow: 0 0 0 .2rem rgba(124, 58, 237, .10) !important;
+    }
+
+    .rooms-wrap .room-table {
+        border-collapse: separate;
+        border-spacing: 0 .5rem;
+    }
+
+    .rooms-wrap .room-table tbody td {
+        background: #f8fafc;
+        padding: .9rem 1rem;
+    }
+
+    .rooms-wrap .room-table tbody tr:hover td {
+        background: #f1f5f9;
+    }
+
+    .rooms-wrap .icon-btn {
+        border: 1px solid #e9edf4;
+        background: #fff !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+    }
+
+    .rooms-wrap .icon-btn:hover {
+        transform: translateY(-1px) scale(1.04);
+    }
+
+    .rooms-wrap .toolbar-action-btn {
+        height: 40px;
+        border-radius: .65rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .rooms-wrap .btn-import {
+        border-color: #16a34a;
+        color: #15803d;
+        background: #fff;
+    }
+
+    .rooms-wrap .btn-import:hover {
+        background: #16a34a;
+        color: #fff;
+    }
+
+    .rooms-wrap .stat-card {
+        border: 1px solid #eef2f7;
+    }
+
+    .rooms-wrap .pagination .page-link {
+        min-width: 34px;
+        text-align: center;
+        border: 1px solid #e9edf4;
+        background: #fff;
+    }
+
+    .rooms-wrap .pagination .page-item.active .page-link {
+        border-color: var(--purple);
+        background: var(--purple);
+    }
+
+    .data-import-modal .modal-content {
+        border: 0 !important;
+        border-radius: 1.25rem !important;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, .22) !important
+    }
+
+    .data-import-modal .modal-header {
+        background: #fff !important;
+        color: #172033 !important;
+        border: 0 !important;
+        padding: 1.15rem 1.25rem .7rem !important
+    }
+
+    .data-import-modal .modal-title {
+        color: #172033 !important;
+        font-weight: 800 !important
+    }
+
+    .data-import-modal .btn-close {
+        filter: none !important;
+        opacity: .55
+    }
+
+    .data-import-modal .modal-body {
+        background: #fff !important;
+        padding: .7rem 1.25rem 1.25rem !important
+    }
+
+    .data-import-modal .modal-footer {
+        background: #fff !important;
+        border: 0 !important;
+        padding: 0 1.25rem 1.25rem !important
+    }
+
+    .data-import-modal .modal-footer .btn {
+        min-height: 42px;
+        border-radius: .65rem !important;
+        font-weight: 700
+    }
+
+    .room-import-drop {
+        border: 1.5px dashed #c4b5fd;
+        background: linear-gradient(180deg, #faf8ff, #fff);
+        border-radius: 1rem;
+        padding: 1.1rem;
+    }
+
+    .room-import-format {
+        background: #f8fafc;
+        border: 1px solid #e7ebf1;
+        border-radius: .85rem;
+        padding: .85rem 1rem;
+        font-size: .85rem;
+    }
+
+    .room-import-format code {
+        color: #6d28d9;
+        line-height: 1.8;
+    }
+
     @media(max-width:768px) {
-        .rooms-wrap .toolbar-filters { display:grid; grid-template-columns:1fr; width:100%; }
-        .rooms-wrap .search-control,.rooms-wrap .status-control,.rooms-wrap .exam-control { width:100%; max-width:none; }
-        .rooms-wrap .toolbar-actions { width:100%; display:grid!important; grid-template-columns:1fr 1fr; }
-        .rooms-wrap .toolbar-action-btn { width:100%; }
+        .rooms-wrap .toolbar-filters {
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%;
+        }
+
+        .rooms-wrap .search-control,
+        .rooms-wrap .status-control,
+        .rooms-wrap .exam-control {
+            width: 100%;
+            max-width: none;
+        }
+
+        .rooms-wrap .toolbar-actions {
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .rooms-wrap .toolbar-action-btn {
+            width: 100%;
+        }
     }
 
 
-    .header-actions .btn { min-height:42px; display:inline-flex; align-items:center; justify-content:center; }
-    @media(max-width:575.98px){
-        .header-actions{width:100%;display:grid!important;grid-template-columns:1fr 1fr}
-        .header-actions .btn{width:100%;font-size:.86rem}
+    .header-actions .btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media(max-width:575.98px) {
+        .header-actions {
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr
+        }
+
+        .header-actions .btn {
+            width: 100%;
+            font-size: .86rem
+        }
+    }
+
+    /* Giao diện thống nhất với trang Quản lý môn học */
+    .rooms-wrap .qt-room-filter-panel {
+        background: #fff;
+        border: 1px solid #e3e8f3;
+        border-radius: 16px;
+        padding: 14px 16px;
+        box-shadow: 0 5px 20px rgba(30, 27, 75, .04);
+    }
+
+    .rooms-wrap .qt-room-filter-panel .toolbar-filters {
+        flex-wrap: wrap;
+    }
+
+    .rooms-wrap .qt-room-filter-panel .form-select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        padding-right: 2.5rem !important;
+        background-color: #f8fafc !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right .8rem center !important;
+        background-size: 12px !important;
+    }
+
+    .rooms-wrap .bulk-selection-bar {
+        position: static;
+        top: auto;
+        background: #faf8ff;
+        border: 1px solid #ddd6fe;
+        box-shadow: none;
+        border-radius: 12px;
+        padding: 13px 15px;
+    }
+
+    .rooms-wrap .bulk-selection-bar .btn {
+        border-radius: 9px;
+        font-weight: 600;
+    }
+
+    .rooms-wrap .pagination-bar {
+        margin-top: 16px;
+        padding-top: 15px;
+        border-top: 1px solid #eef2f7;
+    }
+
+    .rooms-wrap .pagination .page-link {
+        min-width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+    }
+
+    .rooms-wrap .room-row[hidden] {
+        display: none !important;
+    }
+
+    @media(max-width:768px) {
+        .rooms-wrap .qt-room-filter-panel .toolbar-filters {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .rooms-wrap .qt-room-filter-panel .rows-control {
+            margin-left: 0;
+        }
+    }
+
+
+    /* Phân trang dưới bảng, thống nhất trang Môn học */
+    .rooms-wrap #qtRoomPager.qt-room-pager {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 16px;
+        padding: 16px 2px 0;
+        border-top: 1px solid #e9edf5;
+        position: static;
+        height: auto !important;
+    }
+
+    .rooms-wrap .qt-room-page-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 9px;
+    }
+
+    .rooms-wrap #qtRoomPager .qt-room-page-info {
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .rooms-wrap #roomPagination .page-item:not(.active) .page-link:hover:not(:disabled) {
+        background: #f5f3ff;
+        color: #5b21b6;
+    }
+
+    .rooms-wrap .qt-room-limit {
+        width: 76px;
+        min-width: 76px;
+        height: 36px;
+        padding: 5px 25px 5px 10px;
+        border: 1px solid #dbe2f0;
+        border-radius: 9px;
+        background-color: #fff;
+    }
+
+    .rooms-wrap #roomPagination {
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        margin: 0 !important;
+        padding: 0;
+        list-style: none;
+    }
+
+    .rooms-wrap #roomPagination .page-link {
+        min-width: 40px;
+        height: 36px;
+        padding: 6px 12px;
+        border: 1px solid #c7d2fe;
+        border-radius: 9px !important;
+        background: #fff;
+        color: #5146dd;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .rooms-wrap #roomPagination .page-item.active .page-link {
+        min-width: auto;
+        border: 0;
+        background: transparent;
+        color: #1e293b;
+        opacity: 1;
+        padding: 6px 4px;
+        font-weight: 700;
+        box-shadow: none;
+    }
+
+    .rooms-wrap #roomPagination .page-item.disabled:not(.active) .page-link {
+        opacity: .48;
+        color: #7468ff;
+        background: #fff;
+    }
+
+    .rooms-wrap #roomPagination .page-item.active {
+        pointer-events: none;
+    }
+
+    @media(max-width:650px) {
+        .rooms-wrap #qtRoomPager.qt-room-pager {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .rooms-wrap .qt-room-page-controls {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    /* ========================================
+   QUIZTECH - REFRESH BUTTON
+======================================== */
+
+    .qt-refresh-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        height: 42px;
+        padding: 0 16px;
+
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+
+        background: #ffffff;
+        color: #475569;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        cursor: pointer;
+        white-space: nowrap;
+
+        transition: all 0.2s ease;
+    }
+
+    .qt-refresh-btn:hover {
+        background: #f5f3ff;
+        border-color: #8b5cf6;
+        color: #6d28d9;
+    }
+
+    .qt-refresh-btn:active {
+        transform: scale(0.97);
+    }
+
+    .qt-refresh-btn:focus-visible {
+        outline: 3px solid rgba(139, 92, 246, 0.25);
+        outline-offset: 2px;
+    }
+
+    .qt-refresh-btn:disabled {
+        opacity: 0.65;
+        cursor: wait;
+    }
+
+    .qt-refresh-btn i {
+        font-size: 15px;
+    }
+
+    .qt-refresh-btn.is-loading i {
+        animation: qtRefreshSpin 0.7s linear infinite;
+    }
+
+    @keyframes qtRefreshSpin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .qt-refresh-btn {
+            width: 100%;
+        }
     }
 </style>
+
+<link rel="stylesheet" href="../assets/css/qt-admin-five-pages-import-safe.css?v=20261027">
 <div class="container-fluid px-0 rooms-wrap">
     <div class="hero p-4 mb-4 admin-page-head">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
@@ -877,29 +1376,32 @@ require_once '../includes/header_admin.php';
             </div>
         </div>
     </div>
-    <div class="card main-card p-3 p-md-4">
-        <div class="toolbar-row mb-3">
-            <div class="toolbar-filters">
-                <div class="input-group filter-control search-control"><span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span><input id="search" class="form-control bg-light border-0" placeholder="Tìm mã phòng, tên phòng, giảng viên..." oninput="applyRoomView()"></div>
-                <select id="status" class="form-select bg-light border-0 filter-control status-control" onchange="applyRoomView()">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="waiting">Chờ bắt đầu</option>
-                    <option value="running">Đang diễn ra</option>
-                    <option value="finished">Đã kết thúc</option>
-                    <option value="cancelled">Đã hủy</option>
-                </select>
-                <select id="examFilter" class="form-select bg-light border-0 filter-control exam-control" onchange="applyRoomView()">
-                    <option value="">Tất cả đề thi</option><?php foreach ($exams as $ex): ?><option value="<?= (int)$ex['id'] ?>"><?= e(($ex['exam_code'] ? $ex['exam_code'] . ' - ' : '') . $ex['title']) ?></option><?php endforeach; ?>
-                </select>
-            </div>
-            <div class="rows-control"><select id="rowsPerPage" class="form-select form-select-sm" onchange="applyRoomView()">
-                    <option value="10">10</option>
-                    <option value="25" selected>25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select><span class="small text-muted text-nowrap">/ trang</span></div>
+    <div class="toolbar-row mb-3 qt-room-filter-panel">
+        <div class="toolbar-filters">
+            <div class="input-group filter-control search-control"><span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span><input id="search" class="form-control bg-light border-0" placeholder="Tìm mã phòng, tên phòng, giảng viên..." oninput="roomState.page=1;applyRoomView()"></div>
+            <select id="status" class="form-select bg-light border-0 filter-control status-control" onchange="roomState.page=1;applyRoomView()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="waiting">Chờ bắt đầu</option>
+                <option value="running">Đang diễn ra</option>
+                <option value="finished">Đã kết thúc</option>
+                <option value="cancelled">Đã hủy</option>
+            </select>
+            <select id="examFilter" class="form-select bg-light border-0 filter-control exam-control" onchange="roomState.page=1;applyRoomView()">
+                <option value="">Tất cả đề thi</option><?php foreach ($exams as $ex): ?><option value="<?= (int)$ex['id'] ?>"><?= e(($ex['exam_code'] ? $ex['exam_code'] . ' - ' : '') . $ex['title']) ?></option><?php endforeach; ?>
+            </select><button
+                type="button"
+                class="qt-refresh-btn"
+                id="qtRefreshBtn"
+                title="Làm mới dữ liệu"
+                aria-label="Làm mới dữ liệu">
+                <i class="bi bi-arrow-clockwise"></i>
+                <span>Làm mới</span>
+            </button>
         </div>
-        <div id="bulkBar" class="bulk-selection-bar d-none align-items-center justify-content-between mb-3"><strong><span id="selectedCount">0</span> phòng đã chọn</strong><button type="button" class="btn btn-sm btn-danger" onclick="bulkDelete()"><i class="bi bi-trash3 me-1"></i>Xóa đã chọn</button></div>
+
+    </div>
+    <div class="card main-card p-3 p-md-4">
+        <div id="bulkBar" class="bulk-selection-bar d-none align-items-center justify-content-between mb-3"><strong><i class="bi bi-check2-square me-2 text-danger"></i><span id="selectedCount">0</span> phòng đã chọn</strong><button type="button" class="btn btn-outline-danger" onclick="bulkDelete()"><i class="bi bi-trash3 me-1"></i>Xóa hàng loạt</button></div>
         <div class="table-wrap">
             <table class="table room-table align-middle mb-0">
                 <thead>
@@ -939,10 +1441,20 @@ require_once '../includes/header_admin.php';
             </table>
         </div>
         <div id="tableEmpty" class="table-empty"><i class="bi bi-search fs-2 d-block mb-2"></i>Không tìm thấy phòng thi phù hợp.</div>
-        <div class="pagination-bar"><small id="pageInfo" class="text-muted"></small>
-            <nav aria-label="Phân trang phòng thi">
-                <ul id="roomPagination" class="pagination pagination-sm"></ul>
-            </nav>
+        <div class="pagination-bar qt-room-pager" id="qtRoomPager">
+            <div class="qt-room-page-info"><span id="pageInfo" class="text-muted"></span></div>
+            <div class="qt-room-page-controls">
+                <label for="rowsPerPage" class="small text-muted text-nowrap">Số dòng / trang</label>
+                <select id="rowsPerPage" class="form-select form-select-sm qt-room-limit" onchange="roomState.page=1;applyRoomView()">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <nav aria-label="Phân trang phòng thi">
+                    <ul id="roomPagination" class="pagination pagination-sm"></ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
@@ -957,7 +1469,7 @@ require_once '../includes/header_admin.php';
                 <div class="modal-header border-0 pb-1">
                     <div>
                         <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>Import phòng</h5>
-                        
+
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -1042,6 +1554,20 @@ require_once '../includes/header_admin.php';
         </div>
     </div>
 </div>
+<div class="modal fade" id="roomDeleteConfirmModal" tabindex="-1" aria-labelledby="roomDeleteConfirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="roomDeleteConfirmTitle"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Xác nhận xóa phòng thi</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p id="roomDeleteConfirmMessage" class="mb-2"></p>
+                <div class="alert alert-warning mb-0 small"><i class="bi bi-info-circle me-1"></i>Thao tác này có thể xóa dữ liệu tham gia và kết quả thi liên quan. Không thể hoàn tác.</div>
+            </div>
+            <div class="modal-footer border-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="button" class="btn btn-danger" id="roomDeleteConfirmButton"><i class="bi bi-trash3 me-1"></i>Xác nhận xóa</button></div>
+        </div>
+    </div>
+</div>
 <form id="deleteForm" method="post" class="d-none"><?php if (function_exists('csrf_field')) csrf_field(); ?><input name="action" value="delete"><input name="id" id="delete_id"></form>
 <form method="post" id="bulkForm" class="d-none"><?php if (function_exists('csrf_field')) csrf_field(); ?><input type="hidden" name="action" value="bulk_delete">
     <div id="bulkInputs"></div>
@@ -1107,35 +1633,47 @@ require_once '../includes/header_admin.php';
         modal('statusModal').show();
     }
 
+    function showRoomDeleteConfirmation(message, onConfirm) {
+        document.getElementById('roomDeleteConfirmMessage').textContent = message;
+        const button = document.getElementById('roomDeleteConfirmButton');
+        button.onclick = function() {
+            button.disabled = true;
+            onConfirm();
+        };
+        button.disabled = false;
+        modal('roomDeleteConfirmModal').show();
+    }
+
     function deleteRoom(id) {
-        if (confirm('Bạn có chắc muốn xóa phòng thi này? Dữ liệu kết quả liên quan có thể bị xóa theo cấu hình CSDL.')) {
+        showRoomDeleteConfirmation('Bạn có chắc muốn xóa phòng thi này?', function() {
             document.getElementById('delete_id').value = id;
             document.getElementById('deleteForm').submit();
-        }
+        });
     }
 
     function bulkDelete() {
-        var ids = [...document.querySelectorAll('.room-select:checked')].map(x => x.value);
+        const ids = [...document.querySelectorAll('.room-select:checked')].map(x => x.value);
         if (!ids.length) {
             alert('Vui lòng chọn ít nhất một phòng thi.');
             return;
         }
-        if (!confirm('Bạn có chắc muốn xóa ' + ids.length + ' phòng thi đã chọn?')) return;
-        var box = document.getElementById('bulkInputs');
-        box.innerHTML = '';
-        ids.forEach(function(id) {
-            var i = document.createElement('input');
-            i.type = 'hidden';
-            i.name = 'ids[]';
-            i.value = id;
-            box.appendChild(i)
+        showRoomDeleteConfirmation('Bạn có chắc muốn xóa ' + ids.length + ' phòng thi đã chọn?', function() {
+            const box = document.getElementById('bulkInputs');
+            box.replaceChildren();
+            ids.forEach(function(id) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                box.appendChild(input);
+            });
+            document.getElementById('bulkForm').submit();
         });
-        document.getElementById('bulkForm').submit();
     }
 
     function syncBulk() {
-        var boxes = [...document.querySelectorAll('.room-select')],
-            selected = boxes.filter(x => x.checked);
+        var boxes = [...document.querySelectorAll('.room-row:not([hidden]) .room-select')],
+            selected = [...document.querySelectorAll('.room-select:checked')];
         var bar = document.getElementById('bulkBar');
         document.getElementById('selectedCount').textContent = selected.length;
         if (selected.length > 0) {
@@ -1146,12 +1684,13 @@ require_once '../includes/header_admin.php';
             bar.style.display = 'none';
         }
         var all = document.getElementById('selectAll');
-        all.checked = boxes.length > 0 && selected.length === boxes.length;
-        all.indeterminate = selected.length > 0 && selected.length < boxes.length;
+        var checkedVisible = boxes.filter(x => x.checked).length;
+        all.checked = boxes.length > 0 && checkedVisible === boxes.length;
+        all.indeterminate = checkedVisible > 0 && checkedVisible < boxes.length;
     }
     document.addEventListener('change', function(e) {
         if (e.target.id === 'selectAll') {
-            document.querySelectorAll('.room-select').forEach(function(x) {
+            document.querySelectorAll('.room-row:not([hidden]) .room-select').forEach(function(x) {
                 x.checked = e.target.checked;
             });
             syncBulk();
@@ -1167,7 +1706,7 @@ require_once '../includes/header_admin.php';
     var roomState = {
         page: 1,
         sortKey: 'created',
-        sortDir: 'desc'
+        sortDir: -1
     };
 
     function roomRows() {
@@ -1196,6 +1735,7 @@ require_once '../includes/header_admin.php';
             to = Math.min(from + per, total),
             visible = new Set(rows.slice(from, to));
         roomRows().forEach(function(r) {
+            r.hidden = !visible.has(r);
             r.style.display = visible.has(r) ? '' : 'none';
         });
         document.getElementById('tableEmpty').style.display = total ? 'none' : 'block';
@@ -1206,30 +1746,29 @@ require_once '../includes/header_admin.php';
 
     function renderPagination(pages) {
         var ul = document.getElementById('roomPagination');
+        if (!ul) return;
         ul.innerHTML = '';
-        if (pages <= 1) return;
 
-        function add(p, label, disabled, active) {
+        function add(page, label, disabled, active) {
             var li = document.createElement('li');
             li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
-            var b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'page-link';
-            b.innerHTML = label;
-            b.disabled = disabled;
-            b.onclick = function() {
-                roomState.page = p;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'page-link';
+            btn.textContent = label;
+            btn.disabled = disabled;
+            if (active) btn.setAttribute('aria-current', 'page');
+            btn.addEventListener('click', function() {
+                if (disabled || active) return;
+                roomState.page = page;
                 applyRoomView();
-            };
-            li.appendChild(b);
+            });
+            li.appendChild(btn);
             ul.appendChild(li);
         }
-        add(roomState.page - 1, '<i class="bi bi-chevron-left"></i>', roomState.page === 1, false);
-        var a = Math.max(1, roomState.page - 2),
-            z = Math.min(pages, a + 4);
-        a = Math.max(1, z - 4);
-        for (var p = a; p <= z; p++) add(p, p, false, p === roomState.page);
-        add(roomState.page + 1, '<i class="bi bi-chevron-right"></i>', roomState.page === pages, false);
+        add(roomState.page - 1, '‹ Trước', roomState.page <= 1, false);
+        add(roomState.page, roomState.page + ' / ' + pages, true, true);
+        add(roomState.page + 1, 'Sau ›', roomState.page >= pages, false);
     }
     document.querySelectorAll('.sort-btn').forEach(function(b) {
         b.addEventListener('click', function() {
@@ -1248,5 +1787,46 @@ require_once '../includes/header_admin.php';
         roomState.page = 1;
         applyRoomView();
     }
+
+    // Khởi tạo phân trang ngay khi mở trang
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyRoomView, {
+            once: true
+        });
+    } else {
+        applyRoomView();
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const refreshBtn = document.getElementById('qtRefreshBtn');
+
+        if (!refreshBtn) {
+            return;
+        }
+
+        refreshBtn.addEventListener('click', function() {
+
+            if (refreshBtn.disabled) {
+                return;
+            }
+
+            refreshBtn.disabled = true;
+            refreshBtn.classList.add('is-loading');
+
+            const label = refreshBtn.querySelector('span');
+
+            if (label) {
+                label.textContent = 'Đang tải...';
+            }
+
+            // Tải lại dữ liệu từ máy chủ.
+            // Giữ nguyên URL và các tham số lọc hiện tại.
+            window.location.reload();
+
+        });
+
+    });
 </script>
 <?php require_once '../includes/footer.php'; ?>

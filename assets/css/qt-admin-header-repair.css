@@ -1,0 +1,21 @@
+/* Header repair: reset nested Bootstrap card sizing. Scoped to Admin only. */
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head,
+#adminWrapper .rooms-wrap>.hero.admin-page-head,
+#adminWrapper .container-fluid>.page-header.admin-page-head{height:auto!important;min-height:116px!important;max-height:none!important;padding:0!important;display:block!important;overflow:visible!important;border-radius:19px!important;margin-bottom:20px!important;background:linear-gradient(112deg,#4f46e5,#6d28d9)!important}
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head>.card-body,
+#adminWrapper .rooms-wrap>.hero.admin-page-head>div{width:100%!important;max-width:none!important;min-height:116px!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:23px 28px!important;margin:0!important;flex-wrap:wrap!important}
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head>.card-body>div:first-child,
+#adminWrapper .rooms-wrap>.hero.admin-page-head>div>div:first-child{flex:1 1 320px!important;min-width:0!important;text-align:left!important}
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .header-actions,
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .admin-head-actions{display:flex!important;gap:10px!important;align-items:center!important;justify-content:flex-end!important;flex:0 1 auto!important;max-width:100%!important;margin:0!important}
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head h3{margin:0 0 5px!important;font-size:clamp(23px,2vw,28px)!important;color:#fff!important;font-weight:750!important}
+#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .btn{min-height:42px!important;padding:9px 14px!important;font-size:13px!important}
+#adminWrapper .page-header.admin-page-head{padding:23px 28px!important;display:flex!important;min-height:112px!important;align-items:center!important;justify-content:space-between!important}
+#adminWrapper .page-header.admin-page-head h3{color:#fff!important}
+#adminWrapper .page-header.admin-page-head p{color:#e9e5ff!important}
+#adminWrapper .qt-bulk-toolbar-unified{border:1px solid #fecaca!important;background:#fff7f7!important;border-radius:12px!important;padding:12px 16px!important;margin-bottom:14px!important;gap:12px!important;align-items:center!important}
+#adminWrapper .qt-bulk-toolbar-unified :is(button,.btn){min-height:38px;border-radius:10px!important}
+#adminWrapper .qt-subject-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 4px;color:#665d78;font-size:13px}
+#adminWrapper .qt-subject-pager .btn{min-width:75px;border-radius:10px}
+@media(max-width:991.98px){#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head>.card-body,#adminWrapper .rooms-wrap>.hero.admin-page-head>div{padding:20px!important}#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .header-actions,#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .admin-head-actions{justify-content:flex-start!important}}
+@media(max-width:575.98px){#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head>.card-body,#adminWrapper .rooms-wrap>.hero.admin-page-head>div{padding:18px!important}#adminWrapper :is(.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap)>.admin-page-head .btn{flex:1 1 auto}}

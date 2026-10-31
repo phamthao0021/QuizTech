@@ -23,11 +23,12 @@ if (!$cw) {
     http_response_code(404);
     exit('Không tìm thấy ô chữ.');
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $a = $_POST['action'] ?? '';
     try {
         if ($a === 'save') {
+            $auditId=(int)($_POST['id']??0);$auditBefore=$auditId?pa_record($pdo,'practice_crossword_clues',$auditId):null;
             $cid = (int)($_POST['id'] ?? 0);
             $no = max(1, (int)$_POST['clue_no']);
             $dir = $_POST['direction'] === 'down' ? 'down' : 'across';
@@ -41,9 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (($dir === 'across' && $col + $len > $cw['cols_count']) || ($dir === 'down' && $row + $len > $cw['rows_count'])) throw new RuntimeException('Đáp án vượt khỏi kích thước lưới.');
             if ($cid) $pdo->prepare("UPDATE practice_crossword_clues SET clue_no=?,direction=?,row_start=?,col_start=?,answer=?,clue=?,explanation=? WHERE id=? AND crossword_id=?")->execute([$no, $dir, $row, $col, $ans, $clue, $exp, $cid, $id]);
             else $pdo->prepare("INSERT INTO practice_crossword_clues(crossword_id,clue_no,direction,row_start,col_start,answer,clue,explanation,sort_order) VALUES(?,?,?,?,?,?,?,?,?)")->execute([$id, $no, $dir, $row, $col, $ans, $clue, $exp, $no]);
+            pa_audit_change($pdo,'practice_crossword_clues',$auditId ?: (int)$pdo->lastInsertId(),$auditId?'update':'create',$auditBefore);
             setFlash('success', 'Đã lưu clue.');
         } elseif ($a === 'delete') {
-            $pdo->prepare("DELETE FROM practice_crossword_clues WHERE id=? AND crossword_id=?")->execute([(int)$_POST['id'], $id]);
+            $clueId=(int)$_POST['id'];$before=pa_record($pdo,'practice_crossword_clues',$clueId);
+            $pdo->prepare('DELETE FROM practice_crossword_clues WHERE id=? AND crossword_id=?')->execute([$clueId,$id]);
+            if($before)pa_audit_change($pdo,'practice_crossword_clues',$clueId,'delete',$before);
             setFlash('success', 'Đã xóa clue.');
         }
     } catch (Throwable $e) {

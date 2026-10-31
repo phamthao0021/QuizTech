@@ -1,0 +1,148 @@
+Role,Chức năng/Màn hình,Mô tả
+Dùng chung,database/schema.sql,"• Kiểm tra migration schema: Đối chiếu cấu trúc DB phiên bản hiện hành, migration idempotent, indexes, foreign keys, dữ liệu hiện hữu; backup và rollback"
+Dùng chung,assets/,"• Tối ưu frontend: Cache headers, minify/bundle, defer JS, ảnh WebP/lazy load, tránh thư viện CDN lặp, kiểm tra CLS/LCP"
+Dùng chung,api/import.php,"• Chuẩn import transaction: Phân tách preview và commit bằng token một lần; chặn duplicate import, giới hạn dòng, kiểm tra header/template, rollback khi lỗi
+• Rà soát xác thực import: Đối chiếu session user/user_id và role; teacher chỉ import vào subject sở hữu/được phân công; CSRF cho commit; giới hạn MIME/kích thước; mã độc trong CSV"
+Dùng chung,includes/components/datatable.php,"• Nâng cấp table thống nhất: Sort theo cột whitelist, debounce search, lưu limit/filter, xử lý empty/error, select-all phân trang và accessibility
+• Gia cố DataTable dùng chung: Escape dữ liệu render từ callback, CSRF cho bulk, xác minh selected_ids phía server; không tin dữ liệu request"
+Dùng chung,admin/profile.php,• Loại bỏ lệch cập nhật hồ sơ: Cùng nguồn users; refresh session sau sửa tên/email/avatar; điều hướng profile.php chung đúng vai trò; không ghi đè trường role
+Dùng chung,admin/dashboard.php,"• Tối ưu truy vấn dashboard: Profile SQL/EXPLAIN, index foreign key và điều kiện lọc, tránh N+1; cache số liệu an toàn theo vai trò"
+Dùng chung,admin/subjects.php,"• Đồng bộ môn và câu hỏi: Phạm vi môn được phân công, mã môn duy nhất, câu hỏi thuộc môn, liên kết đề thi; không chuyển quyền sở hữu ngoài ý muốn"
+Dùng chung,admin/exams.php,• Chuỗi đề thi end-to-end: Tạo/sửa/xuất bản/gán môn/phòng/thi/nộp/xem kết quả thống nhất cùng exam_id và trạng thái; chống bản ghi mồ côi
+Dùng chung,admin/rooms.php,"• Đồng bộ phòng thi: Giới hạn người tham gia, thời gian, mã phòng, trạng thái đóng/mở, danh sách sinh viên, chống trùng và đua trạng thái"
+Dùng chung,includes/qt_notifications.php,• Kiểm thử luồng thông báo: Admin gửi → đúng đối tượng nhận → badge tăng → mở chi tiết/đánh dấu đọc → badge giảm → reload vẫn đúng
+Dùng chung,api/*.php,"• Chuẩn hóa API error: Mã lỗi HTTP, JSON nhất quán, xác thực CSRF, permission, rate limit, không trả stack trace/SQL ra client
+• Load/stress/soak test: Thử 50/100/200 người đồng thời trong môi trường staging, soak 24h, theo dõi p95, 5xx, CPU/RAM/DB connections, bottleneck"
+Dùng chung,includes/config.php,"• Bảo vệ secrets và thông tin DB: Đưa credentials ra cấu hình môi trường, bảo vệ file cấu hình, kiểm tra .git và log không lộ token/password"
+Dùng chung,phpinfo.php; test.php; check.php; check_db.php; demo.php; hash_password.php,"• Đóng trang debug production: Kiểm tra nội dung từng endpoint, chặn public hoặc xóa khỏi bản deploy nếu không cần; không để lộ cấu hình/DB"
+Dùng chung,teacher/*.php; admin/*.php,"• Phân quyền thao tác cập nhật/xóa: Kiểm tra object-level authorization (IDOR) với record không thuộc giảng viên, admin_test và từng trạng thái"
+Dùng chung,.github/workflows/ci-cd.yml,"• Nâng cấp pipeline CI: PHP lint, dependency audit, static analysis, unit/integration tests, migration dry-run, kiểm tra bí mật trước deploy"
+Dùng chung,Toàn source,"• Lập bản đồ phụ thuộc và checklist release: Xác định route CRUD, bảng DB, quyền, luồng, tác động sửa; smoke test 3 role trước/sau nâng cấp"
+Dùng chung,admin/,"• Accessibility/WCAG: Tương phản, focus visible, nhãn input, aria, keyboard, screen reader, zoom 200%, không chỉ báo bằng màu
+• Cross-browser/device: Test Chrome/Edge/Firefox/Safari và mobile; 320-1920px, dark mode trình duyệt nếu hỗ trợ"
+Dùng chung,admin/*.php; teacher/*.php,• Server-side pagination: Không tải toàn bộ dữ liệu vào RAM để lọc/bảng; LIMIT/OFFSET hoặc keyset; COUNT được tối ưu
+Dùng chung,database/,"• Sao lưu/phục hồi: Backup DB + media, staging restore, checksum, kế hoạch rollback; đối soát số record trước/sau release"
+Dùng chung,tests/ (đề xuất),"• Tạo test suite hồi quy: Unit validation, API integration, RBAC matrix, Selenium end-to-end, import/export fixtures, dữ liệu biên, phép đo phi chức năng"
+Admin,includes/header_admin.php,"• Chuẩn hóa khung giao diện: Đồng bộ header, sidebar, logo, khoảng cách, palette, icon, breadcrumb, title, footer, active menu, desktop/mobile
+• Tái sử dụng design tokens: Chuẩn hóa CSS token, button, badge, modal, form, table, typography; khác biệt role qua config, tránh CSS chồng chéo"
+Admin,composer.json; vendor/,"• Xác minh thư viện bảng tính: Kiểm thử PhpSpreadsheet với CSV/XLSX thực tế, memory_limit, import 10/1.000/10.000 dòng, file lỗi và file công thức"
+Admin,admin/profile.php,"• Đồng bộ hồ sơ cá nhân: Dùng cùng layout/form/validation/avatar/bảo mật/đổi mật khẩu; role chỉ khác trường được phép sửa; giữ nguyên giá trị dữ liệu
+• Bảo vệ thay đổi hồ sơ: Kiểm tra CSRF, email trùng, mật khẩu hiện tại, giới hạn upload avatar, MIME thực, kích cỡ và đường dẫn an toàn"
+Admin,admin/dashboard.php,"• Nâng cấp Dashboard: Sắp xếp KPI, biểu đồ, card, trạng thái rỗng/loading/error, bộ lọc thời gian và các đường dẫn mở chi tiết"
+Admin,admin/users.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc users.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm
+• Kiểm thử vòng đời tài khoản: Tạo user/gán role/chuyển trạng thái/đăng nhập/thay mật khẩu; kiểm tra thông báo và quyền được cập nhật"
+Admin,admin/subjects.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc subjects.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Admin,admin/questions.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc questions.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Admin,admin/exams.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc exams.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm
+• Kiểm thử tạo đề → mở phòng: Tạo câu hỏi/import → tạo đề → xuất bản → tạo phòng → student tham gia → thi → nộp → results; rollback lỗi"
+Admin,admin/rooms.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc rooms.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Admin,admin/approve_items.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Admin,admin/feedback_manage.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Admin,admin/ai_logs.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Admin,admin/leaderboard.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Admin,admin/practice/,• Kiểm thử phát hành Practice: Teacher nhập bộ dữ liệu → duyệt/công bố → student luyện → xem điểm → báo cáo thống kê; phân quyền
+Admin,admin/practice/concepts.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Admin,admin/practice/crossword_clues.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Admin,admin/practice/crosswords.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Admin,admin/practice/quick_quiz.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Admin,admin/practice/results.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Admin,admin/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Admin,api/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Admin,includes/qt_notification_center.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Admin,includes/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Admin,teacher/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Admin,admin/*.php,• Tối ưu hiển thị mobile: Kiểm thử 320/375/768/1024/1440px; bảng cuộn ngang; modal không tràn; sidebar thu gọn; thao tác bàn phím
+Teacher,includes/header_admin.php,"• Tái sử dụng design tokens: Chuẩn hóa CSS token, button, badge, modal, form, table, typography; khác biệt role qua config, tránh CSS chồng chéo"
+Teacher,includes/header_teacher.php,"• Chuẩn hóa khung giao diện: Đồng bộ header, sidebar, logo, khoảng cách, palette, icon, breadcrumb, title, footer, active menu, desktop/mobile"
+Teacher,composer.json; vendor/,"• Xác minh thư viện bảng tính: Kiểm thử PhpSpreadsheet với CSV/XLSX thực tế, memory_limit, import 10/1.000/10.000 dòng, file lỗi và file công thức"
+Teacher,teacher/profile.php,"• Đồng bộ hồ sơ cá nhân: Dùng cùng layout/form/validation/avatar/bảo mật/đổi mật khẩu; role chỉ khác trường được phép sửa; giữ nguyên giá trị dữ liệu
+• Bảo vệ thay đổi hồ sơ: Kiểm tra CSRF, email trùng, mật khẩu hiện tại, giới hạn upload avatar, MIME thực, kích cỡ và đường dẫn an toàn"
+Teacher,teacher/dashboard.php,"• Nâng cấp Dashboard: Sắp xếp KPI, biểu đồ, card, trạng thái rỗng/loading/error, bộ lọc thời gian và các đường dẫn mở chi tiết"
+Teacher,admin/users.php,• Kiểm thử vòng đời tài khoản: Tạo user/gán role/chuyển trạng thái/đăng nhập/thay mật khẩu; kiểm tra thông báo và quyền được cập nhật
+Teacher,teacher/subjects.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc subjects.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Teacher,teacher/exam_questions.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Teacher,teacher/questions.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc questions.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Teacher,admin/exams.php,• Kiểm thử tạo đề → mở phòng: Tạo câu hỏi/import → tạo đề → xuất bản → tạo phòng → student tham gia → thi → nộp → results; rollback lỗi
+Teacher,teacher/exams.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc exams.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Teacher,teacher/rooms.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi
+• Đồng bộ import CSV/XLSX: Thêm/chuẩn hóa nút Import, tải file mẫu đúng cấu trúc rooms.php, preview lỗi theo từng hàng, kiểm tra trùng, commit transaction, thống kê thành công/thất bại
+• Bổ sung xuất dữ liệu: Export CSV/XLSX theo bộ lọc và quyền hiện hành; BOM UTF-8/encoding, bảo vệ công thức Excel, không rò rỉ thông tin nhạy cảm"
+Teacher,teacher/results.php,"• Chuẩn hóa danh sách dữ liệu: Toolbar thống nhất: tìm kiếm, lọc, làm mới, tổng số, phân trang, chọn số dòng; trạng thái empty/loading/error
+• Hoàn thiện thao tác theo lô: Checkbox chọn trang/tất cả theo kết quả lọc, đếm đã chọn, xác nhận xóa theo quyền, xử lý partial failure và phản hồi kết quả
+• Bảo toàn bộ lọc và phân trang: Lọc/tìm kiếm trên DB, xử lý ký tự Unicode, đồng bộ số lượng bản ghi và trạng thái URL sau thao tác; tránh xóa nhầm phạm vi"
+Teacher,admin/practice/,• Kiểm thử phát hành Practice: Teacher nhập bộ dữ liệu → duyệt/công bố → student luyện → xem điểm → báo cáo thống kê; phân quyền
+Teacher,teacher/practice/clues.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Teacher,teacher/practice/manage.php,"• Đồng bộ màn hình Practice: Table toolbar, CRUD, tìm kiếm, lọc game/trạng thái, phân trang, import có xem trước, xóa nhiều, phân quyền chủ sở hữu"
+Teacher,admin/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Teacher,api/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Teacher,includes/qt_notification_center.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Teacher,includes/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Teacher,teacher/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Teacher,teacher/*.php,• Tối ưu hiển thị mobile: Kiểm thử 320/375/768/1024/1440px; bảng cuộn ngang; modal không tràn; sidebar thu gọn; thao tác bàn phím
+Student,includes/header_student.php,"• Chuẩn hóa khung giao diện: Đồng bộ header, sidebar, logo, khoảng cách, palette, icon, breadcrumb, title, footer, active menu, desktop/mobile"
+Student,student/profile.php,"• Đồng bộ hồ sơ cá nhân: Dùng cùng layout/form/validation/avatar/bảo mật/đổi mật khẩu; role chỉ khác trường được phép sửa; giữ nguyên giá trị dữ liệu
+• Bảo vệ thay đổi hồ sơ: Kiểm tra CSRF, email trùng, mật khẩu hiện tại, giới hạn upload avatar, MIME thực, kích cỡ và đường dẫn an toàn"
+Student,student/dashboard.php,"• Nâng cấp Dashboard: Sắp xếp KPI, biểu đồ, card, trạng thái rỗng/loading/error, bộ lọc thời gian và các đường dẫn mở chi tiết"
+Student,student/leaderboard.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/subjects.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/*.php,• Tối ưu hiển thị mobile: Kiểm thử 320/375/768/1024/1440px; bảng cuộn ngang; modal không tràn; sidebar thu gọn; thao tác bàn phím
+Student,student/community.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/exam_result.php,"• Kiểm thử luồng học/thi: Kết quả, chỉ hiển thị quyền xem đáp án; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,student/exams.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/history.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/wrong_question.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/exam.php,"• Kiểm thử luồng học/thi: Bài thi; tự lưu và hiển thị đồng hồ, đổi tab; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,student/room_join.php,"• Kiểm thử luồng học/thi: Vào phòng bằng mã; kiểm tra trạng thái và thời gian; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,student/rooms.php,• Đồng bộ danh sách học tập: Toolbar tìm kiếm/lọc phù hợp màn hình; responsive; loading/empty/error; card/table; nhất quán nhãn và phân trang
+Student,student/submit_exam.php,"• Kiểm thử luồng học/thi: Nộp bài; chống nộp 2 lần và dữ liệu mất mạng; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,student/waiting-room.php,"• Kiểm thử luồng học/thi: Chờ phòng; cập nhật trạng thái không nhân đôi request; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,student/practice.php,"• Kiểm thử luồng học/thi: 3 trò luyện tập, thời gian, điểm, đáp án và restart; giữ nguyên điểm và lịch sử đã có; kiểm tra refresh/back, mất kết nối, session hết hạn"
+Student,admin/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Student,api/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Student,includes/qt_notification_center.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Student,includes/qt_notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"
+Student,teacher/notifications.php,"• Hoàn thiện notification center: Phân quyền người nhận, badge chưa đọc, mở chi tiết, đánh dấu đã đọc theo item, lọc, phân trang, xử lý link đích và trạng thái đồng bộ"

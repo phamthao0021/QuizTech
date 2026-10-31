@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (item.checked) checkedCount++;
         });
 
+        if (!bulkActionBtn) return;
         if (checkedCount > 0) {
             bulkActionBtn.classList.remove('d-none');
             if(selectedCountSpan) selectedCountSpan.textContent = checkedCount;

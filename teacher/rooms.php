@@ -6,47 +6,37 @@ require_once '../includes/auth.php';
 require_once '../includes/data.php';
 requireTeacher();
 
+$teacherId = (int)((function_exists('currentUser') ? (currentUser()['id'] ?? null) : null) ?? ($_SESSION['user_id'] ?? null) ?? ($_SESSION['user']['id'] ?? 0));
+
 // -------------------------------------------------------------
-// XỬ LÝ THÊM PHÒNG THI MỚI (CÓ TẢI ẢNH BÌA/AVATAR GÓC TRÁI)
+// XỬ LÝ THÊM PHÒNG THI MỚI
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
     verify_csrf();
 
-    $code        = strtoupper(trim($_POST['code'] ?? ''));
-    $name        = trim($_POST['name'] ?? '');
-    $exam_id     = (int)($_POST['exam_id'] ?? 0);
-    $max_players = (int)($_POST['max_players'] ?? 10);
-    $image_path  = '';
+    $room_code    = strtoupper(trim($_POST['room_code'] ?? ''));
+    $room_name    = trim($_POST['room_name'] ?? '');
+    $exam_id      = (int)($_POST['exam_id'] ?? 0);
+    $max_students = (int)($_POST['max_students'] ?? 50);
+    $start_time   = $_POST['start_time'] ?? date('Y-m-d H:i:s');
+    $end_time     = $_POST['end_time'] ?? date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-    if (empty($code) || empty($name)) {
+    // Check if exam belongs to teacher
+    $stmtEx = $pdo->prepare("SELECT id FROM exams WHERE id = ? AND teacher_id = ?");
+    $stmtEx->execute([$exam_id, $teacherId]);
+    if (!$stmtEx->fetch()) {
+        setFlash('danger', 'Đề thi không hợp lệ hoặc bạn không có quyền!');
+        redirect('rooms.php');
+    }
+
+    if (empty($room_code) || empty($room_name)) {
         setFlash('danger', 'Vui lòng nhập đầy đủ Mã phòng và Tên phòng thi!');
-    } elseif ($max_players < 1) {
+    } elseif ($max_students < 1) {
         setFlash('danger', 'Số lượng người tham gia phải lớn hơn 0!');
     } else {
-        // Xử lý upload ảnh phòng thi (Góc trái)
-        if (isset($_FILES['room_image']) && $_FILES['room_image']['error'] === UPLOAD_ERR_OK) {
-            $fileTmpPath = $_FILES['room_image']['tmp_name'];
-            $fileName    = $_FILES['room_image']['name'];
-            $fileSize    = $_FILES['room_image']['size'];
-            $fileExt     = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-
-            if (in_array($fileExt, $allowedExtensions) && $fileSize <= 2 * 1024 * 1024) {
-                $uploadDir = '../uploads/rooms/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-                $newFileName = 'room_' . time() . '_' . mt_rand(1000, 9999) . '.' . $fileExt;
-                if (move_uploaded_file($fileTmpPath, $uploadDir . $newFileName)) {
-                    $image_path = 'uploads/rooms/' . $newFileName;
-                }
-            }
-        }
-
         try {
-            $stmt = $pdo->prepare("INSERT INTO rooms (code, name, exam_id, max_players, image, status, created_at) VALUES (?, ?, ?, ?, ?, 'waiting', NOW())");
-            $stmt->execute([$code, $name, $exam_id, $max_players, $image_path]);
+            $stmt = $pdo->prepare("INSERT INTO exam_rooms (exam_id, teacher_id, room_code, room_name, max_students, start_time, end_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting', NOW())");
+            $stmt->execute([$exam_id, $teacherId, $room_code, $room_name, $max_students, $start_time, $end_time]);
 
             setFlash('success', 'Đã tạo phòng thi mới thành công!');
         } catch (PDOException $e) {
@@ -59,135 +49,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // -------------------------------------------------------------
 // XỬ LÝ XÓA PHÒNG THI
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     verify_csrf();
 
     $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {
+        $stmtChk = $pdo->prepare("SELECT id FROM exam_rooms WHERE id = ? AND teacher_id = ?");
+        $stmtChk->execute([$id, $teacherId]);
+        if (!$stmtChk->fetch()) {
+            setFlash('danger', 'Bạn không có quyền xóa phòng thi này!');
+            redirect('rooms.php');
+        }
+
         try {
-            $stmt = $pdo->prepare("DELETE FROM rooms WHERE id = ?");
+            $stmt = $pdo->prepare("DELETE FROM exam_rooms WHERE id = ?");
             $stmt->execute([$id]);
 
-            resetAutoIncrement($pdo, 'rooms');
+            resetAutoIncrement($pdo, 'exam_rooms');
             setFlash('success', 'Đã xóa phòng thi thành công!');
         } catch (PDOException $e) {
-            setFlash('danger', 'Lỗi: Không thể xóa phòng thi!');
+            setFlash('danger', 'Lỗi: Không thể xóa phòng thi (có thể đã có kết quả)!');
         }
     }
     redirect('rooms.php');
 }
 
-$rooms = getRooms();
-$exams = getExams();
+// Lấy danh sách phòng thi của giáo viên này
+$stmt = $pdo->prepare("
+    SELECT r.*, e.title as exam_title 
+    FROM exam_rooms r 
+    LEFT JOIN exams e ON r.exam_id = e.id 
+    WHERE r.teacher_id = ?
+    ORDER BY r.id DESC
+");
+$stmt->execute([$teacherId]);
+$rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Lấy danh sách đề thi của giáo viên
+$stmtEx = $pdo->prepare("SELECT id, title FROM exams WHERE teacher_id = ? ORDER BY id DESC");
+$stmtEx->execute([$teacherId]);
+$exams = $stmtEx->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Quản lý phòng thi';
-include '../includes/header.php';
+include '../includes/header_teacher.php';
 ?>
 
-<div class="page-wrapper">
-    <?php include '../includes/sidebar.php'; ?>
-
-    <div class="main-content">
-        <!-- Topbar -->
-        <div class="topbar d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-            <div>
-                <h4 class="mb-1">Quản lý phòng thi</h4>
-                <p class="text-muted mb-0">Tạo phòng thi trực tuyến và điều phối sinh viên tham gia</p>
-            </div>
-            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="bi bi-door-open-fill me-1"></i> Mở phòng thi mới
-            </button>
-        </div>
-
-        <!-- Bảng danh sách phòng thi -->
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle mb-0">
-                        <thead class="table-light">
+<main class="p-4 bg-light flex-grow-1 qt-t-page qt-t-rooms">
+<section class="qt-t-hero" aria-label="Giới thiệu trang"><div class="qt-t-hero-icon"><i class="bi bi-door-open"></i></div><div class="qt-t-hero-copy"><div class="qt-t-eyebrow">QUIZTECH · TEACHER</div><h1>Quản lý phòng thi</h1><p>Tổ chức và vận hành các phòng thi</p></div><a class="qt-t-hero-home" href="dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a><button type="button" class="qt-r-hero-create" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-door-open"></i> Mở phòng thi mới</button></section>
+    <!-- Bảng danh sách phòng thi -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <div class="qt-shared-toolbar" data-qt-table-toolbar><label class="qt-shared-search"><i class="bi bi-search"></i><input type="search" placeholder="Tìm tên phòng, mã phòng, đề thi..." aria-label="Tìm kiếm dữ liệu"></label><select class="qt-shared-filter" data-filter="status" aria-label="Lọc trạng thái phòng"><option value="">Tất cả trạng thái</option><option value="waiting">Chờ bắt đầu</option><option value="running">Đang thi</option><option value="closed">Đã đóng</option><option value="finished">Hoàn thành</option><option value="cancelled">Đã hủy</option></select><select class="qt-shared-sort" aria-label="Sắp xếp"><option value="original">Mặc định</option><option value="az">A–Z</option><option value="za">Z–A</option></select><button type="button" class="qt-shared-refresh"><i class="bi bi-arrow-clockwise"></i> Làm mới</button></div><table class="table table-striped table-hover align-middle mb-0 qt-enhanced-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Phòng thi</th>
+                            <th>Mã phòng</th>
+                            <th>Đề thi liên kết</th>
+                            <th class="text-center">Số người tối đa</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-end pe-3">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($rooms)): ?>
                             <tr>
-                                <th class="ps-3" style="width: 250px;">Phòng thi</th>
-                                <th>Mã phòng</th>
-                                <th>Đề thi liên kết</th>
-                                <th class="text-center">Số người tối đa</th>
-                                <th class="text-center">Trạng thái</th>
-                                <th class="text-end pe-3">Thao tác</th>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có phòng thi nào được mở.</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($rooms)): ?>
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">Chưa có phòng thi nào được mở.</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($rooms as $r): ?>
-                                    <?php 
-                                        $roomImg = !empty($r['image']) && file_exists('../' . $r['image']) 
-                                            ? '../' . e($r['image']) 
-                                            : 'https://via.placeholder.com/80?text=Room';
-                                    ?>
-                                    <tr>
-                                        <!-- Cột thông tin phòng + Ảnh góc trái -->
-                                        <td class="ps-3">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <img src="<?= $roomImg ?>" class="rounded border shadow-sm flex-shrink-0" style="width: 48px; height: 48px; object-fit: cover;" alt="Room Image">
-                                                <div>
-                                                    <strong class="d-block text-dark"><?= e($r['name']) ?></strong>
-                                                    <small class="text-muted">ID: #<?= $r['id'] ?></small>
-                                                </div>
+                        <?php else: ?>
+                            <?php foreach ($rooms as $r): ?>
+                                <tr data-qt-status="<?= e(strtolower((string)($r['status'] ?? 'waiting'))) ?>">
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 rounded text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-door-open fs-4"></i>
                                             </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-dark-subtle text-dark border px-2 py-1 font-monospace">
-                                                <?= e($r['code']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <?php 
-                                            $exam_name = '';
-                                            foreach ($exams as $e) {
-                                                if ($e['id'] == $r['exam_id']) {
-                                                    $exam_name = $e['title'];
-                                                    break;
-                                                }
-                                            }
-                                            ?>
-                                            <span class="text-secondary fw-semibold">
-                                                <?= e($exam_name ?: 'Chưa gán đề thi') ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-center fw-bold">
-                                            <i class="bi bi-people me-1 text-muted"></i><?= $r['max_players'] ?? 10 ?>
-                                        </td>
-                                        <td class="text-center">
-                                            <?= status_badge($r['status'] ?? 'waiting') ?>
-                                        </td>
-                                        <td class="text-end pe-3">
-                                            <form method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng thi này?')">
-                                                <?php csrf_field(); ?>
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id" value="<?= $r['id'] ?>">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa phòng thi">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                            <div>
+                                                <strong class="d-block text-dark"><?= e($r['room_name']) ?></strong>
+                                                <small class="text-muted">ID: #<?= $r['id'] ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark-subtle text-dark border px-2 py-1 font-monospace">
+                                            <?= e($r['room_code']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-secondary fw-semibold">
+                                            <?= e($r['exam_title'] ?: 'Chưa gán đề thi') ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center fw-bold">
+                                        <i class="bi bi-people me-1 text-muted"></i><?= $r['max_students'] ?? 50 ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?= status_badge($r['status'] ?? 'waiting') ?>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng thi này?')">
+                                            <?php csrf_field(); ?>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<?= $r['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa phòng thi">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table><div class="qt-shared-pagination"><span class="qt-shared-count"></span><label>Hiển thị <select class="qt-shared-pagesize"><option>5</option><option selected>10</option><option>20</option><option>50</option></select></label><nav class="qt-shared-pages" aria-label="Phân trang"></nav></div>
             </div>
         </div>
     </div>
-</div>
+</main>
 
-<!-- Modal Mở Phòng Thi (Tích hợp Upload Ảnh Góc Trái) -->
+<!-- Modal Mở Phòng Thi -->
 <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <form method="POST" enctype="multipart/form-data" action="rooms.php">
+            <form method="POST" action="rooms.php">
                 <?php csrf_field(); ?>
                 <input type="hidden" name="action" value="add">
 
@@ -198,45 +181,30 @@ include '../includes/header.php';
 
                 <div class="modal-body p-4">
                     <div class="row g-4">
-                        <!-- Ô Tải Ảnh Góc Trái -->
-                        <div class="col-12 col-md-4 text-center border-end-md">
-                            <label class="form-label fw-semibold d-block">Ảnh đại diện phòng</label>
-                            <div class="position-relative d-inline-block mb-2">
-                                <img id="roomImgPreview" src="https://via.placeholder.com/120?text=Upload+Image" class="rounded border shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="Preview">
-                                <label for="roomImageInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow" style="cursor: pointer; width: 36px; height: 36px;" title="Chọn ảnh">
-                                    <i class="bi bi-camera-fill"></i>
-                                </label>
-                            </div>
-                            <input type="file" id="roomImageInput" name="room_image" class="d-none" accept="image/*" onchange="previewRoomImg(this);">
-                            <div class="form-text small">Tải lên logo/hình biểu tượng phòng thi (Tùy chọn)</div>
-                        </div>
-
-                        <!-- Cột Form Nhập Liệu Bên Phải -->
-                        <div class="col-12 col-md-8">
+                        <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Mã phòng thi <span class="text-danger">*</span></label>
-                                <input type="text" name="code" class="form-control text-uppercase" placeholder="VD: PT-101" required>
+                                <input type="text" name="room_code" class="form-control text-uppercase" placeholder="VD: PT-101" required>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tên phòng thi <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" placeholder="VD: Phòng thi Lập trình Web - Nhóm 1" required>
+                                <input type="text" name="room_name" class="form-control" placeholder="VD: Phòng thi Lập trình Web - Nhóm 1" required>
                             </div>
 
-                            <div class="row g-3">
-                                <div class="col-12 col-md-7">
-                                    <label class="form-label fw-semibold">Chọn đề thi</label>
-                                    <select name="exam_id" class="form-select">
-                                        <option value="0">-- Chọn đề thi --</option>
-                                        <?php foreach ($exams as $e): ?>
-                                            <option value="<?= $e['id'] ?>"><?= e($e['title']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-md-5">
-                                    <label class="form-label fw-semibold">Số người tối đa</label>
-                                    <input type="number" name="max_players" class="form-control" value="10" min="1" required>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Chọn đề thi</label>
+                                <select name="exam_id" class="form-select" required>
+                                    <option value="">-- Chọn đề thi --</option>
+                                    <?php foreach ($exams as $e): ?>
+                                        <option value="<?= $e['id'] ?>"><?= e($e['title']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Số người tối đa</label>
+                                <input type="number" name="max_students" class="form-control" value="50" min="1" required>
                             </div>
                         </div>
                     </div>
@@ -251,16 +219,8 @@ include '../includes/header.php';
     </div>
 </div>
 
-<script>
-function previewRoomImg(input) {
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('roomImgPreview').src = e.target.result;
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-
-<?php include '../includes/footer.php'; ?>
+<?php 
+echo '</div></div>';
+include '../includes/footer.php'; 
+?>
+<script src="../assets/js/qt-teacher-pages.js?v=20261025" defer></script>

@@ -1,0 +1,159 @@
+/* QuizTech Teacher Questions – page-specific additions to unified design */
+.qt-t-questions{background:#f8f7ff!important;color:#291849}
+.qt-q-hero-actions{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:1}
+.qt-q-hero-actions .qt-t-hero-home{margin-left:0}
+.qt-q-hero-add{border:1px solid #ffffff85;border-radius:12px;background:#fff;color:#6d28d9;padding:11px 16px;font-weight:800;cursor:pointer}
+.qt-q-hero-add:hover{background:#f3e8ff}
+.qt-q-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:23px 0}
+.qt-q-stat{background:#fff;border:1px solid #ece5fa;border-radius:19px;padding:18px;display:flex;align-items:center;gap:15px;box-shadow:0 7px 24px #37115b0b}
+.qt-q-stat>div{display:flex;flex-direction:column;gap:5px}
+.qt-q-stat small{font-weight:700;color:#7e7295}
+.qt-q-stat strong{font-size:27px;color:#301856;line-height:1}
+.qt-q-stat-icon{width:47px;height:47px;border-radius:14px;background:#dbeafe;color:#2563eb;display:grid;place-items:center;font-size:22px;flex:none}
+.qt-q-stat-icon.violet{background:#ede9fe;color:#7c3aed}.qt-q-stat-icon.pink{background:#fce7f3;color:#db2777}
+.qt-q-panel{background:#fff;border:1px solid #ebe3f8;border-radius:22px;box-shadow:0 12px 34px #3212630e;overflow:hidden}
+.qt-q-heading{padding:23px 25px 12px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.qt-q-heading h2{font-size:21px;font-weight:800;color:#31155c;margin:0 0 7px}.qt-q-heading h2 i{color:#7c3aed;margin-right:8px}
+.qt-q-heading p{font-size:13px;color:#837697;margin:0}
+.qt-q-count{background:#f3edff;color:#6d28d9;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:800;white-space:nowrap}
+.qt-q-toolbar{padding:16px 25px 20px;display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(115px,1fr)) auto;gap:9px}
+.qt-q-search{position:relative}.qt-q-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9183a8}
+.qt-q-search input,.qt-q-toolbar select{width:100%;height:44px;background:#faf9ff;border:1px solid #e7e1f3;border-radius:11px;font-size:13px;color:#352259}
+.qt-q-search input{padding:0 12px 0 39px}.qt-q-toolbar select{padding-left:10px}
+.qt-q-search input:focus,.qt-q-toolbar select:focus{outline:0;border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf622}
+.qt-q-refresh{height:44px;border:1px solid #ddd2f4;border-radius:11px;background:#fff;color:#6d28d9;font-size:13px;font-weight:750;white-space:nowrap;padding:0 12px}
+.qt-q-table-wrap{overflow-x:auto}
+.qt-q-table{width:100%;border-collapse:collapse;font-size:13px}
+.qt-q-table thead{background:#f1ebff}.qt-q-table th{padding:16px 13px;color:#5920a7;font-size:12px;font-weight:800;white-space:nowrap;text-transform:uppercase}
+.qt-q-table td{padding:16px 13px;border-top:1px solid #f1edf8;vertical-align:middle}
+.qt-q-table tbody tr:hover{background:#faf8ff}
+.qt-q-row[hidden]{display:none!important}
+.qt-q-id{color:#897c9d;font-weight:800}
+.qt-q-question{color:#291849;display:block;max-width:500px;overflow-wrap:anywhere;line-height:1.5}
+.qt-q-readonly{display:inline-block;margin-top:6px;font-size:11px;color:#7c3aed;background:#f3e8ff;border-radius:7px;padding:3px 7px}
+.qt-q-subject{display:inline-block;border:1px solid #e5d9f7;border-radius:99px;padding:6px 9px;color:#69439d;background:#faf7ff;white-space:nowrap;font-size:12px;font-weight:700}
+.qt-q-answer{display:inline-grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;font-weight:900}
+.qt-q-difficulty{display:inline-block;padding:6px 10px;border-radius:99px;font-size:11px;font-weight:800}
+.qt-q-difficulty.easy{background:#dcfce7;color:#15803d}.qt-q-difficulty.medium{background:#fef3c7;color:#b45309}.qt-q-difficulty.hard{background:#fee2e2;color:#b91c1c}
+.qt-q-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.qt-q-action{border:1px solid;border-radius:9px;padding:8px 10px;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.qt-q-action.view{color:#2563eb;background:#eff6ff;border-color:#bfdbfe}
+.qt-q-action.update{color:#7c3aed;background:#f5f3ff;border-color:#ddd6fe}
+.qt-q-action.delete{color:#e11d48;background:#fff1f2;border-color:#fecdd3}
+.qt-q-action:hover{filter:brightness(.97)}
+.qt-q-empty{display:flex;align-items:center;flex-direction:column;gap:8px;padding:44px 15px;color:#817495}
+.qt-q-empty[hidden]{display:none!important}.qt-q-empty i{font-size:34px;color:#a78bfa}
+.qt-q-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 24px;border-top:1px solid #f1edf8;color:#7b6f91;font-size:13px;flex-wrap:wrap}
+.qt-q-footer label{display:flex;align-items:center;gap:7px}.qt-q-footer select{width:75px}
+#questionPagination{display:flex;gap:6px;flex-wrap:wrap}
+#questionPagination button{min-width:34px;height:34px;padding:0 8px;background:#fff;border:1px solid #e6ddf5;color:#5d3a8d;border-radius:9px}
+#questionPagination button[aria-current=page]{background:#6d28d9;color:#fff;border-color:#6d28d9}
+#questionPagination button:disabled{opacity:.4;cursor:not-allowed}
+.qt-q-modal{border:0;border-radius:21px;overflow:hidden;box-shadow:0 24px 65px #31126433}
+.qt-q-modal .modal-header{background:linear-gradient(110deg,#f8f5ff,#eee7ff);padding:21px 25px;border-bottom:1px solid #e9ddff}
+.qt-q-modal .modal-header small{display:block;color:#8b5cf6;font-size:11px;font-weight:800;letter-spacing:1px;margin-bottom:5px}
+.qt-q-modal .modal-title{font-size:20px;font-weight:800;color:#4c1d95}
+.qt-q-modal .modal-body{padding:25px}.qt-q-modal .modal-footer{padding:17px 25px;background:#faf9ff;border-top:1px solid #f0eafd}
+.qt-q-modal .form-label{font-size:13px;font-weight:750;color:#4c3575}
+.qt-q-modal .form-control,.qt-q-modal .form-select{border-radius:11px;min-height:44px;border-color:#e6dff3}
+.qt-q-modal .form-control:focus,.qt-q-modal .form-select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf622}
+.qt-q-note{padding:12px 14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:11px;font-size:13px;margin-bottom:19px}
+.qt-q-view-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.qt-q-view-meta span{background:#f3edff;border-radius:99px;padding:6px 10px;color:#6d28d9;font-size:12px;font-weight:800}
+.qt-q-view-question{font-size:19px;font-weight:800;color:#31155c;line-height:1.5;margin-bottom:19px;white-space:pre-wrap;overflow-wrap:anywhere}
+.qt-q-view-options{display:grid;gap:10px}
+.qt-q-view-option{border:1px solid #eae4f7;background:#faf9ff;padding:13px;display:flex;align-items:center;gap:11px;border-radius:12px;overflow-wrap:anywhere}
+.qt-q-view-option b{display:grid;place-items:center;background:#ede9fe;color:#6d28d9;border-radius:9px;width:32px;height:32px;flex:none}
+.qt-q-view-option span{flex:1;min-width:0}
+.qt-q-view-option.correct{background:#f0fdf4;border-color:#86efac;color:#166534}
+.qt-q-view-option.correct b{background:#bbf7d0;color:#166534}
+.qt-q-explanation{background:#fffaf0;border:1px solid #fde68a;border-radius:12px;padding:14px;margin-top:17px;color:#854d0e}
+.qt-q-explanation p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.qt-q-delete-icon{width:72px;height:72px;display:grid;place-items:center;background:#fff1f2;color:#e11d48;border-radius:21px;font-size:32px;margin:0 auto 17px}
+.qt-q-delete-content{padding:13px;border:1px solid #fecdd3;background:#fff7f8;color:#9f1239;border-radius:11px;font-weight:750;overflow-wrap:anywhere}
+@media(max-width:1250px){.qt-q-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}.qt-q-search{grid-column:1/-1}}
+@media(max-width:767px){
+.qt-t-questions{padding:14px!important}
+.qt-q-hero-actions{margin-left:0;width:100%}
+.qt-q-hero-add,.qt-q-hero-actions .qt-t-hero-home{flex:1;text-align:center}
+.qt-q-summary{grid-template-columns:1fr;gap:10px;margin:16px 0}
+.qt-q-stat{padding:14px}
+.qt-q-heading{padding:18px 15px 9px}
+.qt-q-heading h2{font-size:18px}
+.qt-q-heading p{font-size:12px}
+.qt-q-toolbar{grid-template-columns:1fr 1fr;padding:14px;gap:9px}
+.qt-q-search{grid-column:1/-1}
+.qt-q-refresh{grid-column:1/-1}
+.qt-q-table-wrap{overflow:visible;padding:0 12px}
+.qt-q-table,.qt-q-table tbody,.qt-q-table tr,.qt-q-table td{display:block;width:100%}
+.qt-q-table thead{display:none}
+.qt-q-table tbody{display:grid;gap:12px}
+.qt-q-table tbody tr{border:1px solid #e8def9;border-radius:15px;background:#fff;padding:12px}
+.qt-q-table td{border:0;padding:8px 0;display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:right}
+.qt-q-table td:before{content:attr(data-label);font-size:12px;font-weight:800;color:#8a7ba0;text-align:left;flex:0 0 75px}
+.qt-q-table td:nth-child(2){border-bottom:1px solid #eee7f9;padding-bottom:13px}
+.qt-q-table td:nth-child(2)>strong{max-width:70%}
+.qt-q-table td:last-child{align-items:flex-start}
+.qt-q-actions{justify-content:flex-end}
+.qt-q-footer{padding:15px;justify-content:center}
+.qt-q-modal .modal-header,.qt-q-modal .modal-body,.qt-q-modal .modal-footer{padding:17px}
+}
+
+/* FIX: Bootstrap scrollable modal with a form wrapper.
+   The form must be the flex scroll container parent. */
+#questionFormModal .modal-dialog {
+    height: auto;
+    max-height: calc(100dvh - 32px);
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+#questionFormModal .modal-content {
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#questionFormModal .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+#questionFormModal .modal-header,
+#questionFormModal .modal-footer {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
+}
+#questionFormModal .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+#questionFormModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fff;
+    box-shadow: 0 -7px 20px rgba(54, 22, 105, .08);
+}
+#questionFormModal .modal-footer .btn-primary {
+    background: linear-gradient(105deg, #7c3aed, #4f46e5);
+    border: none;
+    font-weight: 750;
+    padding: 10px 18px;
+}
+@media (max-width: 575.98px) {
+    #questionFormModal .modal-dialog {
+        margin: 8px;
+        max-height: calc(100dvh - 16px);
+    }
+    #questionFormModal .modal-content {
+        max-height: calc(100dvh - 16px);
+    }
+    #questionFormModal .modal-body {padding: 16px;}
+    #questionFormModal .modal-footer {padding: 12px 16px;}
+}

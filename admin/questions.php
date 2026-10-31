@@ -7,7 +7,7 @@
     requireAdmin();
 
     // Xử lý POST
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action'])) {
         verify_csrf();
         $action       = $_POST['action'];
         $subject_id   = (int)($_POST['subject_id']    ?? 0);
@@ -21,7 +21,9 @@
         $explanation  = trim($_POST['explanation']      ?? '');
 
         $valid = $subject_id > 0 && $content !== '' && $option_a !== '' && $option_b !== ''
-                && in_array($correct, ['A','B','C','D']);
+                && in_array($correct, ['A','B','C','D'], true)
+                && in_array($difficulty, ['easy','medium','hard'], true)
+                && trim(['A'=>$option_a,'B'=>$option_b,'C'=>$option_c,'D'=>$option_d][$correct] ?? '') !== '';
 
         if ($action === 'add') {
             if (!$valid) {
@@ -54,9 +56,13 @@
         if ($action === 'delete' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
             if ($id > 0) {
-                $pdo->prepare("DELETE FROM questions WHERE id=?")->execute([$id]);
-                resetAutoIncrement($pdo, 'questions');
-                setFlash('success', 'Đã xóa câu hỏi!');
+                try {
+                    $pdo->prepare("DELETE FROM questions WHERE id=?")->execute([$id]);
+                    setFlash('success', 'Đã xóa câu hỏi!');
+                } catch (PDOException $e) {
+                    error_log('Admin question delete: ' . $e->getMessage());
+                    setFlash('danger', 'Không thể xóa câu hỏi đang được sử dụng trong đề thi.');
+                }
             }
             redirect('questions.php');
         }
@@ -68,7 +74,8 @@
     include '../includes/header_admin.php';
     ?>
 
-    <div class="container-fluid px-0 questions-wrapper">
+    <link rel="stylesheet" href="../assets/css/qt-admin-questions-release.css?v=20261026">
+    <div class="container-fluid px-0 questions-wrapper qt-admin-questions-release">
             <div class="admin-page-head d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h3 class="fw-bold mb-1"><i class="bi bi-question-circle-fill me-2"></i>Quản lý câu hỏi</h3>
@@ -79,10 +86,21 @@
                 </button>
             </div>
 
+            
+<link rel="stylesheet" href="../assets/css/qt-admin-five-pages-import-safe.css?v=20261027">
+<div class="qt-aq-toolbar" aria-label="Bộ lọc ngân hàng câu hỏi">
+                <label class="qt-aq-search"><i class="bi bi-search"></i><input id="aqSearch" type="search" placeholder="Tìm nội dung, ID, môn học..." aria-label="Tìm câu hỏi"></label>
+                <select id="aqSubject" aria-label="Lọc môn học"><option value="">Tất cả môn học</option>
+                    <?php foreach ($subjects as $sub): ?><option value="<?= e($sub['name']) ?>"><?= e($sub['name']) ?></option><?php endforeach; ?>
+                </select>
+                <select id="aqDifficulty" aria-label="Lọc độ khó"><option value="">Tất cả độ khó</option><option value="easy">Dễ</option><option value="medium">Trung bình</option><option value="hard">Khó</option></select>
+                <select id="aqSort" aria-label="Sắp xếp"><option value="new">Mới nhất</option><option value="old">Cũ nhất</option><option value="az">Nội dung A–Z</option></select>
+                <button id="aqReset" type="button" class="qt-aq-reset"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+            </div>
             <div class="card shadow-sm">
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped mb-0">
+                        <table class="table table-striped mb-0" id="aqTable">
                             <thead>
                                 <tr>
                                     <th class="ps-3">ID</th>
@@ -98,13 +116,13 @@
                                     <tr><td colspan="6" class="text-center py-4 text-muted">Chưa có câu hỏi nào.</td></tr>
                                 <?php else: ?>
                                     <?php foreach ($questions as $q): ?>
-                                    <tr>
-                                        <td class="ps-3"><?= $q['id'] ?></td>
-                                        <td><strong><?= e(mb_strimwidth($q['content'], 0, 80, '...')) ?></strong></td>
-                                        <td><span class="badge bg-secondary"><?= e($q['subject_name'] ?? '—') ?></span></td>
-                                        <td><span class="badge bg-success"><?= $q['correct_answer'] ?></span></td>
-                                        <td><?= difficulty_badge($q['difficulty'] ?? 'easy') ?></td>
-                                        <td>
+                                    <tr data-id="<?= (int)$q['id'] ?>" data-subject="<?= e($q['subject_name'] ?? '') ?>" data-difficulty="<?= e($q['difficulty'] ?? 'easy') ?>" data-content="<?= e($q['content']) ?>">
+                                        <td class="ps-3" data-label="ID"><?= (int)$q['id'] ?></td>
+                                        <td data-label="Câu hỏi"><strong><?= e(mb_strimwidth($q['content'], 0, 80, '...')) ?></strong></td>
+                                        <td data-label="Môn"><span class="badge bg-secondary"><?= e($q['subject_name'] ?? '—') ?></span></td>
+                                        <td data-label="Đáp án"><span class="badge bg-success"><?= $q['correct_answer'] ?></span></td>
+                                        <td data-label="Độ khó"><?= difficulty_badge($q['difficulty'] ?? 'easy') ?></td>
+                                        <td data-label="Thao tác">
                                             <button class="btn btn-sm btn-warning" title="Sửa"
                                                     onclick='editQuestion(<?= json_encode($q, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>)'>
                                                 <i class="bi bi-pencil"></i>
@@ -120,6 +138,8 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="aqEmpty" class="qt-aq-empty" hidden>Không tìm thấy câu hỏi phù hợp với bộ lọc.</div>
+                    <div class="qt-aq-footer"><span id="aqInfo"></span><label>Hiển thị <select id="aqSize"><option>5</option><option selected>10</option><option>20</option><option>50</option></select> / trang</label><nav id="aqPages" aria-label="Phân trang câu hỏi"></nav></div>
                 </div>
             </div>
     </div>
@@ -318,3 +338,4 @@
     </script>
 
     <?php include '../includes/footer.php'; ?>
+<script src="../assets/js/qt-admin-questions-release.js?v=20261026" defer></script>

@@ -11,6 +11,7 @@ if (!defined('QUIZTECH_PRACTICE_ADMIN_SERVICE')) {
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/practice_audit.php';
 if (file_exists(__DIR__ . '/practice_service.php')) {
     require_once __DIR__ . '/practice_service.php';
 }
@@ -679,86 +680,59 @@ if (!function_exists('pa_render_pagination')) {
             $currentPage + 2
         );
 
+        // Giữ nguyên bộ lọc và giới hạn trang, chỉ thay đổi tham số page.
+        $queryParams = filter_input_array(INPUT_GET);
+
+if (!is_array($queryParams)) {
+    $queryParams = [];
+}
+
+// Loại bỏ tham số page cũ.
+unset($queryParams['page']);
+
+// Hàm tạo URL phân trang.
+$pageUrl = static function (int $page) use ($queryParams): string {
+    $params = $queryParams;
+
+    // Đảm bảo số trang luôn >= 1.
+    $params['page'] = max(1, $page);
+
+    return '?' . htmlspecialchars(
+        http_build_query($params),
+        ENT_QUOTES,
+        'UTF-8'
+    );
+};
         echo '<nav aria-label="Phân trang">';
         echo '<ul class="pagination pagination-sm mb-0">';
 
-        /*
-         * Previous
-         */
-        $query = $_GET;
-
-        $query['page'] = max(
-            1,
-            $currentPage - 1
-        );
-
-        echo '<li class="page-item '
-            . ($currentPage <= 1 ? 'disabled' : '')
-            . '">';
-
-        echo '<a class="page-link" href="?'
-            . htmlspecialchars(
-                http_build_query($query),
-                ENT_QUOTES,
-                'UTF-8'
-            )
-            . '">&laquo;</a>';
-
-        echo '</li>';
-
-
-        /*
-         * Page numbers
-         */
-        for ($page = $start; $page <= $end; $page++) {
-
-            $query = $_GET;
-            $query['page'] = $page;
-
-            echo '<li class="page-item '
-                . (
-                    $page === $currentPage
-                    ? 'active'
-                    : ''
-                )
-                . '">';
-
-            echo '<a class="page-link" href="?'
-                . htmlspecialchars(
-                    http_build_query($query),
-                    ENT_QUOTES,
-                    'UTF-8'
-                )
-                . '">'
-                . $page
-                . '</a>';
-
-            echo '</li>';
+        // Trang trước: không cho phép nhấn khi đang ở trang 1.
+        if ($currentPage <= 1) {
+            echo '<li class="page-item disabled"><span class="page-link" aria-disabled="true">&laquo;</span></li>';
+        } else {
+            echo '<li class="page-item"><a class="page-link" href="'
+                . $pageUrl($currentPage - 1) . '" aria-label="Trang trước">&laquo;</a></li>';
         }
-        /*
-         * Next
-         */
-        $query = $_GET;
 
-        $query['page'] = min(
-            $totalPages,
-            $currentPage + 1
-        );
-        echo '<li class="page-item '
-            . (
-                $currentPage >= $totalPages
-                ? 'disabled'
-                : ''
-            )
-            . '">';
-        echo '<a class="page-link" href="?'
-            . htmlspecialchars(
-                http_build_query($query),
-                ENT_QUOTES,
-                'UTF-8'
-            )
-            . '">&raquo;</a>';
-        echo '</li>';
+        // Các số trang xung quanh trang hiện tại.
+        for ($page = $start; $page <= $end; $page++) {
+            if ($page === $currentPage) {
+                echo '<li class="page-item active" aria-current="page"><span class="page-link">'
+                    . $page . '</span></li>';
+            } else {
+                echo '<li class="page-item"><a class="page-link" href="'
+                    . $pageUrl($page) . '">' . $page . '</a></li>';
+            }
+        }
+
+        // Trang sau: không cho phép nhấn khi đang ở trang cuối.
+        if ($currentPage >= $totalPages) {
+            echo '<li class="page-item disabled"><span class="page-link" aria-disabled="true">&raquo;</span></li>';
+        } else {
+            echo '<li class="page-item"><a class="page-link" href="'
+                . $pageUrl($currentPage + 1) . '" aria-label="Trang sau">&raquo;</a></li>';
+        }
+
         echo '</ul>';
         echo '</nav>';
     }

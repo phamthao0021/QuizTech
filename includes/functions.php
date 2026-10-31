@@ -35,16 +35,22 @@ if (!function_exists('role_label')) {
 if (!function_exists('setFlash')) {
     function setFlash($type, $message)
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            session_start();
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+        }
     }
 }
 
 if (!function_exists('getFlash')) {
     function getFlash()
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        if (isset($_SESSION['flash'])) {
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            session_start();
+        }
+        if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['flash'])) {
             $flash = $_SESSION['flash'];
             unset($_SESSION['flash']);
             return $flash;

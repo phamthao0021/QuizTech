@@ -9,7 +9,7 @@ requireLogin();
 
 $code = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $code = strtoupper(trim($_POST['room_code'] ?? ''));
 } else {

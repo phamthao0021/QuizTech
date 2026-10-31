@@ -10,114 +10,73 @@ if (session_status() === PHP_SESSION_NONE) {
 
 requireAdmin();
 
-// ----------------------------------------------------
-// TỰ ĐỘNG KHỞI TẠO BẢNG practice_feedback
-// ----------------------------------------------------
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `practice_feedback` (
-        `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `user_id` INT NOT NULL,
-        `type` VARCHAR(50) NOT NULL DEFAULT 'feedback',
-        `exam_id` INT NULL,
-        `question_id` INT NULL,
-        `title` VARCHAR(255) NULL,
-        `content` TEXT NOT NULL,
-        `status` VARCHAR(20) DEFAULT 'pending',
-        `admin_note` TEXT NULL,
-        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-} catch (Exception $e) {
-    // Ignored
-}
+// V39: Bảng practice_feedback phải được tạo bởi migration/installation, không tạo khi mở trang.
 
-// ----------------------------------------------------
-// XỬ LÝ SỬA NHANH CÂU HỎI TRỰC TIẾP TỪ ADMIN
-// ----------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type']) && $_POST['action_type'] === 'quick_update_question') {
-    $q_id        = (int)($_POST['question_id'] ?? 0);
-    $feedback_id = (int)($_POST['feedback_id'] ?? 0);
-    $q_text      = trim($_POST['question_text'] ?? '');
-    $opt_a       = trim($_POST['option_a'] ?? '');
-    $opt_b       = trim($_POST['option_b'] ?? '');
-    $opt_c       = trim($_POST['option_c'] ?? '');
-    $opt_d       = trim($_POST['option_d'] ?? '');
-    $correct     = trim($_POST['correct_option'] ?? 'A');
-    $admin_note  = trim($_POST['admin_note'] ?? 'Đã cập nhật câu hỏi theo phản hồi.');
-
-    if ($q_id > 0 && !empty($q_text)) {
-        try {
-            $column_names = ['content', 'question_text', 'question', 'title'];
-
-            foreach ($column_names as $col) {
-                try {
-                    $sql = "UPDATE questions SET `{$col}` = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ? WHERE id = ?";
-                    $stmtQ = $pdo->prepare($sql);
-                    $stmtQ->execute([$q_text, $opt_a, $opt_b, $opt_c, $opt_d, $correct, $q_id]);
-                    break;
-                } catch (Exception $ex) {
-                    continue; 
+// Thao tác hàng loạt: duyệt hoặc xóa, tối đa 500 mục.
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['bulk_action'])) {
+    verify_csrf();
+    $action = (string)$_POST['bulk_action'];
+    $ids = $_POST['feedback_ids'] ?? [];
+    if (!is_array($ids)) $ids = [];
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn($id) => $id > 0)));
+    try {
+        if (!in_array($action, ['approve','delete'], true) || !$ids || count($ids) > 500) throw new InvalidArgumentException('Lựa chọn không hợp lệ.');
+        $pdo->beginTransaction(); $count = 0;
+        foreach ($ids as $id) {
+            $q = $pdo->prepare('SELECT * FROM practice_feedback WHERE id=? FOR UPDATE'); $q->execute([$id]); $fb=$q->fetch(PDO::FETCH_ASSOC);
+            if (!$fb) continue;
+            if ($action === 'approve') {
+                if (($fb['type'] ?? '') === 'subject_request' && !empty($fb['title'])) {
+                    $q=$pdo->prepare('SELECT id FROM subjects WHERE name=? LIMIT 1'); $q->execute([$fb['title']]);
+                    if (!$q->fetchColumn()) {
+                        $prefix=strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/','',$fb['title']),0,4)) ?: 'SUB';
+                        $code=$prefix.strtoupper(bin2hex(random_bytes(4)));
+                        $q=$pdo->prepare("INSERT INTO subjects(name,code,description,status,created_by,created_at) VALUES(?,?,?,'active',?,NOW())");
+                        $q->execute([$fb['title'],$code,(string)($fb['content']??''),(int)($_SESSION['user_id']??0)]);
+                    }
                 }
-            }
-
-            if ($feedback_id > 0) {
-                $stmtF = $pdo->prepare("UPDATE practice_feedback SET status = 'approved', admin_note = ? WHERE id = ?");
-                $stmtF->execute([$admin_note, $feedback_id]);
-            }
-
-            setFlash('success', 'Đã cập nhật câu hỏi & duyệt báo cáo thành công!');
-        } catch (Exception $e) {
-            setFlash('danger', 'Lỗi khi cập nhật câu hỏi: ' . $e->getMessage());
+                $q=$pdo->prepare("UPDATE practice_feedback SET status='approved' WHERE id=?");
+            } else $q=$pdo->prepare('DELETE FROM practice_feedback WHERE id=?');
+            $q->execute([$id]); $count++;
         }
+        $pdo->commit(); setFlash('success',($action==='delete'?'Đã xóa ':'Đã duyệt ').$count.' yêu cầu.');
+    } catch(Throwable $e) {
+        if($pdo->inTransaction())$pdo->rollBack(); error_log('approve_items bulk: '.$e->getMessage());
+        setFlash('danger','Không thể xử lý hàng loạt. Không có thay đổi nào được lưu.');
     }
-    header('Location: approve_items.php');
-    exit;
+    header('Location: approve_items.php');exit;
 }
 
 // ----------------------------------------------------
 // XỬ LÝ DUYỆT / TỪ CHỐI THÔNG THƯỜNG
 // ----------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && !isset($_POST['action_type'])) {
-    $item_id = (int)($_POST['id'] ?? 0);
-    $action  = $_POST['action'];
-    $note    = trim($_POST['admin_note'] ?? '');
-
-    if ($item_id > 0) {
-        $status = ($action === 'approve') ? 'approved' : 'rejected';
-        $fb = db_fetch_one("SELECT * FROM practice_feedback WHERE id = ?", [$item_id]);
-
-        if ($fb) {
-            $stmt = $pdo->prepare("UPDATE practice_feedback SET status = ?, admin_note = ? WHERE id = ?");
-            $stmt->execute([$status, $note, $item_id]);
-
-            if ($status === 'approved' && $fb['type'] === 'subject_request' && !empty($fb['title'])) {
-                try {
-                    $checkName = $pdo->prepare("SELECT COUNT(*) FROM subjects WHERE name = ?");
-                    $checkName->execute([$fb['title']]);
-
-                    if ($checkName->fetchColumn() == 0) {
-                        $codePrefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $fb['title']), 0, 4));
-                        if (empty($codePrefix)) { $codePrefix = 'SUB'; }
-
-                        do {
-                            $code = $codePrefix . rand(100, 999);
-                            $checkCode = $pdo->prepare("SELECT COUNT(*) FROM subjects WHERE code = ?");
-                            $checkCode->execute([$code]);
-                        } while ($checkCode->fetchColumn() > 0);
-
-                        $adminId = $_SESSION['user']['id'] ?? 1;
-                        $description = !empty($fb['content']) ? $fb['content'] : 'Môn học được duyệt từ đề xuất của sinh viên';
-
-                        $stmtSub = $pdo->prepare("INSERT INTO subjects (name, code, description, status, created_by, created_at) VALUES (?, ?, ?, 'active', ?, NOW())");
-                        $stmtSub->execute([$fb['title'], $code, $description, $adminId]);
-                    }
-                } catch (Exception $e) {}
-            }
-
-            setFlash('success', ($action === 'approve' ? 'Đã duyệt yêu cầu thành công!' : 'Đã từ chối phản hồi thành công!'));
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['action']) && !isset($_POST['action_type'])) {
+    verify_csrf();
+    $id=(int)($_POST['id']??0);$action=(string)($_POST['action']??'');$note=trim((string)($_POST['admin_note']??''));
+    try {
+        if($id<1 || !in_array($action,['approve','reject','delete'],true))throw new InvalidArgumentException('Hành động không hợp lệ.');
+        $pdo->beginTransaction();
+        $s=$pdo->prepare('SELECT * FROM practice_feedback WHERE id=? FOR UPDATE');$s->execute([$id]);$fb=$s->fetch(PDO::FETCH_ASSOC);
+        if(!$fb)throw new RuntimeException('Phản hồi không tồn tại.');
+        if($action==='delete') {
+            $q=$pdo->prepare('DELETE FROM practice_feedback WHERE id=?');$q->execute([$id]);
+            $pdo->commit();setFlash('success','Đã xóa yêu cầu.');
+            header('Location: approve_items.php');exit;
         }
-        header('Location: approve_items.php');
-        exit;
-    }
+        if($action==='approve' && ($fb['type']??'')==='subject_request' && !empty($fb['title'])){
+            $s=$pdo->prepare('SELECT id FROM subjects WHERE name=? LIMIT 1');$s->execute([$fb['title']]);
+            if(!$s->fetchColumn()){
+                $prefix=strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/','',$fb['title']),0,4))?:'SUB';
+                $code=$prefix.strtoupper(bin2hex(random_bytes(4)));
+                $s=$pdo->prepare("INSERT INTO subjects(name,code,description,status,created_by,created_at) VALUES(?,?,?,'active',?,NOW())");
+                $s->execute([$fb['title'],$code,(string)($fb['content']??''),(int)($_SESSION['user_id']??0)]);
+            }
+        }
+        $status=$action==='approve'?'approved':'rejected';
+        $s=$pdo->prepare('UPDATE practice_feedback SET status=?,admin_note=? WHERE id=?');$s->execute([$status,$note,$id]);
+        $pdo->commit();setFlash('success','Đã cập nhật phản hồi.');
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();error_log('approve_items action: '.$e->getMessage());setFlash('danger','Không thể xử lý yêu cầu; dữ liệu không thay đổi.');}
+    header('Location: approve_items.php');exit;
 }
 
 // ----------------------------------------------------
@@ -184,7 +143,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
 
     body { 
         background-color: var(--bg-body); 
-        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; 
+        font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif; 
         color: var(--text-dark); 
     }
 
@@ -320,6 +279,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
 
     .col-min-detail { min-width: 220px; max-width: 280px; }
     .col-min-content { min-width: 260px; max-width: 340px; }
+  #requestsTable tr.qt-feedback-highlight td{background:#fef3c7!important;box-shadow:inset 0 1px #f59e0b,inset 0 -1px #f59e0b}
 </style>
 
 <div class="container-fluid py-4 px-3 px-md-4">
@@ -386,7 +346,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                 </li>
                 <li class="nav-item">
                     <button class="nav-link text-nowrap" onclick="filterType('question_report', this)">
-                        <i class="bi bi-flag-fill me-1 text-danger"></i>Báo lỗi câu hỏi
+                        <i class="bi bi-flag-fill me-1 text-danger"></i>Báo lỗi đề / câu hỏi
                     </button>
                 </li>
                 <li class="nav-item">
@@ -396,7 +356,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                 </li>
                 <li class="nav-item">
                     <button class="nav-link text-nowrap" onclick="filterType('feedback', this)">
-                        <i class="bi bi-chat-left-text me-1 text-info"></i>Góp ý chung
+                        <i class="bi bi-chat-left-text me-1 text-info"></i>Góp ý chức năng / giao diện
                     </button>
                 </li>
             </ul>
@@ -407,11 +367,32 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
             </div>
         </div>
 
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="Bộ lọc phản hồi">
+            <label class="small fw-semibold" for="qtFeedbackStatus">Trạng thái</label>
+            <select class="form-select form-select-sm" id="qtFeedbackStatus" style="width:auto;min-width:150px" aria-label="Lọc trạng thái">
+                <option value="all">Tất cả trạng thái</option><option value="pending">Chờ xử lý</option><option value="approved">Đã duyệt</option><option value="rejected">Từ chối</option>
+            </select>
+            <label class="small fw-semibold ms-sm-2" for="qtFeedbackPageSize">Số dòng</label>
+            <select class="form-select form-select-sm" id="qtFeedbackPageSize" style="width:auto" aria-label="Số dòng mỗi trang">
+                <option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+            </select>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-sm-auto" id="qtFeedbackClear"><i class="bi bi-x-circle me-1"></i>Xóa bộ lọc</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="qtFeedbackRefresh"><i class="bi bi-arrow-clockwise me-1"></i>Làm mới</button>
+        </div>
+        <div id="qtFeedbackFilterInfo" class="small text-muted mb-2" aria-live="polite"></div>
+        <form id="qtBulkForm" method="POST" class="d-flex align-items-center flex-wrap gap-2 mb-3">
+            <?php csrf_field(); ?>
+            <input type="hidden" name="bulk_action" id="qtBulkAction" value="approve">
+            <button type="submit" class="btn btn-sm btn-success" onclick="return qtBulkConfirm('approve')"><i class="bi bi-check2-all me-1"></i>Duyệt đã chọn</button>
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return qtBulkConfirm('delete')"><i class="bi bi-trash me-1"></i>Xóa đã chọn</button>
+            <span id="qtBulkCount" class="small text-muted">Đã chọn 0 yêu cầu</span>
+        </form>
         <!-- Bảng Danh Sách -->
         <div class="table-responsive">
             <table class="table table-modern align-middle mb-0" id="requestsTable">
                 <thead>
                     <tr>
+                        <th style="width:36px"><input type="checkbox" class="form-check-input" id="qtSelectAll" aria-label="Chọn tất cả"></th>
                         <th style="width: 18%;">Sinh viên</th>
                         <th style="width: 12%;">Phân loại</th>
                         <th class="col-min-detail">Chi tiết liên quan</th>
@@ -423,7 +404,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                 <tbody>
                     <?php if (empty($feedbacks)): ?>
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
                                 Chưa có dữ liệu báo lỗi hoặc đề xuất nào.
                             </td>
@@ -431,7 +412,8 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                     <?php endif; ?>
 
                     <?php foreach ($feedbacks as $item): ?>
-                        <tr data-type="<?= e($item['type'] ?? '') ?>" data-status="<?= e($item['status'] ?? '') ?>" data-search="<?= strtolower(e(($item['student_name']??'').' '.($item['title']??'').' '.($item['student_code']??''))) ?>">
+                        <tr id="feedback-<?= (int)($item['id'] ?? 0) ?>" data-feedback-id="<?= (int)($item['id'] ?? 0) ?>" data-type="<?= e($item['type'] ?? '') ?>" data-status="<?= e($item['status'] ?? '') ?>" data-search="<?= strtolower(e(($item['student_name']??'').' '.($item['title']??'').' '.($item['student_code']??''))) ?>">
+                            <td><input type="checkbox" form="qtBulkForm" class="form-check-input qt-row-check" name="feedback_ids[]" value="<?= (int)$item['id'] ?>" aria-label="Chọn yêu cầu <?= (int)$item['id'] ?>"></td>
                             <!-- Sinh viên -->
                             <td class="text-nowrap">
                                 <div class="d-flex align-items-center gap-2">
@@ -473,6 +455,10 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                             <td class="col-min-content">
                                 <div class="small text-dark line-clamp-2" title="<?= e($item['content'] ?? '') ?>">
                                     <?= nl2br(e($item['content'] ?? '')) ?>
+                                    <?php if (preg_match('~\[Ảnh góp ý: (uploads/feedback/[a-zA-Z0-9_.-]+\.(?:jpg|png|webp))\]~u', (string)($item['content'] ?? ''), $attachment)): ?>
+                                      <div class="mt-2"><a class="btn btn-sm btn-outline-primary" href="<?= e('../' . $attachment[1]) ?>" target="_blank" rel="noopener noreferrer"><i class="bi bi-image me-1"></i> Xem ảnh góp ý / prototype</a></div>
+                                    <?php endif; ?>
+
                                 </div>
                                 <?php if (!empty($item['admin_note'])): ?>
                                     <div class="mt-1.5 p-1.5 px-2 bg-light rounded border text-primary small line-clamp-2" style="font-size: 0.75rem;">
@@ -495,16 +481,9 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                             <!-- Thao tác -->
                             <td class="text-end text-nowrap">
                                 <div class="d-inline-flex gap-1 align-items-center">
-                                    <?php if (!empty($item['question_id'])): ?>
-                                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-2.5" 
-                                                onclick='openEditQuestionModal(<?= json_encode($item, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'
-                                                title="Sửa câu hỏi">
-                                            <i class="bi bi-pencil-square"></i> <span class="d-none d-xl-inline ms-1">Sửa</span>
-                                        </button>
-                                    <?php endif; ?>
-
                                     <?php if (($item['status'] ?? '') !== 'approved'): ?>
                                         <form method="POST" class="d-inline">
+<?php csrf_field(); ?>
                                             <input type="hidden" name="id" value="<?= $item['id'] ?>">
                                             <input type="hidden" name="action" value="approve">
                                             <button type="submit" class="btn btn-success btn-sm rounded-circle p-0" style="width: 31px; height: 31px;" title="Duyệt / Chấp nhận">
@@ -520,6 +499,12 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     <?php endif; ?>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Xóa vĩnh viễn yêu cầu này?')">
+                                        <?php csrf_field(); ?>
+                                        <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-0" style="width:31px;height:31px" title="Xóa"><i class="bi bi-trash"></i></button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -527,75 +512,14 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
-
-<!-- MODAL SỬA NHANH -->
-<div class="modal fade" id="quickEditQuestionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white rounded-top-4 p-3">
-                <h5 class="modal-title fw-bold fs-6"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Câu Hỏi & Duyệt Báo Lỗi</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <nav class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3" aria-label="Phân trang phản hồi">
+            <span class="small text-muted" id="qtFeedbackPageSummary"></span>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Điều hướng trang">
+                <button type="button" class="btn btn-outline-primary" id="qtFeedbackPrev">‹ Trước</button>
+                <span class="btn btn-light disabled" id="qtFeedbackPageLabel" aria-live="polite">1 / 1</span>
+                <button type="button" class="btn btn-outline-primary" id="qtFeedbackNext">Sau ›</button>
             </div>
-            <form method="POST">
-                <input type="hidden" name="action_type" value="quick_update_question">
-                <input type="hidden" name="question_id" id="edit_q_id">
-                <input type="hidden" name="feedback_id" id="edit_fb_id">
-
-                <div class="modal-body p-4">
-                    <div class="alert alert-warning border-0 rounded-3 mb-3 p-3">
-                        <div class="fw-bold text-dark mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Nội dung báo lỗi từ sinh viên:</div>
-                        <div id="edit_fb_content" class="small text-dark"></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                        <textarea name="question_text" id="edit_q_text" class="form-control rounded-3" rows="3" required></textarea>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Đáp án A</label>
-                            <input type="text" name="option_a" id="edit_q_opt_a" class="form-control rounded-3" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Đáp án B</label>
-                            <input type="text" name="option_b" id="edit_q_opt_b" class="form-control rounded-3" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Đáp án C</label>
-                            <input type="text" name="option_c" id="edit_q_opt_c" class="form-control rounded-3">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Đáp án D</label>
-                            <input type="text" name="option_d" id="edit_q_opt_d" class="form-control rounded-3">
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Đáp án đúng <span class="text-danger">*</span></label>
-                            <select name="correct_option" id="edit_q_correct" class="form-select rounded-3 fw-bold text-success" required>
-                                <option value="A">Đáp án A</option>
-                                <option value="B">Đáp án B</option>
-                                <option value="C">Đáp án C</option>
-                                <option value="D">Đáp án D</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Phản hồi gửi sinh viên</label>
-                            <input type="text" name="admin_note" id="edit_q_note" class="form-control rounded-3" value="Đã kiểm tra và chỉnh sửa câu hỏi. Cảm ơn phản hồi của bạn!">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light border-0 rounded-bottom-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold"><i class="bi bi-save me-1"></i> Lưu & Phê Duyệt</button>
-                </div>
-            </form>
-        </div>
+        </nav>
     </div>
 </div>
 
@@ -608,6 +532,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+<?php csrf_field(); ?>
                 <div class="modal-body p-4">
                     <input type="hidden" name="id" id="reject_item_id">
                     <input type="hidden" name="action" value="reject">
@@ -629,6 +554,9 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
 <script>
 let currentType = 'all';
 let currentStatus = 'all';
+let qtFeedbackPage = 1;
+let qtFeedbackSize = 10;
+let qtTargetFeedbackId = null;
 
 function filterType(type, element) {
     if (element) {
@@ -649,40 +577,98 @@ function filterStatus(status) {
         const card = document.getElementById(`card-${status}`);
         if (card) card.classList.add('active-filter');
     }
+    const selector = document.getElementById('qtFeedbackStatus'); if (selector) selector.value = currentStatus;
     applyFilters();
 }
 
-function applyFilters() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#requestsTable tbody tr');
+function applyFilters(resetPage = true) {
+    if (resetPage) qtFeedbackPage = 1;
+    const input = document.getElementById('searchInput');
+    const term = (input?.value || '').trim().toLocaleLowerCase('vi');
+    const rows = [...document.querySelectorAll('#requestsTable tbody tr[data-feedback-id]')];
+    const matched = rows.filter(row =>
+        (currentType === 'all' || row.dataset.type === currentType) &&
+        (currentStatus === 'all' || row.dataset.status === currentStatus) &&
+        (row.dataset.search || '').toLocaleLowerCase('vi').includes(term)
+    );
+    if (qtTargetFeedbackId !== null) {
+        const index = matched.findIndex(row => Number(row.dataset.feedbackId) === qtTargetFeedbackId);
+        if (index >= 0) qtFeedbackPage = Math.floor(index / qtFeedbackSize) + 1;
+        qtTargetFeedbackId = null;
+    }
+    const pages = Math.max(1, Math.ceil(matched.length / qtFeedbackSize));
+    qtFeedbackPage = Math.min(Math.max(qtFeedbackPage, 1), pages);
+    const begin = (qtFeedbackPage - 1) * qtFeedbackSize;
+    const visible = new Set(matched.slice(begin, begin + qtFeedbackSize));
+    rows.forEach(row => { row.hidden = !visible.has(row); row.style.display = visible.has(row) ? '' : 'none'; });
+    document.getElementById('qtFeedbackFilterInfo').textContent = `${matched.length} kết quả phù hợp / ${rows.length} yêu cầu`;
+    document.getElementById('qtFeedbackPageSummary').textContent = matched.length ? `Hiển thị ${begin + 1}–${Math.min(begin + qtFeedbackSize, matched.length)} trên ${matched.length} kết quả` : 'Không có kết quả phù hợp';
+    document.getElementById('qtFeedbackPageLabel').textContent = `${qtFeedbackPage} / ${pages}`;
+    document.getElementById('qtFeedbackPrev').disabled = qtFeedbackPage <= 1;
+    document.getElementById('qtFeedbackNext').disabled = qtFeedbackPage >= pages;
+}
 
-    rows.forEach(row => {
-        const rowType = row.getAttribute('data-type');
-        const rowStatus = row.getAttribute('data-status');
-        const rowSearch = row.getAttribute('data-search') || '';
+// Deep links from Dashboard and the existing notification bell.
+document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const status = params.get('status');
+    const id = Number(params.get('feedback_id'));
+    if (['subject_request','question_report','feedback'].includes(type)) {
+        const tab = [...document.querySelectorAll('#filterTabs .nav-link')].find(el => (el.getAttribute('onclick') || '').includes("'" + type + "'"));
+        filterType(type, tab || null);
+    }
+    if (['pending','approved','rejected'].includes(status)) filterStatus(status);
+    if (Number.isSafeInteger(id) && id > 0) {
+        const row = document.getElementById('feedback-' + id);
+        if (row) {
+            // Always reveal the targeted row, even when other filters were active.
+            currentType = 'all'; currentStatus = 'all';
+            const input = document.getElementById('searchInput'); if (input) input.value = '';
+            qtTargetFeedbackId = id;
+            applyFilters();
+            row.classList.add('qt-feedback-highlight');
+            row.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+    }
+});
 
-        const matchType = (currentType === 'all' || rowType === currentType);
-        const matchStatus = (currentStatus === 'all' || rowStatus === currentStatus);
-        const matchSearch = rowSearch.includes(searchInput);
-
-        row.style.display = (matchType && matchStatus && matchSearch) ? '' : 'none';
+document.addEventListener('DOMContentLoaded', () => {
+    const statusSelect = document.getElementById('qtFeedbackStatus');
+    const sizeSelect = document.getElementById('qtFeedbackPageSize');
+    statusSelect.addEventListener('change', () => {
+        currentStatus = statusSelect.value;
+        document.querySelectorAll('.stat-card').forEach(el => el.classList.remove('active-filter'));
+        if (currentStatus !== 'all') document.getElementById('card-' + currentStatus)?.classList.add('active-filter');
+        applyFilters();
     });
+    sizeSelect.addEventListener('change', () => { qtFeedbackSize = Number(sizeSelect.value) || 10; applyFilters(); });
+    document.getElementById('qtFeedbackPrev').addEventListener('click', () => { qtFeedbackPage--; applyFilters(false); });
+    document.getElementById('qtFeedbackNext').addEventListener('click', () => { qtFeedbackPage++; applyFilters(false); });
+    document.getElementById('qtFeedbackClear').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        currentType = 'all'; currentStatus = 'all'; statusSelect.value = 'all';
+        document.querySelectorAll('#filterTabs .nav-link').forEach((b, i) => b.classList.toggle('active', i === 0));
+        document.querySelectorAll('.stat-card').forEach(el => el.classList.remove('active-filter'));
+        applyFilters();
+    });
+    document.getElementById('qtFeedbackRefresh').addEventListener('click', () => location.reload());
+    applyFilters(false);
+});
+
+function qtBulkConfirm(action) {
+    const count=document.querySelectorAll('.qt-row-check:checked').length;
+    if (!count) {alert('Vui lòng chọn ít nhất một yêu cầu.');return false;}
+    if (!confirm(action==='delete'?`Xóa vĩnh viễn ${count} yêu cầu đã chọn?`:`Duyệt ${count} yêu cầu đã chọn?`))return false;
+    document.getElementById('qtBulkAction').value=action;return true;
 }
-
-function openEditQuestionModal(data) {
-    document.getElementById('edit_q_id').value = data.question_id || '';
-    document.getElementById('edit_fb_id').value = data.id || '';
-    document.getElementById('edit_fb_content').innerHTML = '<strong>' + (data.title || 'Báo lỗi') + ':</strong> ' + (data.content || '');
-    document.getElementById('edit_q_text').value = data.question_text || '';
-    document.getElementById('edit_q_opt_a').value = data.option_a || '';
-    document.getElementById('edit_q_opt_b').value = data.option_b || '';
-    document.getElementById('edit_q_opt_c').value = data.option_c || '';
-    document.getElementById('edit_q_opt_d').value = data.option_d || '';
-    document.getElementById('edit_q_correct').value = data.correct_option || 'A';
-
-    new bootstrap.Modal(document.getElementById('quickEditQuestionModal')).show();
-}
-
+document.addEventListener('DOMContentLoaded',function(){
+    const all=document.getElementById('qtSelectAll'),checks=[...document.querySelectorAll('.qt-row-check')];
+    const update=()=>{const n=checks.filter(x=>x.checked).length;document.getElementById('qtBulkCount').textContent=`Đã chọn ${n} yêu cầu`;
+        if(all){all.checked=checks.length>0&&n===checks.length;all.indeterminate=n>0&&n<checks.length;}};
+    if(all)all.addEventListener('change',()=>{checks.forEach(x=>x.checked=all.checked);update();});
+    checks.forEach(x=>x.addEventListener('change',update));
+});
 function openRejectModal(id, title, note) {
     document.getElementById('reject_item_id').value = id;
     document.getElementById('reject_item_title').innerText = title || 'Yêu cầu này';

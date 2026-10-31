@@ -1,0 +1,51 @@
+/* QuizTech Admin 5-page visual layer. No business logic changes. */
+#adminWrapper .users-wrapper .admin-page-head,
+#adminWrapper .subjects-wrapper .admin-page-head,
+#adminWrapper .exams-page .admin-page-head,
+#adminWrapper .rooms-wrap .admin-page-head,
+#adminWrapper .qt-aq-page .admin-page-head,
+.users-wrapper .admin-page-head,.subjects-wrapper .admin-page-head,.exams-page .admin-page-head,.rooms-wrap .admin-page-head{
+ background:linear-gradient(112deg,#4f46e5 0%,#6d28d9 100%)!important;
+ border:0!important;border-radius:20px!important;box-shadow:0 10px 25px rgba(76,29,149,.12)!important;
+ margin-bottom:20px!important;overflow:visible!important;
+}
+.users-wrapper .admin-page-head .card-body,.subjects-wrapper .admin-page-head .card-body,
+.exams-page .admin-page-head .card-body,.rooms-wrap .admin-page-head .card-body{
+ padding:24px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;flex-wrap:wrap!important;min-height:110px;
+}
+.users-wrapper .admin-page-head h3,.subjects-wrapper .admin-page-head h3,.exams-page .admin-page-head h3,.rooms-wrap .admin-page-head h3{
+ font-size:27px!important;font-weight:700!important;line-height:1.3!important;color:white!important;margin-bottom:4px!important;
+}
+.users-wrapper .admin-head-actions,.subjects-wrapper .header-actions,.exams-page .header-actions,.rooms-wrap .header-actions{
+ display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;width:auto!important;
+}
+.users-wrapper .admin-head-actions .btn,.subjects-wrapper .header-actions .btn,.exams-page .header-actions .btn,.rooms-wrap .header-actions .btn{
+ flex:0 0 auto!important;width:auto!important;min-height:42px!important;padding:10px 16px!important;
+ border-radius:11px!important;font-size:14px!important;font-weight:650!important;line-height:1.25!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;white-space:normal!important;
+}
+.users-wrapper .admin-head-actions .btn-light,.subjects-wrapper .header-actions .btn-light,
+.exams-page .header-actions .btn-light,.rooms-wrap .header-actions .btn-light{background:#fff!important;color:#5b21b6!important;border:1px solid #fff!important}
+.users-wrapper .admin-head-actions .btn-import,.subjects-wrapper .header-actions .btn-outline-light,
+.exams-page .header-actions .btn-outline-light,.rooms-wrap .header-actions .btn-outline-light{
+ background:rgba(255,255,255,.12)!important;color:#fff!important;border:1px solid rgba(255,255,255,.65)!important;
+}
+.users-wrapper .admin-head-actions .btn-import:hover,.subjects-wrapper .header-actions .btn-outline-light:hover,
+.exams-page .header-actions .btn-outline-light:hover,.rooms-wrap .header-actions .btn-outline-light:hover{background:rgba(255,255,255,.22)!important}
+.users-wrapper,.subjects-wrapper,.exams-page,.rooms-wrap{font-family:'Be Vietnam Pro',system-ui,sans-serif}
+.users-wrapper button,.subjects-wrapper button,.exams-page button,.rooms-wrap button,
+.users-wrapper input,.subjects-wrapper input,.exams-page input,.rooms-wrap input,
+.users-wrapper select,.subjects-wrapper select,.exams-page select,.rooms-wrap select{font-family:inherit}
+.users-wrapper .table-responsive,.subjects-wrapper .table-responsive,.exams-page .table-responsive,.rooms-wrap .table-responsive{max-width:100%;overflow-x:auto}
+.users-wrapper .modal-dialog,.subjects-wrapper .modal-dialog,.exams-page .modal-dialog,.rooms-wrap .modal-dialog{margin-top:1.75rem;margin-bottom:1.75rem}
+.users-wrapper .modal-content,.subjects-wrapper .modal-content,.exams-page .modal-content,.rooms-wrap .modal-content{border-radius:17px!important}
+.users-wrapper .form-control,.subjects-wrapper .form-control,.exams-page .form-control,.rooms-wrap .form-control,
+.users-wrapper .form-select,.subjects-wrapper .form-select,.exams-page .form-select,.rooms-wrap .form-select{min-height:42px}
+@media(max-width:767.98px){
+ .users-wrapper .admin-page-head .card-body,.subjects-wrapper .admin-page-head .card-body,
+ .exams-page .admin-page-head .card-body,.rooms-wrap .admin-page-head .card-body{padding:20px!important;align-items:stretch!important}
+ .users-wrapper .admin-head-actions,.subjects-wrapper .header-actions,.exams-page .header-actions,.rooms-wrap .header-actions{width:100%!important;justify-content:flex-start!important}
+ .users-wrapper .admin-head-actions .btn,.subjects-wrapper .header-actions .btn,
+ .exams-page .header-actions .btn,.rooms-wrap .header-actions .btn{flex:1 1 160px!important;min-width:0!important}
+ .users-wrapper .admin-page-head h3,.subjects-wrapper .admin-page-head h3,.exams-page .admin-page-head h3,.rooms-wrap .admin-page-head h3{font-size:25px!important}
+}

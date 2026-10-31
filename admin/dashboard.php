@@ -1,450 +1,106 @@
-<?php // admin/dashboard.php
+<?php
+// Dashboard Admin - giao diện độc lập, không thay đổi CSDL, header hay nghiệp vụ.
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/data.php';
-
 requireAdmin();
+$page_title = 'Tổng quan quản trị - QuizTech';
+$statsRaw = function_exists('getStats') ? getStats() : [];
+$stats = is_array($statsRaw) ? $statsRaw : [];
+$usersRaw = function_exists('getUsers') ? getUsers() : [];
+$users = is_array($usersRaw) ? $usersRaw : [];
+$examsRaw = function_exists('getExams') ? getExams() : [];
+$exams = is_array($examsRaw) ? $examsRaw : [];
+$recentUsers = array_slice($users, 0, 5);
+$recentExams = array_slice($exams, 0, 5);
+$roles = ['student'=>0,'teacher'=>0,'admin_test'=>0,'admin'=>0];
+foreach ($users as $u) { $role=(string)($u['role'] ?? 'student'); if(isset($roles[$role])) $roles[$role]++; }
+$maxRole = max(1, ...array_values($roles));
+// Read-only pending feedback; errors do not prevent Dashboard rendering.
+$qtFeedbackCount = 0;
+$qtFeedbackRecent = [];
+$qtFeedbackByType = ['subject_request'=>0, 'question_report'=>0, 'feedback'=>0];
+$qtFeedbackAvailable = true;
+try {
+    $qtCountStmt = $pdo->query("SELECT type, COUNT(*) AS total FROM practice_feedback WHERE status='pending' GROUP BY type");
+    foreach ($qtCountStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $n = (int)$row['total']; $qtFeedbackCount += $n;
+        if (array_key_exists($row['type'], $qtFeedbackByType)) $qtFeedbackByType[$row['type']] += $n;
+    }
+    $qtRecentStmt = $pdo->query("SELECT id, type, title, created_at FROM practice_feedback WHERE status='pending' ORDER BY created_at DESC, id DESC LIMIT 5");
+    $qtFeedbackRecent = $qtRecentStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $qtFeedbackAvailable = false;
+    error_log('QuizTech Dashboard feedback summary: '.$e->getMessage());
+}
 
-$page_title = 'Admin Dashboard';
-
-// Lấy dữ liệu an toàn, xử lý chống warning nếu hàm trả về null/false
-$stats_raw = function_exists('getStats') ? getStats() : [];
-$stats     = is_array($stats_raw) ? $stats_raw : [];
-
-$users_raw = function_exists('getUsers') ? getUsers() : [];
-$users     = is_array($users_raw) ? $users_raw : [];
-
-$exams_raw = function_exists('getExams') ? getExams() : [];
-$exams     = is_array($exams_raw) ? $exams_raw : [];
-
+$roleLabels=['student'=>'Học sinh / Sinh viên','teacher'=>'Giảng viên','admin_test'=>'Admin kiểm thử','admin'=>'Super Admin'];
+$roleColors=['student'=>'#6366f1','teacher'=>'#06b6d4','admin_test'=>'#a855f7','admin'=>'#f59e0b'];
+$esc = static function ($value): string { return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); };
+$formatDate = static function ($value): string { if (empty($value)) return '—'; $t=strtotime((string)$value); return $t ? date('d/m/Y',$t) : '—'; };
+$displayName = (string)($user_name ?? (function_exists('currentUser') ? (currentUser()['name'] ?? 'Quản trị viên') : 'Quản trị viên'));
 include '../includes/header_admin.php';
 ?>
-
 <style>
-  /* Base Dashboard Styles */
-  .dashboard-wrapper {
-    animation: fadeIn 0.4s ease-in-out;
-  }
-  
-  /* Modern Stat Cards */
-  .stat-card {
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 1.25rem !important;
-    border: 1px solid rgba(255, 255, 255, 0.8) !important;
-    background: linear-gradient(145deg, #ffffff, #f8fafc);
-  }
-  .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03) !important;
-  }
-  .stat-icon {
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 1rem;
-    flex-shrink: 0;
-  }
-
-  /* Creative Quick Action Buttons with Glowing Shadow */
-  .quick-action-card {
-    position: relative;
-    border-radius: 1.25rem;
-    background: #ffffff;
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    text-decoration: none !important;
-    display: flex;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    overflow: hidden;
-    z-index: 1;
-  }
-
-  /* Color-specific glow effects */
-  .action-blue { --glow-color: rgba(59, 130, 246, 0.35); }
-  .action-green { --glow-color: rgba(34, 197, 94, 0.35); }
-  .action-purple { --glow-color: rgba(147, 51, 234, 0.35); }
-  .action-red { --glow-color: rgba(239, 68, 68, 0.35); }
-
-  .quick-action-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 1.25rem;
-    background: radial-gradient(circle at center, var(--glow-color) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    z-index: -1;
-  }
-
-  .quick-action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px -5px var(--glow-color);
-    border-color: transparent;
-  }
-
-  .quick-action-card:hover::before {
-    opacity: 0.15;
-  }
-
-  .quick-action-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 0.85rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-right: 0.85rem;
-    flex-shrink: 0;
-  }
-
-  /* Creative Modern Table Design */
-  .creative-table-card {
-    border-radius: 1.25rem !important;
-    overflow: hidden;
-  }
-
-  .creative-table {
-    border-collapse: separate;
-    border-spacing: 0 0.5rem;
-  }
-
-  .creative-table thead th {
-    border: none;
-    font-weight: 600;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: #64748b;
-    padding: 0.75rem 1rem;
-    background: transparent;
-  }
-
-  .creative-table tbody tr {
-    background: #ffffff;
-    transition: all 0.2s ease;
-    border-radius: 0.85rem;
-  }
-
-  .creative-table tbody tr td {
-    border: none;
-    padding: 0.85rem 1rem;
-    background: #f8fafc;
-  }
-
-  .creative-table tbody tr td:first-child {
-    border-top-left-radius: 0.85rem;
-    border-bottom-left-radius: 0.85rem;
-  }
-
-  .creative-table tbody tr td:last-child {
-    border-top-right-radius: 0.85rem;
-    border-bottom-right-radius: 0.85rem;
-  }
-
-  .creative-table tbody tr:hover td {
-    background: #f1f5f9;
-  }
-
-  /* Responsive Adjustments */
-  @media (max-width: 575.98px) {
-    .banner-card {
-      padding: 1.25rem !important;
-    }
-    .stat-card {
-      padding: 0.25rem;
-    }
-    .quick-action-card {
-      padding: 0.85rem 1rem;
-    }
-    .quick-action-icon {
-      width: 36px;
-      height: 36px;
-      font-size: 1.1rem;
-      margin-right: 0.65rem;
-    }
-  }
+/* Scope exclusively to dashboard: no global overrides */
+.qt-ad7{--violet:#6d28d9;--ink:#221642;--muted:#766b91;color:var(--ink);max-width:1600px;margin:auto;padding-bottom:32px;font-family:inherit}
+.qt-ad7 *{box-sizing:border-box}.qt-ad7 a{text-decoration:none}.qt-ad7 .qt-hero{position:relative;overflow:hidden;background:linear-gradient(118deg,#4f46e5 0%,#6d28d9 52%,#7e22ce 100%);color:#fff;border-radius:24px;padding:30px 34px;display:flex;justify-content:space-between;align-items:center;gap:24px;box-shadow:0 18px 35px #5b21b629}
+.qt-ad7 .qt-hero:before,.qt-ad7 .qt-hero:after{content:'';position:absolute;border:1px solid #ffffff30;border-radius:50%;width:280px;height:280px;right:-60px;top:-145px;pointer-events:none}.qt-ad7 .qt-hero:after{width:200px;height:200px;right:90px;top:80px}.qt-ad7 .qt-hero>*{position:relative;z-index:1}.qt-ad7 .qt-eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;color:#e9ddff}.qt-ad7 .qt-hero h1{font-size:clamp(23px,2.4vw,34px);font-weight:800;line-height:1.25;margin:8px 0}.qt-ad7 .qt-hero p{color:#e7dcff;margin:0;font-size:14px}.qt-ad7 .qt-hero-actions{display:flex;gap:9px;flex-wrap:wrap}.qt-ad7 .qt-hero-actions a,.qt-ad7 .qt-hero-actions button{border:1px solid #ffffff70;border-radius:12px;padding:11px 15px;background:#fff;color:#5b21b6;font-weight:750;white-space:nowrap;cursor:pointer}.qt-ad7 .qt-hero-actions button{background:#ffffff1c;color:#fff}.qt-ad7 .qt-hero-actions a:hover{background:#f2eaff}
+.qt-ad7 .qt-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:20px 0 22px}.qt-ad7 .qt-kpi{min-width:0;background:#fff;border:1px solid #ebe4f8;border-radius:20px;padding:20px;box-shadow:0 8px 22px #24135c0b;transition:transform .2s,box-shadow .2s;display:flex;justify-content:space-between;align-items:center;gap:12px}.qt-ad7 .qt-kpi:hover{transform:translateY(-3px);box-shadow:0 14px 26px #4c1d9520}.qt-ad7 .qt-kpi small{font-size:11px;font-weight:800;color:#756b8b;letter-spacing:.06em;text-transform:uppercase;display:block}.qt-ad7 .qt-kpi strong{display:block;font-size:31px;color:#20143d;line-height:1.4}.qt-ad7 .qt-kpi em{display:block;font-size:12px;color:#857b99;font-style:normal}.qt-ad7 .qt-kpi-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;flex-shrink:0;background:#eee8ff;color:#6d28d9;font-size:23px}.qt-ad7 .qt-kpi:nth-child(2) .qt-kpi-icon{background:#dcfce7;color:#059669}.qt-ad7 .qt-kpi:nth-child(3) .qt-kpi-icon{background:#fff1d6;color:#d97706}.qt-ad7 .qt-kpi:nth-child(4) .qt-kpi-icon{background:#dbeafe;color:#2563eb}
+.qt-ad7 .qt-kpi-feedback .qt-kpi-icon{background:#fef3c7;color:#b45309}
+.qt-ad7 .qt-feedback-panel{margin-bottom:22px}.qt-ad7 .qt-feedback-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;padding:3px 8px;border-radius:100px;background:#fef3c7;color:#92400e;font-size:12px;margin-left:7px}.qt-ad7 .qt-feedback-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.qt-ad7 .qt-feedback-summary>a{min-width:0;display:flex;align-items:center;gap:10px;border-radius:14px;background:#faf7ff;border:1px solid #ede5f8;padding:14px;color:#49327a;font-size:13px}.qt-ad7 .qt-feedback-summary>a>strong{margin-left:auto;font-size:19px;color:#5b21b6}.qt-ad7 .qt-feedback-summary>a>i{font-size:20px}.qt-ad7 .qt-feedback-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.qt-ad7 .qt-feedback-item{display:flex;align-items:center;gap:10px;border:1px solid #f1ebfa;border-radius:12px;padding:12px;min-width:0;color:#291743}.qt-ad7 .qt-feedback-item>span:nth-child(2){flex:1;min-width:0}.qt-ad7 .qt-feedback-item strong{font-size:13px;display:block;overflow-wrap:anywhere}.qt-ad7 .qt-feedback-item small{font-size:11px;color:#8a7a9f;display:block}.qt-ad7 .qt-feedback-dot{height:9px;width:9px;border-radius:50%;background:#f59e0b;flex-shrink:0}.qt-ad7 .qt-feedback-item:hover{background:#f8f3ff}
+.qt-ad7 .qt-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;margin-bottom:23px}.qt-ad7 .qt-panel{min-width:0;background:#fff;border:1px solid #e9e2f5;border-radius:20px;padding:21px;box-shadow:0 8px 24px #26154d0a}.qt-ad7 .qt-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:18px}.qt-ad7 .qt-panel-head h2{font-size:17px;font-weight:800;margin:3px 0;color:#26163f}.qt-ad7 .qt-panel-head small{color:#857b98;font-size:12px}.qt-ad7 .qt-panel-head a{font-size:12px;color:#6d28d9;font-weight:800;white-space:nowrap;background:#f5f0ff;padding:8px 10px;border-radius:10px}.qt-ad7 .qt-panel-head a:hover{background:#ebe0ff}
+.qt-ad7 .qt-roles{display:flex;flex-direction:column;gap:17px}.qt-ad7 .qt-role-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;gap:10px}.qt-ad7 .qt-role-label span{color:#635778}.qt-ad7 .qt-role-label strong{font-weight:800}.qt-ad7 .qt-track{height:10px;background:#f0ebf8;border-radius:100px;overflow:hidden}.qt-ad7 .qt-track>span{height:100%;display:block;border-radius:100px;min-width:0}
+.qt-ad7 .qt-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.qt-ad7 .qt-action{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #ece5f6;border-radius:15px;background:linear-gradient(135deg,#fff,#fbfaff);color:#25173d;transition:transform .2s,border-color .2s}.qt-ad7 .qt-action:hover{transform:translateY(-2px);border-color:#a78bfa;color:#5b21b6}.qt-ad7 .qt-action>i:first-child{font-size:20px;width:42px;height:42px;display:grid;place-items:center;background:#eee7ff;color:#6d28d9;border-radius:13px;flex-shrink:0}.qt-ad7 .qt-action strong{display:block;font-size:13px}.qt-ad7 .qt-action small{display:block;font-size:11px;color:#817793;margin-top:3px}
+.qt-ad7 .qt-list{display:flex;flex-direction:column;gap:10px}.qt-ad7 .qt-list-item{display:flex;gap:12px;align-items:center;min-width:0;padding:11px 12px;border:1px solid #f1edf7;border-radius:14px;background:#faf9fd}.qt-ad7 .qt-avatar,.qt-ad7 .qt-exam-icon{flex-shrink:0;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#ede9fe;color:#6d28d9;font-weight:800}.qt-ad7 .qt-list-text{min-width:0;flex:1}.qt-ad7 .qt-list-text strong{display:block;font-size:13px;color:#25173d;overflow-wrap:anywhere;line-height:1.45}.qt-ad7 .qt-list-text small{display:block;color:#817692;font-size:12px;overflow-wrap:anywhere;margin-top:3px}.qt-ad7 .qt-pill{font-size:10px;line-height:1.3;border-radius:100px;padding:6px 9px;background:#efe7ff;color:#6d28d9;font-weight:750;text-align:center;max-width:125px;flex-shrink:0}.qt-ad7 .qt-date{font-size:11px;color:#817692;white-space:nowrap}.qt-ad7 .qt-empty{padding:28px 10px;text-align:center;color:#8b809f}.qt-ad7 .qt-empty i{display:block;font-size:30px;margin-bottom:8px}.qt-ad7 .qt-note{font-size:12px;color:#817592;margin:12px 0 0}
+@media(max-width:1250px){.qt-ad7 .qt-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qt-ad7 .qt-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.qt-ad7 .qt-feedback-summary{grid-template-columns:1fr}.qt-ad7 .qt-feedback-feed{grid-template-columns:1fr}.qt-ad7 .qt-hero{padding:23px 20px;flex-direction:column;align-items:flex-start}.qt-ad7 .qt-kpis{gap:10px}.qt-ad7 .qt-kpi{padding:14px}.qt-ad7 .qt-kpi strong{font-size:25px}.qt-ad7 .qt-kpi-icon{width:39px;height:39px;font-size:18px}.qt-ad7 .qt-panel{padding:16px}.qt-ad7 .qt-actions{grid-template-columns:1fr}.qt-ad7 .qt-list-item{flex-wrap:wrap}.qt-ad7 .qt-pill,.qt-ad7 .qt-date{margin-left:54px}.qt-ad7 .qt-hero-actions{width:100%}}
+@media(prefers-reduced-motion:reduce){.qt-ad7 *{transition:none!important}}
 </style>
-
-<div class="container-fluid px-0 dashboard-wrapper">
-  
-  <!-- Banner Chào Mừng / Header -->
-  <div class="card border-0 text-white mb-4 shadow-sm banner-card admin-page-head" style="background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%); border-radius: 1.25rem;">
-    <div class="card-body p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-      <div>
-        <h3 class="fw-bold mb-1 fs-4 fs-md-3">Xin chào, <?= e(isset($user_name) ? $user_name : 'Quản trị viên') ?> ^^</h3>
-        <p class="text-white-50 mb-0 small">Tổng quan chỉ số và hoạt động trọng yếu của hệ thống QuizTech hôm nay.</p>
-      </div>
-      <div class="d-flex align-self-start align-self-md-center gap-2">
-        <a href="approve_items.php" class="btn btn-light text-primary fw-semibold px-3 py-2 rounded-3 shadow-sm text-nowrap">
-          <i class="bi bi-check2-circle me-1"></i> Duyệt Đề Xuất
-        </a>
-      </div>
+<div class="qt-ad7">
+  <section class="qt-hero" aria-labelledby="qt-ad-title">
+    <div><h1 id="qt-ad-title">Chào mừng trở lại, <?= $esc($displayName) ?>!</h1><p>Quản lý nội dung, tài khoản và hoạt động hệ thống trong một không gian trực quan.</p></div>
+    <div class="qt-hero-actions"><a href="approve_items.php"><i class="bi bi-check2-circle"></i> Duyệt đề xuất</a><button type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button></div>
+  </section>
+  <section class="qt-kpis" aria-label="Chỉ số tổng quan">
+    <?php foreach ([['users','Người dùng',count($users),'bi-people-fill','Quản lý tài khoản','users.php'],['subjects','Môn học',0,'bi-journal-bookmark-fill','Danh mục môn học','subjects.php'],['questions','Ngân hàng câu hỏi',0,'bi-patch-question-fill','Quản lý câu hỏi','questions.php'],['exams','Đề thi',count($exams),'bi-file-earmark-text-fill','Quản lý đề thi','exams.php']] as $k): ?>
+      <a class="qt-kpi" href="<?= $esc($k[5]) ?>"><div><small><?= $esc($k[1]) ?></small><strong><?= number_format((int)($stats[$k[0]] ?? $k[2])) ?></strong><em><?= $esc($k[4]) ?> <i class="bi bi-arrow-up-right"></i></em></div><span class="qt-kpi-icon"><i class="bi <?= $esc($k[3]) ?>"></i></span></a>
+    <?php endforeach; ?>
+    <a class="qt-kpi qt-kpi-feedback" href="approve_items.php?status=pending" aria-label="Xem các đề xuất đang chờ duyệt"><div><small>Đề xuất chờ duyệt</small><strong><?= $qtFeedbackAvailable ? number_format($qtFeedbackCount) : '—' ?></strong><em><?= $qtFeedbackAvailable ? 'Xem và xử lý yêu cầu' : 'Chưa tải được dữ liệu' ?> <i class="bi bi-arrow-up-right"></i></em></div><span class="qt-kpi-icon"><i class="bi bi-inbox-fill"></i></span></a>
+  </section>
+  <section class="qt-panel qt-feedback-panel" aria-label="Thông báo phản hồi mới">
+    <div class="qt-panel-head"><div><small>TRUNG TÂM TIẾP NHẬN</small><h2><i class="bi bi-bell-fill" aria-hidden="true"></i> Đề xuất, báo lỗi và góp ý <span class="qt-feedback-badge"><?= $qtFeedbackAvailable ? $qtFeedbackCount : '!' ?></span></h2></div><a href="approve_items.php?status=pending">Duyệt tất cả <i class="bi bi-arrow-up-right"></i></a></div>
+    <div class="qt-feedback-summary">
+      <?php foreach ([['subject_request','bi-journal-plus','Đề xuất môn học'],['question_report','bi-bug','Báo lỗi câu hỏi'],['feedback','bi-chat-left-dots','Góp ý']] as $kind): ?>
+      <a href="approve_items.php?status=pending&amp;type=<?= $esc($kind[0]) ?>"><i class="bi <?= $esc($kind[1]) ?>"></i><span><?= $esc($kind[2]) ?></span><strong><?= $qtFeedbackAvailable ? number_format($qtFeedbackByType[$kind[0]]) : '—' ?></strong></a>
+      <?php endforeach; ?>
     </div>
+    <?php if (!$qtFeedbackAvailable): ?><p class="qt-note">Không thể tải dữ liệu đề xuất. Vui lòng kiểm tra bảng practice_feedback.</p>
+    <?php elseif (!$qtFeedbackRecent): ?><p class="qt-note">Không có yêu cầu nào đang chờ xử lý.</p>
+    <?php else: ?><div class="qt-feedback-feed">
+      <?php foreach ($qtFeedbackRecent as $item): ?>
+      <a href="approve_items.php?feedback_id=<?= (int)$item['id'] ?>" class="qt-feedback-item"><span class="qt-feedback-dot"></span><span><strong><?= $esc($item['title'] ?: 'Phản hồi mới') ?></strong><small><?= $esc(['subject_request'=>'Đề xuất môn học','question_report'=>'Báo lỗi câu hỏi','feedback'=>'Góp ý'][$item['type']] ?? 'Phản hồi') ?> · <?= $esc($formatDate($item['created_at'])) ?></small></span><i class="bi bi-chevron-right"></i></a>
+      <?php endforeach; ?>
+    </div><?php endif; ?>
+  </section>
+  <div class="qt-grid">
+    <section class="qt-panel"><div class="qt-panel-head"><div><small>PHÂN BỐ TÀI KHOẢN</small><h2>Vai trò người dùng</h2></div><a href="users.php">Xem tài khoản <i class="bi bi-arrow-up-right"></i></a></div>
+      <div class="qt-roles"><?php foreach($roles as $role=>$count): ?><div><div class="qt-role-label"><span><?= $esc($roleLabels[$role]) ?></span><strong><?= number_format($count) ?></strong></div><div class="qt-track"><span style="width:<?= round(100*$count/$maxRole,2) ?>%;background:<?= $esc($roleColors[$role]) ?>"></span></div></div><?php endforeach; ?></div>
+      <p class="qt-note">Số liệu tổng hợp từ danh sách tài khoản hiện có.</p>
+    </section>
+    <section class="qt-panel"><div class="qt-panel-head"><div><small>TRUY CẬP NHANH</small><h2>Thao tác thường dùng</h2></div></div>
+      <div class="qt-actions"><?php foreach ([['users.php','bi-person-plus-fill','Người dùng','Quản lý tài khoản'],['subjects.php','bi-journal-plus','Môn học','Quản lý danh mục'],['exams.php','bi-file-earmark-plus','Đề thi','Quản lý đề thi'],['rooms.php','bi-door-open-fill','Phòng thi','Quản lý phòng thi']] as $action): ?><a class="qt-action" href="<?= $esc($action[0]) ?>"><i class="bi <?= $esc($action[1]) ?>"></i><span><strong><?= $esc($action[2]) ?></strong><small><?= $esc($action[3]) ?></small></span></a><?php endforeach; ?></div>
+    </section>
   </div>
-
-  <!-- Thống Kê Tổng Quan -->
-  <div class="row g-2 g-md-3 mb-4">
-    <!-- Người dùng -->
-    <div class="col-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100 stat-card">
-        <div class="card-body p-3 d-flex align-items-center justify-content-between">
-          <div>
-            <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.7rem;">Người dùng</span>
-            <h3 class="fw-bold mb-0 mt-1 text-dark fs-4 fs-md-3"><?= number_format(isset($stats['users']) ? $stats['users'] : count($users)) ?></h3>
-          </div>
-          <div class="stat-icon bg-primary bg-opacity-10 text-primary fs-4 d-none d-sm-flex">
-            <i class="bi bi-people-fill"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Môn học -->
-    <div class="col-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100 stat-card">
-        <div class="card-body p-3 d-flex align-items-center justify-content-between">
-          <div>
-            <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.7rem;">Môn học</span>
-            <h3 class="fw-bold mb-0 mt-1 text-dark fs-4 fs-md-3"><?= number_format(isset($stats['subjects']) ? $stats['subjects'] : 0) ?></h3>
-          </div>
-          <div class="stat-icon bg-success bg-opacity-10 text-success fs-4 d-none d-sm-flex">
-            <i class="bi bi-journal-bookmark-fill"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ngân hàng câu hỏi -->
-    <div class="col-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100 stat-card">
-        <div class="card-body p-3 d-flex align-items-center justify-content-between">
-          <div>
-            <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.7rem;">Ngân hàng câu hỏi</span>
-            <h3 class="fw-bold mb-0 mt-1 text-dark fs-4 fs-md-3"><?= number_format(isset($stats['questions']) ? $stats['questions'] : 0) ?></h3>
-          </div>
-          <div class="stat-icon bg-warning bg-opacity-10 text-warning fs-4 d-none d-sm-flex">
-            <i class="bi bi-patch-question-fill"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Đề thi -->
-    <div class="col-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100 stat-card">
-        <div class="card-body p-3 d-flex align-items-center justify-content-between">
-          <div>
-            <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.7rem;">Đề thi hiện có</span>
-            <h3 class="fw-bold mb-0 mt-1 text-dark fs-4 fs-md-3"><?= number_format(isset($stats['exams']) ? $stats['exams'] : count($exams)) ?></h3>
-          </div>
-          <div class="stat-icon bg-purple bg-opacity-10 fs-4 d-none d-sm-flex" style="color: #6d28d9; background-color: rgba(109, 40, 217, 0.1);">
-            <i class="bi bi-file-earmark-text-fill"></i>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="qt-grid">
+    <section class="qt-panel"><div class="qt-panel-head"><div><small>DỮ LIỆU GẦN ĐÂY</small><h2><i class="bi bi-people text-primary"></i> Thành viên mới</h2></div><a href="users.php">Xem tất cả <i class="bi bi-arrow-up-right"></i></a></div>
+      <?php if (!$recentUsers): ?><div class="qt-empty"><i class="bi bi-person-x"></i>Chưa có thành viên.</div><?php else: ?><div class="qt-list"><?php foreach($recentUsers as $u): $name=(string)($u['name'] ?? $u['fullname'] ?? $u['username'] ?? 'Tài khoản');$role=(string)($u['role'] ?? 'student'); ?><div class="qt-list-item"><span class="qt-avatar"><?= $esc(function_exists('mb_substr') ? mb_strtoupper(mb_substr($name,0,1,'UTF-8'),'UTF-8') : strtoupper(substr($name,0,1))) ?></span><div class="qt-list-text"><strong><?= $esc($name) ?></strong><small><?= $esc($u['email'] ?? 'Chưa có email') ?></small></div><span class="qt-pill"><?= $esc($roleLabels[$role] ?? $role) ?></span></div><?php endforeach; ?></div><?php endif; ?>
+    </section>
+    <section class="qt-panel"><div class="qt-panel-head"><div><small>NỘI DUNG GẦN ĐÂY</small><h2><i class="bi bi-journal-text text-primary"></i> Đề thi mới tạo</h2></div><a href="exams.php">Xem tất cả <i class="bi bi-arrow-up-right"></i></a></div>
+      <?php if (!$recentExams): ?><div class="qt-empty"><i class="bi bi-journal-x"></i>Chưa có đề thi.</div><?php else: ?><div class="qt-list"><?php foreach($recentExams as $exam): ?><div class="qt-list-item"><span class="qt-exam-icon"><i class="bi bi-file-earmark-text"></i></span><div class="qt-list-text"><strong><?= $esc($exam['title'] ?? $exam['name'] ?? 'Đề thi không tên') ?></strong><small><?= $esc($exam['subject_name'] ?? $exam['subject'] ?? 'Chưa phân môn') ?></small></div><span class="qt-date"><?= $esc($formatDate($exam['created_at'] ?? null)) ?></span></div><?php endforeach; ?></div><?php endif; ?>
+    </section>
   </div>
-
-  <!-- Thao Tác Nhanh (Quick Actions - Creative Glow Effects) -->
-  <div class="mb-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <h6 class="fw-bold mb-0 text-secondary text-uppercase small tracking-wider">
-        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Thao tác nhanh
-      </h6>
-    </div>
-    
-    <div class="row g-2 g-md-3">
-      <!-- Thêm người dùng -->
-      <div class="col-12 col-sm-6 col-lg-3">
-        <a href="users.php?action=add" class="quick-action-card action-blue shadow-sm">
-          <div class="quick-action-icon bg-primary bg-opacity-10 text-primary">
-            <i class="bi bi-person-plus-fill"></i>
-          </div>
-          <div class="overflow-hidden">
-            <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Thêm người dùng</div>
-            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">Cấp tài khoản mới</div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Tạo môn học -->
-      <div class="col-12 col-sm-6 col-lg-3">
-        <a href="subjects.php?action=add" class="quick-action-card action-green shadow-sm">
-          <div class="quick-action-icon bg-success bg-opacity-10 text-success">
-            <i class="bi bi-journal-plus"></i>
-          </div>
-          <div class="overflow-hidden">
-            <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Tạo môn học</div>
-            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">Thêm danh mục mới</div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Soạn đề thi -->
-      <div class="col-12 col-sm-6 col-lg-3">
-        <a href="exams.php?action=add" class="quick-action-card action-purple shadow-sm">
-          <div class="quick-action-icon bg-opacity-10" style="background-color: rgba(109, 40, 217, 0.1); color: #6d28d9;">
-            <i class="bi bi-file-earmark-plus-fill"></i>
-          </div>
-          <div class="overflow-hidden">
-            <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Soạn đề thi mới</div>
-            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">Tạo bộ đề kiểm tra</div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Mở phòng thi -->
-      <div class="col-12 col-sm-6 col-lg-3">
-        <a href="rooms.php?action=add" class="quick-action-card action-red shadow-sm">
-          <div class="quick-action-icon bg-danger bg-opacity-10 text-danger">
-            <i class="bi bi-door-open-fill"></i>
-          </div>
-          <div class="overflow-hidden">
-            <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Mở phòng thi</div>
-            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">Kích hoạt ca thi</div>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bảng Dữ Liệu Thiết Kế Mới -->
-  <div class="row g-4">
-    
-    <!-- Người Dùng Mới -->
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100 creative-table-card" style="background: #ffffff;">
-        <div class="card-header bg-transparent py-3 px-3 px-md-4 d-flex justify-content-between align-items-center border-0">
-          <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark">
-            <i class="bi bi-people text-primary"></i> Thành viên mới
-          </h6>
-          <a href="users.php" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Xem tất cả</a>
-        </div>
-        <div class="card-body p-3 pt-0">
-          <?php if (empty($users)): ?>
-            <div class="text-center py-5 text-muted">
-              <i class="bi bi-inbox fs-1 d-block mb-2 text-black-50"></i>
-              Chưa có dữ liệu người dùng
-            </div>
-          <?php else: ?>
-            <div class="table-responsive">
-              <table class="table creative-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th class="ps-3">THÀNH VIÊN</th>
-                    <th>EMAIL</th>
-                    <th class="text-end pe-3">VAI TRÒ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php foreach (array_slice($users, 0, 5) as $u): ?>
-                    <?php 
-                      $role_code = isset($u['role']) ? $u['role'] : 'student';
-                      switch ($role_code) {
-                        case 'admin':
-                          $role_bg = 'bg-danger text-danger';
-                          break;
-                        case 'teacher':
-                          $role_bg = 'bg-warning text-warning';
-                          break;
-                        default:
-                          $role_bg = 'bg-primary text-primary';
-                          break;
-                      }
-                      $user_disp_name = isset($u['name']) ? $u['name'] : (isset($u['fullname']) ? $u['fullname'] : 'N/A');
-                    ?>
-                    <tr>
-                      <td class="ps-3">
-                        <div class="d-flex align-items-center gap-2.5">
-                          <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-size: 0.85rem; flex-shrink: 0;">
-                            <?= strtoupper(mb_substr($user_disp_name, 0, 1, 'UTF-8')) ?>
-                          </div>
-                          <span class="fw-semibold text-dark text-truncate" style="max-width: 130px;"><?= e($user_disp_name) ?></span>
-                        </div>
-                      </td>
-                      <td class="text-muted small">
-                        <div class="text-truncate" style="max-width: 140px;"><?= e(isset($u['email']) ? $u['email'] : 'N/A') ?></div>
-                      </td>
-                      <td class="text-end pe-3">
-                        <span class="badge <?= $role_bg ?> bg-opacity-10 border border-current rounded-pill px-2.5 py-1" style="font-size: 0.725rem;">
-                          <?= function_exists('role_label') ? role_label($role_code) : strtoupper($role_code) ?>
-                        </span>
-                      </td>
-                    </tr>
-                  <?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-
-    <!-- Đề Thi Vừa Tạo -->
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100 creative-table-card" style="background: #ffffff;">
-        <div class="card-header bg-transparent py-3 px-3 px-md-4 d-flex justify-content-between align-items-center border-0">
-          <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 text-dark">
-            <i class="bi bi-journal-text" style="color: #6d28d9;"></i> Đề thi mới tạo
-          </h6>
-          <a href="exams.php" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Xem tất cả</a>
-        </div>
-        <div class="card-body p-3 pt-0">
-          <?php if (empty($exams)): ?>
-            <div class="text-center py-5 text-muted">
-              <i class="bi bi-journal-x fs-1 d-block mb-2 text-black-50"></i>
-              Chưa có dữ liệu đề thi
-            </div>
-          <?php else: ?>
-            <div class="table-responsive">
-              <table class="table creative-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th class="ps-3">TÊN ĐỀ THI</th>
-                    <th>MÔN HỌC</th>
-                    <th class="text-end pe-3">NGÀY TẠO</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php foreach (array_slice($exams, 0, 5) as $e): ?>
-                    <?php 
-                      $exam_title = isset($e['title']) ? $e['title'] : (isset($e['name']) ? $e['name'] : 'Đề thi không tên');
-                      $subj_title = isset($e['subject_name']) ? $e['subject_name'] : (isset($e['subject']) ? $e['subject'] : 'Chưa phân môn');
-                      $created_date = isset($e['created_at']) ? $e['created_at'] : 'now';
-                    ?>
-                    <tr>
-                      <td class="ps-3 fw-semibold text-dark">
-                        <div class="text-truncate" style="max-width: 160px;" title="<?= e($exam_title) ?>">
-                          <?= e($exam_title) ?>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="badge bg-white text-secondary border rounded-2 px-2 py-1 font-monospace shadow-2xs" style="font-size: 0.725rem;">
-                          <?= e($subj_title) ?>
-                        </span>
-                      </td>
-                      <td class="text-end pe-3 text-muted small">
-                        <?php 
-                          echo function_exists('format_date') ? format_date($created_date) : date('d/m/Y', strtotime($created_date));
-                        ?>
-                      </td>
-                    </tr>
-                  <?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
+  <p class="qt-note">Dữ liệu trên trang được lấy từ các hàm thống kê và danh sách hiện có. Các chức năng quản lý vẫn thực hiện tại từng trang chuyên biệt.</p>
 </div>
-
-</main> <!-- Đóng thẻ main từ header_admin.php -->
 <?php include '../includes/footer.php'; ?>

@@ -11,7 +11,7 @@ $ai_result = '';
 $generated_questions = [];
 
 // Xử lý sinh câu hỏi
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['generate'])) {
     verify_csrf();
     $subject = trim($_POST['subject'] ?? '');
     $topic = trim($_POST['topic'] ?? '');
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
 }
 
 // Xử lý lưu câu hỏi vào cơ sở dữ liệu
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_questions'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['save_questions'])) {
     verify_csrf();
     $subject_name = $_POST['subject_name'] ?? '';
     $question_data = json_decode($_POST['question_data'] ?? '[]', true);

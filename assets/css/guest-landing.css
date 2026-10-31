@@ -1,0 +1,1027 @@
+/* ==========================================================
+   QUIZTECH LANDING PAGE STYLES (MODERN EDTECH + SOFT PURPLE)
+   File: assets/css/guest-landing.css
+   ========================================================== */
+
+:root {
+  --qt-primary: #6554F0;
+  --qt-primary-dark: #4F3DE5;
+  --qt-primary-light: #8B5CF6;
+  --qt-bg-canvas: #FFFFFF;
+  --qt-bg-soft: #F8F7FF;
+  --qt-bg-section: #F2EFFF;
+  --qt-text-main: #19183B;
+  --qt-text-muted: #6B7280;
+  --qt-border: #E8E5F5;
+  --qt-card-border: #ECEAF8;
+  --qt-success: #22C55E;
+  --qt-radius-card: 20px;
+  --qt-radius-btn: 12px;
+  --qt-shadow-sm: 0 4px 16px rgba(101, 84, 240, 0.05);
+  --qt-shadow-md: 0 12px 32px rgba(25, 24, 59, 0.07);
+  --qt-shadow-lg: 0 24px 56px rgba(79, 61, 229, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: var(--qt-text-main);
+  background-color: var(--qt-bg-canvas);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  color: var(--qt-text-main);
+}
+
+.qt-home {
+  overflow: hidden;
+}
+
+.qt-container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* -------------------------------------------
+   GLOBAL BADGES, TYPOGRAPHY & BUTTONS
+------------------------------------------- */
+.qt-badge-caps {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #D8D2FB;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--qt-primary);
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 10px rgba(101, 84, 240, 0.08);
+}
+.qt-badge-caps i {
+  color: var(--qt-primary);
+}
+
+.qt-section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--qt-primary);
+  margin-bottom: 0.75rem;
+}
+
+.qt-section-title {
+  font-weight: 700;
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  color: var(--qt-text-main);
+  margin-bottom: 0.75rem;
+}
+
+.qt-section-subtitle {
+  color: var(--qt-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  max-width: 640px;
+}
+
+.qt-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--qt-primary) 0%, var(--qt-primary-dark) 100%);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--qt-radius-btn);
+  border: none;
+  box-shadow: 0 8px 22px rgba(101, 84, 240, 0.28);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.qt-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(101, 84, 240, 0.38);
+  color: #FFFFFF !important;
+}
+
+.qt-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: var(--qt-text-main) !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--qt-radius-btn);
+  border: 1px solid var(--qt-border);
+  box-shadow: 0 2px 8px rgba(25, 24, 59, 0.04);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.qt-btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #C7BDF7;
+  color: var(--qt-primary) !important;
+  box-shadow: 0 6px 18px rgba(101, 84, 240, 0.1);
+}
+
+/* -------------------------------------------
+   SECTION 2: HERO SECTION
+------------------------------------------- */
+.qt-hero-section {
+  position: relative;
+  background: linear-gradient(180deg, #F9F8FF 0%, #FFFFFF 100%);
+  padding: 72px 0 60px;
+  overflow: hidden;
+}
+
+.qt-hero-bg-blob-1 {
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12), transparent 70%);
+  top: -120px;
+  left: -100px;
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.qt-hero-bg-blob-2 {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(101, 84, 240, 0.10), transparent 70%);
+  bottom: -150px;
+  right: -80px;
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+.qt-hero-heading {
+  font-size: clamp(2.2rem, 4.4vw, 3.45rem);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.04em;
+  color: var(--qt-text-main);
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.qt-hero-heading .qt-highlight {
+  color: var(--qt-primary);
+  position: relative;
+  display: inline-block;
+}
+
+.qt-hero-lead {
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--qt-text-muted);
+  max-width: 540px;
+  margin-bottom: 2rem;
+}
+
+.qt-hero-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--qt-border);
+}
+
+.qt-hero-pill-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #4B5563;
+}
+.qt-hero-pill-item i {
+  color: var(--qt-primary);
+  font-size: 1rem;
+}
+
+/* -------------------------------------------
+   HERO RIGHT: REAL DASHBOARD MOCKUP
+------------------------------------------- */
+.qt-mockup-wrap {
+  position: relative;
+  isolation: isolate;
+  padding: 10px;
+}
+
+.qt-mockup-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 5% 5%;
+  background: radial-gradient(circle, rgba(101, 84, 240, 0.2), transparent 70%);
+  filter: blur(45px);
+  z-index: -1;
+}
+
+.qt-dashboard-card {
+  background: #FFFFFF;
+  border: 1px solid var(--qt-card-border);
+  border-radius: var(--qt-radius-card);
+  padding: 24px;
+  box-shadow: var(--qt-shadow-lg);
+  position: relative;
+}
+
+.qt-db-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--qt-border);
+  margin-bottom: 20px;
+}
+
+.qt-db-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qt-db-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--qt-primary), var(--qt-primary-light));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+}
+
+.qt-db-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.qt-db-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--qt-success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+/* Exam in-progress mini card inside mockup */
+.qt-exam-in-progress {
+  background: var(--qt-bg-soft);
+  border: 1px solid #E4E0FB;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.qt-eip-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.qt-eip-tag {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--qt-primary);
+  background: #EDE9FE;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.qt-eip-time {
+  font-size: 0.8rem;
+  color: #4B5563;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.qt-eip-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--qt-text-main);
+  margin-bottom: 10px;
+}
+
+.qt-progress-bar-wrap {
+  background: #E5E7EB;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.qt-progress-bar-fill {
+  background: linear-gradient(90deg, var(--qt-primary), var(--qt-primary-light));
+  height: 100%;
+  border-radius: 999px;
+  width: 75%;
+}
+
+/* 2 Mini Floating Cards in Mockup */
+.qt-db-grid-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.qt-db-mini-card {
+  background: #FFFFFF;
+  border: 1px solid var(--qt-border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.qt-db-mini-card-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--qt-text-muted);
+  margin-bottom: 4px;
+}
+
+.qt-db-mini-card-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--qt-text-main);
+  line-height: 1.2;
+}
+
+/* Topics list inside mockup */
+.qt-db-topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qt-db-topic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #FAF9FE;
+  border: 1px solid #ECE7FA;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+}
+.qt-db-topic-row:hover {
+  background: #F3EFFE;
+  border-color: #D8CEF8;
+}
+
+.qt-topic-name {
+  font-weight: 600;
+  color: var(--qt-text-main);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.qt-topic-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.qt-tb-high { background: #ECFDF5; color: #059669; }
+.qt-tb-mid { background: #EEF2FF; color: #4F46E5; }
+.qt-tb-plan { background: #FFFBEB; color: #D97706; }
+
+/* Mockup Footer */
+.qt-db-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--qt-border);
+  font-size: 0.76rem;
+  color: var(--qt-text-muted);
+}
+
+/* Floating success pill on mockup edge */
+.qt-mockup-floating-badge {
+  position: absolute;
+  bottom: -14px;
+  left: 20px;
+  background: #FFFFFF;
+  border: 1px solid #E0DBF9;
+  border-radius: 999px;
+  padding: 8px 16px;
+  box-shadow: 0 10px 24px rgba(101, 84, 240, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--qt-text-main);
+}
+.qt-mockup-floating-badge i {
+  color: var(--qt-success);
+  font-size: 1.1rem;
+}
+
+/* -------------------------------------------
+   SECTION 3: TRUST / HIGHLIGHTS (4 VALUES)
+------------------------------------------- */
+.qt-trust-section {
+  padding: 48px 0;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--qt-border);
+}
+
+.qt-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.qt-trust-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 4px;
+}
+
+.qt-trust-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--qt-bg-soft);
+  border: 1px solid var(--qt-border);
+  color: var(--qt-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+.qt-trust-item:hover .qt-trust-icon {
+  background: var(--qt-primary);
+  color: #fff;
+  border-color: var(--qt-primary);
+  transform: translateY(-2px);
+}
+
+.qt-trust-content h6 {
+  font-weight: 700;
+  font-size: 0.98rem;
+  margin-bottom: 4px;
+}
+
+.qt-trust-content p {
+  font-size: 0.85rem;
+  color: var(--qt-text-muted);
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------
+   SECTION 4: GIỚI THIỆU QUIZTECH (2 COLS)
+------------------------------------------- */
+.qt-about-section {
+  padding: 88px 0;
+  background: var(--qt-bg-soft);
+}
+
+.qt-journey-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.qt-journey-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--qt-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: var(--qt-shadow-sm);
+  transition: all 0.25s ease;
+  position: relative;
+}
+.qt-journey-step:hover {
+  transform: translateX(6px);
+  border-color: #D3C9FA;
+  box-shadow: var(--qt-shadow-md);
+}
+
+.qt-journey-num {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--qt-primary), var(--qt-primary-dark));
+  color: #FFFFFF;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.qt-journey-info {
+  flex-grow: 1;
+}
+
+.qt-journey-info strong {
+  display: block;
+  font-size: 0.96rem;
+  color: var(--qt-text-main);
+  margin-bottom: 2px;
+}
+
+.qt-journey-info small {
+  color: var(--qt-text-muted);
+  font-size: 0.83rem;
+}
+
+.qt-journey-icon {
+  font-size: 1.25rem;
+  color: var(--qt-primary-light);
+  opacity: 0.7;
+}
+
+/* Metrics in About Section */
+.qt-stat-box {
+  background: #FFFFFF;
+  border: 1px solid var(--qt-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: var(--qt-shadow-sm);
+  text-align: center;
+}
+.qt-stat-box strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--qt-primary);
+  display: block;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.qt-stat-box span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--qt-text-muted);
+}
+
+/* -------------------------------------------
+   SECTION 5: TÍNH NĂNG NỔI BẬT (6 CARDS)
+------------------------------------------- */
+.qt-features-section {
+  padding: 96px 0;
+  background: #FFFFFF;
+}
+
+.qt-feature-card {
+  height: 100%;
+  background: #FFFFFF;
+  border: 1px solid var(--qt-card-border);
+  border-radius: var(--qt-radius-card);
+  padding: 28px 24px;
+  box-shadow: var(--qt-shadow-sm);
+  transition: all 0.28s ease;
+  display: flex;
+  flex-direction: column;
+}
+.qt-feature-card:hover {
+  transform: translateY(-6px);
+  border-color: #D2C7FA;
+  box-shadow: var(--qt-shadow-md);
+}
+
+.qt-feature-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--qt-bg-soft);
+  border: 1px solid var(--qt-border);
+  color: var(--qt-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  margin-bottom: 20px;
+  transition: all 0.25s ease;
+}
+.qt-feature-card:hover .qt-feature-icon-box {
+  background: linear-gradient(135deg, var(--qt-primary), var(--qt-primary-dark));
+  color: #fff;
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.qt-feature-title {
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--qt-text-main);
+}
+
+.qt-feature-desc {
+  font-size: 0.9rem;
+  color: var(--qt-text-muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+  flex-grow: 1;
+}
+
+.qt-feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--qt-primary);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: gap 0.2s ease;
+}
+.qt-feature-link:hover {
+  gap: 10px;
+  color: var(--qt-primary-dark);
+}
+
+/* -------------------------------------------
+   SECTION 6: PHƯƠNG PHÁP HỌC (4 STEPS)
+------------------------------------------- */
+.qt-method-section {
+  padding: 96px 0;
+  background: linear-gradient(180deg, #FAF9FE 0%, #F5F3FF 100%);
+  position: relative;
+}
+
+.qt-step-card {
+  height: 100%;
+  background: #FFFFFF;
+  border: 1px solid var(--qt-border);
+  border-radius: var(--qt-radius-card);
+  padding: 28px 22px;
+  box-shadow: var(--qt-shadow-sm);
+  transition: all 0.25s ease;
+  position: relative;
+}
+.qt-step-card:hover {
+  transform: translateY(-5px);
+  border-color: #D3C9FA;
+  box-shadow: var(--qt-shadow-md);
+}
+
+.qt-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.qt-step-digit {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--qt-primary);
+  line-height: 1;
+}
+
+.qt-step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--qt-bg-soft);
+  color: var(--qt-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+}
+
+.qt-step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--qt-text-main);
+}
+
+.qt-step-desc {
+  font-size: 0.88rem;
+  color: var(--qt-text-muted);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* -------------------------------------------
+   SECTION 7: KHU VỰC CTA (HIGHLIGHT BANNER)
+------------------------------------------- */
+.qt-cta-section {
+  padding: 60px 0 80px;
+  background: #FFFFFF;
+}
+
+.qt-cta-banner {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4F3DE5 100%);
+  border-radius: 28px;
+  padding: 56px 40px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(30, 27, 75, 0.2);
+  text-align: center;
+}
+
+.qt-cta-banner::before {
+  content: "";
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
+  top: -100px;
+  left: -80px;
+  pointer-events: none;
+}
+
+.qt-cta-banner::after {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 70%);
+  bottom: -80px;
+  right: -50px;
+  pointer-events: none;
+}
+
+.qt-cta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #DDD6FE;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.qt-cta-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.45rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+}
+
+.qt-cta-desc {
+  font-size: 1.05rem;
+  color: #E0E7FF;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2rem;
+  line-height: 1.65;
+}
+
+.qt-cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.qt-btn-cta-white {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #4F3DE5 !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.8rem;
+  border-radius: var(--qt-radius-btn);
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.qt-btn-cta-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  color: #4338CA !important;
+}
+
+.qt-btn-cta-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: var(--qt-radius-btn);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.qt-btn-cta-outline:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  color: #FFFFFF !important;
+}
+
+/* -------------------------------------------
+   SECTION CONTACT IN HOME (IF NEEDED)
+------------------------------------------- */
+.qt-contact-section {
+  padding: 80px 0;
+  background: #FFFFFF;
+  border-top: 1px solid var(--qt-border);
+}
+
+.qt-contact-box {
+  background: var(--qt-bg-soft);
+  border: 1px solid var(--qt-border);
+  border-radius: var(--qt-radius-card);
+  padding: 32px;
+}
+
+.qt-contact-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.qt-contact-info-row i {
+  font-size: 1.25rem;
+  color: var(--qt-primary);
+  margin-top: 3px;
+}
+
+/* -------------------------------------------
+   RESPONSIVE DESIGN (BREAKPOINTS)
+------------------------------------------- */
+@media (max-width: 1199.98px) {
+  .qt-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .qt-hero-section {
+    padding: 48px 0 40px;
+    text-align: center;
+  }
+  .qt-hero-heading {
+    font-size: 2.3rem;
+  }
+  .qt-hero-lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .qt-hero-pills {
+    justify-content: center;
+  }
+  .qt-mockup-wrap {
+    margin-top: 32px;
+    max-width: 580px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .qt-about-section,
+  .qt-features-section,
+  .qt-method-section {
+    padding: 64px 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .qt-trust-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .qt-cta-banner {
+    padding: 36px 20px;
+  }
+  .qt-cta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .qt-btn-cta-white,
+  .qt-btn-cta-outline {
+    width: 100%;
+    justify-content: center;
+  }
+  .qt-db-grid-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .qt-hero-heading {
+    font-size: 1.95rem;
+    line-height: 1.22;
+  }
+  .qt-hero-pills {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .qt-dashboard-card {
+    padding: 16px;
+  }
+  .qt-mockup-floating-badge {
+    position: static;
+    margin-top: 14px;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* ==========================================
+   QUIZTECH - TYPEWRITER ANIMATION
+   ========================================== */
+
+.qt-typing-text {
+    display: inline;
+    position: relative;
+    color: #6c3df4;
+    font-weight: 800;
+    border-right: 3px solid #6c3df4;
+    padding-right: 4px;
+    animation: qtCursorBlink 0.75s step-end infinite;
+}
+
+@keyframes qtCursorBlink {
+    0%, 49% {
+        border-right-color: #6c3df4;
+    }
+
+    50%, 100% {
+        border-right-color: transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qt-typing-text {
+        animation: none;
+        border-right: none;
+    }
+}

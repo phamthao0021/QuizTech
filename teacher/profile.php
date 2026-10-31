@@ -21,7 +21,7 @@ if (!$currentUser) {
 // -------------------------------------------------------------
 // XỬ LÝ CẬP NHẬT THÔNG TIN CÁ NHÂN & UPLOAD ẢNH ĐẠI DIỆN
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['update_profile'])) {
     verify_csrf();
 
     $name  = trim($_POST['name'] ?? '');
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 // -------------------------------------------------------------
 // XỬ LÝ ĐỔI MẬT KHẨU
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['change_password'])) {
     verify_csrf();
 
     $current_password = $_POST['current_password'] ?? '';
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
         setFlash('danger', 'Vui lòng điền đầy đủ thông tin mật khẩu!');
-    } elseif (!password_verify($current_password, $currentUser['password'])) {
+    } elseif (!password_verify($current_password, $currentUser['password_hash'])) {
         setFlash('danger', 'Mật khẩu hiện tại không chính xác!');
     } elseif (strlen($new_password) < 6) {
         setFlash('danger', 'Mật khẩu mới phải có ít nhất 6 ký tự!');
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         setFlash('danger', 'Mật khẩu xác nhận không trùng khớp!');
     } else {
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        $passStmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $passStmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
 
         if ($passStmt->execute([$hashed_password, $user_id])) {
             setFlash('success', 'Đã thay đổi mật khẩu thành công!');
@@ -140,15 +140,14 @@ $avatarUrl = !empty($currentUser['avatar']) && file_exists('../' . $currentUser[
     : 'https://ui-avatars.com/api/?name=' . urlencode($currentUser['name']) . '&background=198754&color=fff&size=200';
 
 $page_title = 'Hồ sơ cá nhân Giảng viên';
-include '../includes/header.php';
+include '../includes/header_teacher.php';
 ?>
 
-<div class="page-wrapper">
-    <?php include '../includes/sidebar.php'; ?>
-    <div class="main-content">
+<main class="p-4 bg-light flex-grow-1 qt-t-page qt-t-profile">
+<section class="qt-t-hero" aria-label="Giới thiệu trang"><div class="qt-t-hero-icon"><i class="bi bi-person-circle"></i></div><div class="qt-t-hero-copy"><div class="qt-t-eyebrow">QUIZTECH · TEACHER</div><h1>Hồ sơ giảng viên</h1><p>Thông tin tài khoản và thiết lập cá nhân</p></div><a class="qt-t-hero-home" href="dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a></section>
 
         <!-- Topbar -->
-        <div class="topbar">
+        <div class="topbar d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
             <div>
                 <h4 class="mb-1">Hồ sơ Giảng viên</h4>
                 <p class="text-muted mb-0">Quản lý thông tin tài khoản, ảnh đại diện và bảo mật</p>
@@ -321,7 +320,7 @@ include '../includes/header.php';
         </div>
 
     </div>
-</div>
+</main>
 
 <script>
 // JavaScript xử lý xem trước ảnh (Preview)
@@ -336,4 +335,7 @@ function previewImage(input) {
 }
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<?php 
+echo '</div></div>';
+include '../includes/footer.php'; 
+?>

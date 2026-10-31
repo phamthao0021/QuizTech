@@ -1,10 +1,60 @@
 <?php
-require_once '../includes/config.php';require_once '../includes/functions.php';require_once '../includes/auth.php';requireSuperAdmin();
-$page_title='Reset Database';
-$tables=['users'=>'Người dùng','subjects'=>'Môn học','questions'=>'Câu hỏi trắc nghiệm','multiselect_questions'=>'Câu hỏi chọn nhiều','matching_questions'=>'Câu hỏi nối ô','tf_questions'=>'Câu hỏi Đúng/Sai','exams'=>'Đề thi','exam_rooms'=>'Phòng thi','practice_crosswords'=>'Practice Crossword','practice_concepts'=>'Practice Concept','practice_quiz_questions'=>'Practice Quick Quiz','practice_sessions'=>'Practice Sessions'];
-if($_SERVER['REQUEST_METHOD']==='POST'&&isset($_POST['reset_all'])){verify_csrf();try{foreach($tables as $t=>$label){$q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");$q->execute([$t]);if($q->fetchColumn()&&((int)$pdo->query("SELECT COUNT(*) FROM `$t`")->fetchColumn()===0))$pdo->exec("ALTER TABLE `$t` AUTO_INCREMENT=1");}setFlash('success','Đã reset AUTO_INCREMENT cho các bảng đang trống.');}catch(Throwable $e){setFlash('danger','Không thể reset database.');}redirect('reset_all.php');}
-$results=[];foreach($tables as $t=>$label){$q=$pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");$q->execute([$t]);$exists=(bool)$q->fetchColumn();$count=$exists?(int)$pdo->query("SELECT COUNT(*) FROM `$t`")->fetchColumn():0;$results[]=compact('t','label','exists','count');}
-require '../includes/header_admin.php';?>
-<div class="container-fluid py-4 px-3 px-md-4"><div class="p-4 mb-4 text-white rounded-4" style="background:linear-gradient(135deg,#4338ca,#6d5dfc)"><h3 class="fw-bold mb-1">Reset Database</h3><p class="mb-0 text-white-50">Chỉ đặt AUTO_INCREMENT về 1 khi bảng hoàn toàn trống.</p></div>
-<?php if(function_exists('getFlash')&&($f=getFlash())):?><div class="alert alert-<?=e($f['type'])?>"><?=e($f['message'])?></div><?php endif;?>
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden"><div class="card-header bg-white d-flex justify-content-between align-items-center"><b>Kiểm tra bảng</b><form method="post" onsubmit="return confirm('Reset ID các bảng đang trống?')"><?php csrf_field();?><button class="btn btn-primary btn-sm" name="reset_all" value="1"><i class="bi bi-arrow-repeat"></i> Reset bảng trống</button></form></div><div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Bảng</th><th>Mô tả</th><th>Số dòng</th><th>Trạng thái</th></tr></thead><tbody><?php foreach($results as $r):?><tr><td><code><?=e($r['t'])?></code></td><td><?=e($r['label'])?></td><td><?=number_format($r['count'])?></td><td><?=$r['exists']?($r['count']===0?'<span class="badge bg-success">Có thể reset</span>':'<span class="badge bg-warning text-dark">Đang có dữ liệu</span>'):'<span class="badge bg-secondary">Không tồn tại</span>'?></td></tr><?php endforeach;?></tbody></table></div></div></div><?php require '../includes/footer.php';?>
+require_once '../includes/config.php';
+require_once '../includes/functions.php';
+require_once '../includes/auth.php';
+requireSuperAdmin();
+$page_title = 'Reset Database';
+$tables = ['users' => 'Người dùng', 'subjects' => 'Môn học', 'questions' => 'Câu hỏi trắc nghiệm', 'multiselect_questions' => 'Câu hỏi chọn nhiều', 'matching_questions' => 'Câu hỏi nối ô', 'tf_questions' => 'Câu hỏi Đúng/Sai', 'exams' => 'Đề thi', 'exam_rooms' => 'Phòng thi', 'practice_crosswords' => 'Practice Crossword', 'practice_concepts' => 'Practice Concept', 'practice_quiz_questions' => 'Practice Quick Quiz', 'practice_sessions' => 'Practice Sessions'];
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['reset_all'])) {
+    verify_csrf();
+    try {
+        foreach ($tables as $t => $label) {
+            $q = $pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
+            $q->execute([$t]);
+            if ($q->fetchColumn() && ((int)$pdo->query("SELECT COUNT(*) FROM `$t`")->fetchColumn() === 0)) $pdo->exec("ALTER TABLE `$t` AUTO_INCREMENT=1");
+        }
+        setFlash('success', 'Đã reset AUTO_INCREMENT cho các bảng đang trống.');
+    } catch (Throwable $e) {
+        setFlash('danger', 'Không thể reset database.');
+    }
+    redirect('reset_all.php');
+}
+$results = [];
+foreach ($tables as $t => $label) {
+    $q = $pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?");
+    $q->execute([$t]);
+    $exists = (bool)$q->fetchColumn();
+    $count = $exists ? (int)$pdo->query("SELECT COUNT(*) FROM `$t`")->fetchColumn() : 0;
+    $results[] = compact('t', 'label', 'exists', 'count');
+}
+require '../includes/header_admin.php'; ?>
+<div class="container-fluid py-4 px-3 px-md-4">
+    <div class="p-4 mb-4 text-white rounded-4" style="background:linear-gradient(135deg,#4338ca,#6d5dfc)">
+        <h3 class="fw-bold mb-1">Reset Database</h3>
+        <p class="mb-0 text-white-50">Chỉ đặt AUTO_INCREMENT về 1 khi bảng hoàn toàn trống.</p>
+    </div>
+    <?php if (function_exists('getFlash') && ($f = getFlash())): ?><div class="alert alert-<?= e($f['type']) ?>"><?= e($f['message']) ?></div><?php endif; ?>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center"><b>Kiểm tra bảng</b>
+            <form method="post" onsubmit="return confirm('Reset ID các bảng đang trống?')"><?php csrf_field(); ?><button class="btn btn-primary btn-sm" name="reset_all" value="1"><i class="bi bi-arrow-repeat"></i> Reset bảng trống</button></form>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bảng</th>
+                        <th>Mô tả</th>
+                        <th>Số dòng</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody><?php foreach ($results as $r): ?><tr>
+                            <td><code><?= e($r['t']) ?></code></td>
+                            <td><?= e($r['label']) ?></td>
+                            <td><?= number_format($r['count']) ?></td>
+                            <td><?= $r['exists'] ? ($r['count'] === 0 ? '<span class="badge bg-success">Có thể reset</span>' : '<span class="badge bg-warning text-dark">Đang có dữ liệu</span>') : '<span class="badge bg-secondary">Không tồn tại</span>' ?></td>
+                        </tr><?php endforeach; ?></tbody>
+            </table>
+        </div>
+    </div>
+</div><?php require '../includes/footer.php'; ?>
