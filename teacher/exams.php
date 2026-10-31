@@ -6,30 +6,46 @@ require_once '../includes/auth.php';
 require_once '../includes/data.php';
 requireTeacher();
 
+$teacherId = (int)((function_exists('currentUser') ? (currentUser()['id'] ?? null) : null) ?? ($_SESSION['user_id'] ?? null) ?? ($_SESSION['user']['id'] ?? 0));
+
+// Lấy danh sách môn học của giáo viên (do giáo viên tạo hoặc được phân công)
+$stmtSubj = $pdo->prepare("
+    SELECT id, name 
+    FROM subjects 
+    WHERE created_by = ? OR id IN (SELECT subject_id FROM teacher_subjects WHERE teacher_id = ?)
+    ORDER BY name ASC
+");
+$stmtSubj->execute([$teacherId, $teacherId]);
+$subjects = $stmtSubj->fetchAll(PDO::FETCH_ASSOC);
+
+$allowed_subject_ids = array_column($subjects, 'id');
+
 // -------------------------------------------------------------
 // XỬ LÝ THÊM ĐỀ THI
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
     verify_csrf();
 
-    $subject_id     = (int)($_POST['subject_id'] ?? 0);
-    $title          = trim($_POST['title'] ?? '');
-    $description    = trim($_POST['description'] ?? '');
-    $time_limit     = (int)($_POST['time_limit'] ?? 20);
-    $question_count = (int)($_POST['question_count'] ?? 10);
+    $subject_id      = (int)($_POST['subject_id'] ?? 0);
+    $title           = trim($_POST['title'] ?? '');
+    $description     = trim($_POST['description'] ?? '');
+    $duration        = (int)($_POST['duration'] ?? 20); // changed from time_limit
+    $total_questions = (int)($_POST['total_questions'] ?? 10); // changed from question_count
 
     // Validate Dữ liệu
-    if ($subject_id <= 0 || empty($title)) {
+    if (!in_array($subject_id, $allowed_subject_ids)) {
+        setFlash('danger', 'Môn học không hợp lệ hoặc bạn không có quyền thao tác!');
+    } elseif ($subject_id <= 0 || empty($title)) {
         setFlash('danger', 'Vui lòng chọn môn học và nhập tiêu đề đề thi!');
-    } elseif ($time_limit < 1 || $question_count < 1) {
+    } elseif ($duration < 1 || $total_questions < 1) {
         setFlash('danger', 'Thời gian làm bài và số lượng câu hỏi phải lớn hơn 0!');
     } else {
         try {
             // Sinh mã tự động cho Đề thi (Ví dụ: EXAM-8F32A)
             $exam_code = 'EXAM-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 5));
 
-            $stmt = $pdo->prepare("INSERT INTO exams (subject_id, exam_code, title, description, time_limit, question_count, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-            $stmt->execute([$subject_id, $exam_code, $title, $description, $time_limit, $question_count]);
+            $stmt = $pdo->prepare("INSERT INTO exams (subject_id, teacher_id, exam_code, title, description, duration, total_questions, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->execute([$subject_id, $teacherId, $exam_code, $title, $description, $duration, $total_questions]);
             
             setFlash('success', 'Đã thêm đề thi thành công!');
         } catch (PDOException $e) {
@@ -42,94 +58,167 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // -------------------------------------------------------------
 // XỬ LÝ XÓA ĐỀ THI
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     verify_csrf();
     
     $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {
-        try {
-            $stmt = $pdo->prepare("DELETE FROM exams WHERE id = ?");
-            $stmt->execute([$id]);
+        // Check ownership
+        $stmtChk = $pdo->prepare("SELECT teacher_id FROM exams WHERE id = ?");
+        $stmtChk->execute([$id]);
+        $ex = $stmtChk->fetch(PDO::FETCH_ASSOC);
 
-            resetAutoIncrement($pdo, 'exams');
-            setFlash('success', 'Đã xóa đề thi!');
-        } catch (PDOException $e) {
-            setFlash('danger', 'Lỗi: Không thể xóa đề thi này!');
+        if (!$ex || $ex['teacher_id'] != $teacherId) {
+            setFlash('danger', 'Bạn không có quyền xóa đề thi này!');
+        } else {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM exams WHERE id = ?");
+                $stmt->execute([$id]);
+
+                resetAutoIncrement($pdo, 'exams');
+                setFlash('success', 'Đã xóa đề thi!');
+            } catch (PDOException $e) {
+                setFlash('danger', 'Lỗi: Không thể xóa đề thi này (có thể đã có học sinh làm bài)!');
+            }
         }
     }
     redirect('exams.php');
 }
 
-$exams    = getExams();
-$subjects = getSubjects();
+// Lấy danh sách đề thi của giáo viên này
+$stmt = $pdo->prepare("
+    SELECT e.*, s.name as subject_name 
+    FROM exams e 
+    LEFT JOIN subjects s ON e.subject_id = s.id 
+    WHERE e.teacher_id = ?
+    ORDER BY e.id DESC
+");
+$stmt->execute([$teacherId]);
+$exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Quản lý đề thi';
-include '../includes/header.php';
+include '../includes/header_teacher.php';
 ?>
 
-<div class="page-wrapper">
-    <?php include '../includes/sidebar.php'; ?>
-    
-    <div class="main-content">
-        <!-- Topbar -->
-        <div class="topbar d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-            <div>
-                <h4 class="mb-1">Quản lý đề thi</h4>
-                <p class="text-muted mb-0">Thêm, xem và xóa các đề thi trong hệ thống</p>
-            </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="bi bi-plus-circle me-1"></i> Thêm đề thi
-            </button>
-        </div>
-
-        <!-- Bảng danh sách -->
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Tiêu đề</th>
-                                <th>Môn</th>
-                                <th>Số câu</th>
-                                <th>Thời gian</th>
-                                <th class="text-end pe-3">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($exams)): ?>
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">Chưa có đề thi nào trong hệ thống.</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($exams as $ex): ?>
-                                    <tr>
-                                        <td class="ps-3"><?= $ex['id'] ?></td>
-                                        <td><strong><?= e($ex['title']) ?></strong></td>
-                                        <td><span class="badge bg-secondary-subtle text-secondary border"><?= e($ex['subject_name'] ?? 'N/A') ?></span></td>
-                                        <td><?= $ex['question_count'] ?? 0 ?> câu</td>
-                                        <td><?= $ex['time_limit'] ?? 20 ?> phút</td>
-                                        <td class="text-end pe-3">
-                                            <form method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đề thi này?')">
-                                                <?php csrf_field(); ?>
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id" value="<?= $ex['id'] ?>">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa đề thi">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<main class="p-4 bg-light flex-grow-1 qt-t-page qt-t-exams">
+  <section class="qt-t-hero qt-exam-hero" aria-label="Quản lý đề thi">
+    <div class="qt-t-hero-icon"><i class="bi bi-file-earmark-text"></i></div>
+    <div class="qt-t-hero-copy">
+      <div class="qt-t-eyebrow">QUIZTECH · TEACHER</div>
+      <h1>Quản lý đề thi</h1>
+      <p>Tạo đề, quản lý câu hỏi và theo dõi ngân hàng đề thi</p>
     </div>
-</div>
+    <div class="qt-exam-hero-actions">
+      <button type="button" class="qt-exam-hero-add" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> Thêm đề thi
+      </button>
+      <a class="qt-t-hero-home" href="dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a>
+    </div>
+  </section>
+
+  <section class="qt-exam-summary" aria-label="Tổng quan đề thi">
+    <div class="qt-exam-summary-card">
+      <span class="qt-exam-summary-icon"><i class="bi bi-journal-text"></i></span>
+      <div><span>Tổng số đề thi</span><strong><?= count($exams) ?></strong></div>
+    </div>
+    <div class="qt-exam-summary-card">
+      <span class="qt-exam-summary-icon purple"><i class="bi bi-collection"></i></span>
+      <div><span>Môn học có đề</span><strong><?= count(array_unique(array_column($exams, 'subject_id'))) ?></strong></div>
+    </div>
+    <div class="qt-exam-summary-card">
+      <span class="qt-exam-summary-icon pink"><i class="bi bi-question-circle"></i></span>
+      <div><span>Tổng số câu cấu hình</span><strong><?= array_sum(array_map(static fn($e) => (int)($e['total_questions'] ?? 0), $exams)) ?></strong></div>
+    </div>
+  </section>
+
+  <section class="qt-exam-panel" aria-label="Danh sách đề thi">
+    <div class="qt-exam-panel-heading">
+      <div>
+        <h2><i class="bi bi-card-list"></i> Danh sách đề thi</h2>
+        <p>Tìm kiếm, lọc theo môn học và quản lý các đề thi đã tạo.</p>
+      </div>
+      <span class="qt-exam-total" id="examVisibleCount"><?= count($exams) ?> đề thi</span>
+    </div>
+
+    <div class="qt-exam-toolbar">
+      <label class="qt-exam-search">
+        <i class="bi bi-search"></i>
+        <input id="examSearch" type="search" autocomplete="off" placeholder="Tìm mã đề, tiêu đề, môn học..." aria-label="Tìm kiếm đề thi">
+      </label>
+      <select id="examSubjectFilter" class="form-select" aria-label="Lọc theo môn học">
+        <option value="">Tất cả môn học</option>
+        <?php foreach ($subjects as $s): ?>
+          <option value="<?= (int)$s['id'] ?>"><?= e($s['name']) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <select id="examSort" class="form-select" aria-label="Sắp xếp đề thi">
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+        <option value="title">Tiêu đề A–Z</option>
+        <option value="duration">Thời gian tăng dần</option>
+      </select>
+      <button id="examRefresh" type="button" class="btn qt-exam-refresh" title="Làm mới dữ liệu" aria-label="Tải lại danh sách">
+        <i class="bi bi-arrow-clockwise"></i> <span>Làm mới</span>
+      </button>
+    </div>
+
+    <div class="qt-exam-table-wrap">
+      <table class="qt-exam-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Mã đề</th><th>Tiêu đề</th><th>Môn học</th>
+            <th>Số câu</th><th>Thời gian</th><th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="examRows">
+          <?php foreach ($exams as $ex): ?>
+            <tr class="qt-exam-row"
+                data-id="<?= (int)$ex['id'] ?>"
+                data-subject="<?= (int)$ex['subject_id'] ?>"
+                data-title="<?= e(strtolower((string)$ex['title'])) ?>"
+                data-search="<?= e(strtolower((string)(($ex['exam_code'] ?? '') . ' ' . ($ex['title'] ?? '') . ' ' . ($ex['subject_name'] ?? '')))) ?>"
+                data-duration="<?= (int)($ex['duration'] ?? 20) ?>">
+              <td data-label="ID"><span class="qt-exam-id">#<?= (int)$ex['id'] ?></span></td>
+              <td data-label="Mã đề"><span class="qt-exam-code"><?= e($ex['exam_code'] ?? '') ?></span></td>
+              <td data-label="Tiêu đề"><strong class="qt-exam-title"><?= e($ex['title']) ?></strong></td>
+              <td data-label="Môn học"><span class="qt-exam-subject"><?= e($ex['subject_name'] ?? 'Chưa xác định') ?></span></td>
+              <td data-label="Số câu"><span class="qt-exam-metric"><i class="bi bi-question-circle"></i> <?= (int)($ex['total_questions'] ?? 0) ?> câu</span></td>
+              <td data-label="Thời gian"><span class="qt-exam-metric"><i class="bi bi-clock"></i> <?= (int)($ex['duration'] ?? 20) ?> phút</span></td>
+              <td data-label="Thao tác">
+                <div class="qt-exam-actions">
+                  <a href="exam_questions.php?id=<?= (int)$ex['id'] ?>" class="qt-exam-action edit" title="Quản lý câu hỏi" aria-label="Quản lý câu hỏi đề <?= e($ex['title']) ?>"><i class="bi bi-list-check"></i><span>Câu hỏi</span></a>
+                  <form method="POST" class="qt-exam-delete-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đề thi này?')">
+                    <?php csrf_field(); ?>
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" value="<?= (int)$ex['id'] ?>">
+                    <button type="submit" class="qt-exam-action delete" title="Xóa đề thi" aria-label="Xóa đề <?= e($ex['title']) ?>"><i class="bi bi-trash"></i><span>Xóa</span></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+      <div id="examEmpty" class="qt-exam-empty" hidden>
+        <i class="bi bi-search"></i><strong>Không tìm thấy đề thi phù hợp</strong>
+        <span>Thử thay đổi từ khóa hoặc bộ lọc.</span>
+      </div>
+    </div>
+
+    <div class="qt-exam-footer">
+      <div class="qt-exam-footer-left">
+        <span id="examRange">Hiển thị 0 đề thi</span>
+        <label>Hiển thị
+          <select id="examPageSize" class="form-select form-select-sm" aria-label="Số đề mỗi trang">
+            <option value="5">5</option><option value="10" selected>10</option>
+            <option value="20">20</option><option value="50">50</option>
+          </select>
+        </label>
+      </div>
+      <nav id="examPagination" class="qt-exam-pagination" aria-label="Phân trang đề thi"></nav>
+    </div>
+  </section>
+</main>
 
 <!-- Modal thêm Đề thi -->
 <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
@@ -140,7 +229,7 @@ include '../includes/header.php';
                 <input type="hidden" name="action" value="add">
 
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Thêm đề thi mới</h5>
+                    <h5 class="modal-title fw-bold text-primary">Thêm đề thi mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -168,11 +257,11 @@ include '../includes/header.php';
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold">Số câu hỏi</label>
-                            <input type="number" name="question_count" class="form-control" value="10" min="1" required>
+                            <input type="number" name="total_questions" class="form-control" value="10" min="1" required>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold">Thời gian (phút)</label>
-                            <input type="number" name="time_limit" class="form-control" value="20" min="1" required>
+                            <input type="number" name="duration" class="form-control" value="20" min="1" required>
                         </div>
                     </div>
                 </div>
@@ -186,4 +275,8 @@ include '../includes/header.php';
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php 
+echo '</div></div>';
+include '../includes/footer.php'; 
+?>
+<script src="../assets/js/qt-teacher-exams.js?v=2" defer></script>

@@ -1,12 +1,24 @@
-/vendor/
-.env
-php.ini
-*.zip
-__pycache__/
-uploads/temp/
+# Hosting deployment copy
+/public_html/
 
-/uploads/avatars/*
-!/uploads/avatars/.gitkeep
+# Database backups
+/database/backup_*.sql
+/database/*.bak
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+/includes/config.local.php
+/includes/config.php
+
+# Runtime data
+/uploads/feedback/
 /uploads/temp/
 
-/includes/config.local.php
+# Dependencies
+/vendor/
+/api/vendor/
+
+# Local settings
+/php.ini

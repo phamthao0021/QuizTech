@@ -1,0 +1,6 @@
+﻿content,option_a,option_b,option_c,option_d,correct_answer,difficulty,explanation
+ISTQB: Error là gì?,Hành động của con người dẫn đến kết quả sai,Lỗi tồn tại trong mã nguồn,Biểu hiện sai khi chạy,Tài liệu kiểm thử,A,easy,Error là sai sót do con người gây ra.
+,A,B,C,D,A,easy,Thiếu nội dung
+Câu có đáp án sai,A,B,,,E,easy,Đáp án E không hợp lệ
+Câu thiếu đáp án đúng,A,B,,,D,medium,D đang trống
+Câu sai độ khó,A,B,C,D,A,extreme,Độ khó sai

@@ -13,7 +13,7 @@ $exams     = getExams();
 // -------------------------------------------------------------
 // XỬ LÝ XỬ LÝ TẠO CÂU HỎI TỪ VĂN BẢN / FILE / ẢNH (POST)
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+if ((filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?: 'GET') === 'POST' && isset($_POST['action'])) {
     verify_csrf();
 
     $action      = $_POST['action'];

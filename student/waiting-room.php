@@ -73,7 +73,7 @@ $total_joined = count($leaderboard);
 $is_leader = ($room['created_by'] == $user['id']);
 
 // Xử lý khi Trưởng phòng (Leader) bấm nút "Bắt đầu bài thi"
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_start'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['action_start'])) {
     if ($is_leader) {
         $update_stmt = $pdo->prepare("UPDATE exam_rooms SET status = 'active' WHERE id = ?");
         $update_stmt->execute([$room['id']]);

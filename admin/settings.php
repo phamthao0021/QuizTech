@@ -6,17 +6,7 @@ require_once '../includes/auth.php';
 require_once '../includes/data.php';
 requireSuperAdmin();
 
-// ----------------------------------------------------
-// TỰ ĐỘNG KHỞI TẠO BẢNG settings NẾU CHƯA CÓ
-// ----------------------------------------------------
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `settings` (
-        `setting_key` VARCHAR(100) PRIMARY KEY,
-        `setting_value` TEXT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-} catch (Exception $e) {
-    // Bỏ qua nếu đã tồn tại
-}
+// V39: settings được tạo một lần qua migration, không CREATE TABLE khi tải trang.
 
 // ----------------------------------------------------
 // NẠP CẤU HÌNH TỪ DATABASE
@@ -42,7 +32,7 @@ $maintenance_mode   = (int)($db_settings['maintenance_mode'] ?? 0);
 // ----------------------------------------------------
 // XỬ LÝ LƯU CẤU HÌNH TỰ ĐỘNG VÀO DATABASE
 // ----------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (function_exists('verify_csrf')) {
         verify_csrf();
     }

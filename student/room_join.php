@@ -12,7 +12,7 @@ requireRole('student');
 $error = '';
 $code = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $code = strtoupper(trim($_POST['room_code'] ?? ''));
     
     if (empty($code)) {

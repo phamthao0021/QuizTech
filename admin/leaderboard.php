@@ -6,17 +6,29 @@ require_once '../includes/auth.php';
 require_once '../includes/data.php';
 requireAdmin();
 
-$leaderboard = getLeaderboard();
-
-// Sắp xếp lại thứ tự ưu tiên điểm số từ cao đến thấp
-usort($leaderboard, function($a, $b) {
-    return ($b['best_score'] ?? 0) <=> ($a['best_score'] ?? 0);
-});
-
-// Tính toán chỉ số tổng quan
+// Không sử dụng getLeaderboard() mặc định LIMIT 10: Admin cần thấy toàn bộ sinh viên.
+// Chỉ tính bài đã nộp hoặc hết giờ; lượt đang làm/hủy không được tính điểm.
+$leaderboard = [];
+$leaderboardError = null;
+try {
+    $stmt = $pdo->query("SELECT u.id, u.name, u.email, u.student_code,
+        COUNT(a.id) AS exam_count,
+        COALESCE(ROUND(AVG(a.score), 2), 0) AS avg_score,
+        COALESCE(MAX(a.score), 0) AS best_score
+        FROM users u
+        LEFT JOIN exam_attempts a ON a.student_id = u.id
+            AND a.status IN ('submitted', 'timeout')
+        WHERE u.role = 'student'
+        GROUP BY u.id, u.name, u.email, u.student_code
+        ORDER BY best_score DESC, avg_score DESC, exam_count DESC, u.name ASC");
+    $leaderboard = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log('[admin leaderboard] ' . $e->getMessage());
+    $leaderboardError = 'Không thể tải dữ liệu xếp hạng. Vui lòng kiểm tra cấu trúc bảng exam_attempts và nhật ký PHP.';
+}
 $total_candidates = count($leaderboard);
-$highest_score = !empty($leaderboard) ? ($leaderboard[0]['best_score'] ?? 0) : 0;
-$total_exams_taken = array_sum(array_column($leaderboard, 'exam_count'));
+$highest_score = !empty($leaderboard) ? (float)$leaderboard[0]['best_score'] : 0;
+$total_exams_taken = array_sum(array_map(static fn($row) => (int)$row['exam_count'], $leaderboard));
 
 $top1 = $leaderboard[0] ?? null;
 $top2 = $leaderboard[1] ?? null;
@@ -282,15 +294,18 @@ include '../includes/header_admin.php';
         </div>
     <?php endif; ?>
 
+    <?php if ($leaderboardError): ?>
+        <div class="alert alert-danger" role="alert"><?= e($leaderboardError) ?></div>
+    <?php endif; ?>
     <!-- DANH SÁCH CHI TIẾT -->
     <div class="creative-card p-3 p-md-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
             <div>
                 <h5 class="fw-bold mb-1 text-dark">Bảng Chi Tiết Xếp Hạng</h5>
-                <p class="text-muted small mb-0">Danh sách hiển thị tự động sắp xếp theo điểm số cao nhất giảm dần</p>
+                <p class="text-muted small mb-0">Hiển thị toàn bộ sinh viên; chỉ tính bài đã nộp hoặc hết giờ, sắp xếp theo điểm cao nhất</p>
             </div>
             <div class="position-relative" style="min-width: 260px;">
-                <input type="text" id="searchInput" onkeyup="filterLeaderboard()" class="form-control ps-4 rounded-pill" placeholder="Tìm tên thí sinh, MSSV...">
+                <input type="text" id="searchInput" class="form-control ps-4 rounded-pill" placeholder="Tìm tên thí sinh, MSSV...">
             </div>
         </div>
 
@@ -310,7 +325,7 @@ include '../includes/header_admin.php';
                         <tr>
                             <td colspan="5" class="text-center text-muted py-5">
                                 <i class="bi bi-trophy fs-1 d-block text-secondary opacity-50 mb-2"></i>
-                                Chưa có dữ liệu xếp hạng thí sinh.
+                                Chưa tìm thấy tài khoản sinh viên. Nếu có sinh viên nhưng chưa thi, hãy kiểm tra dữ liệu và quyền truy cập cơ sở dữ liệu.
                             </td>
                         </tr>
                     <?php else: ?>
@@ -344,7 +359,7 @@ include '../includes/header_admin.php';
                                 </td>
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold">
-                                        <?= $r['exam_count'] ?? 0 ?> bài
+                                        <?= (int)($r['exam_count'] ?? 0) ?> bài
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -362,24 +377,18 @@ include '../includes/header_admin.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            <div class="qt-list-footer" id="qtLeaderboardFooter" hidden>
+              <span id="qtLeaderboardRange" aria-live="polite"></span>
+              <div class="qt-list-footer-actions"><label for="qtLeaderboardSize">Số dòng/trang</label>
+                <select class="form-select form-select-sm" id="qtLeaderboardSize"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="qtLeaderboardPrev">Trước</button>
+                <span id="qtLeaderboardPage"></span>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="qtLeaderboardNext">Sau</button>
+              </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-function filterLeaderboard() {
-    const input = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#leaderboardTable tbody tr');
-
-    rows.forEach(row => {
-        const searchData = row.getAttribute('data-search') || '';
-        if (searchData.includes(input)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-</script>
-
 <?php include '../includes/footer.php'; ?>
+<script src="../assets/js/qt-admin-leaderboard-pager.js?v=3" defer></script>

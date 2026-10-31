@@ -45,6 +45,8 @@ try {
         ]);
     }
 
+    if ($action === 'resume') { pv2_csrf(); pv2_json(['ok'=>true,'data'=>pv2_resume(pv2_uid())]); }
+
     // Các action thay đổi dữ liệu bắt buộc CSRF
     pv2_csrf();
 
@@ -62,6 +64,10 @@ try {
             'ok' => true,
             'data' => pv2_start($gameType, $count)
         ]);
+    }
+
+    if ($action === 'activate_question') {
+        pv2_json(['ok'=>true,'data'=>pv2_quiz_activate((int)($data['session_id']??0),(string)($data['item_token']??''))]);
     }
 
     // =========================================================
@@ -133,7 +139,7 @@ try {
         if (!$result) {
             pv2_json([
                 'ok' => false,
-                'message' => 'Không tìm thấy kết quả.'
+                'message' => 'Kết quả chưa sẵn sàng hoặc phiên không tồn tại.'
             ], 404);
         }
 
@@ -141,6 +147,18 @@ try {
             'ok' => true,
             'data' => $result
         ]);
+    }
+
+    if ($action === 'cancel') {
+        global $pdo;
+        $sid = (int)($data['session_id'] ?? 0);
+        $stmt = $pdo->prepare("UPDATE practice_sessions SET status='cancelled', completed_at=NOW(), duration_seconds=GREATEST(1,TIMESTAMPDIFF(SECOND,started_at,NOW())) WHERE id=? AND user_id=? AND status='playing'");
+        $stmt->execute([$sid, pv2_uid()]);
+        if (!$stmt->rowCount()) {
+            $existing = pv2_session($sid, pv2_uid());
+            if (!$existing) throw new RuntimeException('Không tìm thấy phiên luyện tập.');
+        }
+        pv2_json(['ok'=>true,'data'=>['cancelled'=>$stmt->rowCount()>0]]);
     }
 
     // =========================================================

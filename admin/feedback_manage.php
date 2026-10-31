@@ -12,10 +12,12 @@ if (session_status() === PHP_SESSION_NONE) {
 requireAdmin();
 
 // Xử lý cập nhật trạng thái & gửi phản hồi cho Sinh viên
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_feedback') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_feedback') {
+    verify_csrf();
     $feedback_id = (int)$_POST['feedback_id'];
     $status      = $_POST['status'] ?? 'pending';
     $admin_note  = trim($_POST['admin_note'] ?? '');
+    if (!in_array($status, ['pending','reviewing','resolved','rejected','approved'], true)) { http_response_code(422); exit('Trạng thái không hợp lệ'); }
 
     try {
         $stmt = $pdo->prepare("
@@ -157,7 +159,7 @@ require_once dirname(__DIR__) . '/includes/header_admin.php';
                                 <div class="modal fade" id="replyModal<?= $item['id'] ?>" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content rounded-4 border-0 shadow">
-                                            <form method="POST">
+                                            <form method="POST"><?php csrf_field(); ?>
                                                 <input type="hidden" name="action" value="update_feedback">
                                                 <input type="hidden" name="feedback_id" value="<?= $item['id'] ?>">
                                                 

@@ -1,0 +1,31 @@
+
+/* QuizTech Admin visual consistency, scoped to admin wrapper */
+#adminWrapper {--qt-a:#7c3aed;--qt-a2:#4f46e5;--qt-border:#e9e1f5;--qt-bg:#f8f7ff}
+#adminWrapper .admin-content {background:var(--qt-bg)}
+#adminWrapper main .card,#adminWrapper main .creative-table-card{border:1px solid var(--qt-border);border-radius:18px;box-shadow:0 8px 25px #35126b0d}
+#adminWrapper main .card-header{background:linear-gradient(110deg,#faf7ff,#f0eaff);border-bottom:1px solid var(--qt-border)}
+#adminWrapper main .form-control,#adminWrapper main .form-select{border-radius:10px;border-color:#e6dcf4}
+#adminWrapper main .form-control:focus,#adminWrapper main .form-select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf625}
+#adminWrapper main .btn{border-radius:10px;font-weight:650}
+#adminWrapper main .btn-primary{background:linear-gradient(110deg,var(--qt-a),var(--qt-a2));border-color:transparent}
+#adminWrapper main table thead th{background:#f3edff;color:#5b21b6;font-weight:750;vertical-align:middle}
+#adminWrapper main table tbody td{vertical-align:middle}
+#adminWrapper main table tbody tr:hover{background:#fbf9ff}
+#adminWrapper .qt-admin-enhancer{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px;border:1px solid var(--qt-border);border-radius:14px;background:#fff;margin:12px 0}
+#adminWrapper .qt-admin-enhancer input{flex:1 1 220px;min-width:0}
+#adminWrapper .qt-admin-enhancer select{width:auto;min-width:100px}
+#adminWrapper .qt-admin-enhancer .qt-admin-status{margin-left:auto;color:#76658b;font-size:13px}
+#adminWrapper .qt-admin-pages{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+#adminWrapper .qt-admin-pages button{border:1px solid #ddd1ef;background:#fff;color:#5b21b6;border-radius:8px;min-width:35px;min-height:35px}
+#adminWrapper .qt-admin-pages button[aria-current="page"]{background:#6d28d9;color:#fff}
+#adminWrapper .qt-admin-pages button:disabled{opacity:.4}
+#adminWrapper tr.qt-admin-hidden{display:none!important}
+@media(max-width:767px){
+ #adminWrapper main{padding:12px!important}
+ #adminWrapper .qt-admin-enhancer{display:grid;grid-template-columns:1fr 1fr}
+ #adminWrapper .qt-admin-enhancer input{grid-column:1/-1;width:100%}
+ #adminWrapper .qt-admin-enhancer .qt-admin-status{grid-column:1/-1;margin-left:0}
+ #adminWrapper main .table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ #adminWrapper main table{min-width:640px}
+ #adminWrapper main .btn{white-space:normal}
+}

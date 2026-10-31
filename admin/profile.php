@@ -21,7 +21,7 @@ if (!$currentUser) {
 // -------------------------------------------------------------
 // XỬ LÝ CẬP NHẬT THÔNG TIN CÁ NHÂN & UPLOAD ẢNH ĐẠI DIỆN
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['update_profile'])) {
     if (function_exists('verify_csrf')) {
         verify_csrf();
     }
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 // -------------------------------------------------------------
 // XỬ LÝ ĐỔI MẬT KHẨU
 // -------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['change_password'])) {
     if (function_exists('verify_csrf')) {
         verify_csrf();
     }

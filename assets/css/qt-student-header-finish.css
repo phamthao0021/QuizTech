@@ -1,0 +1,50 @@
+/* QuizTech Student header alignment patch — scoped, no CRUD changes */
+.student-navbar{padding-block:10px!important}
+.student-navbar .qt-student-nav-container{
+ width:100%!important;max-width:1140px!important;
+ padding-inline:12px!important;margin-inline:auto!important;
+ display:flex;align-items:center;gap:8px!important;
+}
+.student-navbar .navbar-brand{margin-right:10px!important;gap:6px!important;flex:0 0 auto;font-size:19px!important}
+.student-navbar .brand-logo{height:32px!important;margin-right:5px!important}
+.student-navbar .brand-badge{font-size:9px!important;padding:3px 7px!important;margin-left:3px!important}
+.student-navbar .navbar-collapse{min-width:0;align-items:center}
+.student-navbar .navbar-nav{gap:3px!important;align-items:center}
+.student-navbar .navbar-nav .nav-item{margin:0!important}
+.student-navbar .navbar-nav .nav-link{
+ display:inline-flex;align-items:center;justify-content:center;
+ gap:6px!important;min-height:40px;padding:9px 10px!important;
+ margin:0!important;font-size:12px!important;line-height:1.2!important;
+ border-radius:11px!important;white-space:nowrap;
+}
+.student-navbar .navbar-nav .nav-link i{font-size:14px!important;flex-shrink:0}
+.student-navbar .navbar-nav .nav-link.practice-pill{padding-inline:10px!important}
+.student-navbar .navbar-collapse>.dropdown{margin:0 0 0 auto!important;flex:0 0 auto}
+.student-navbar .navbar-collapse>.dropdown .user-pill-btn{
+ min-height:42px;padding:6px 10px!important;margin:0!important;
+ display:flex;align-items:center;gap:7px!important;border-radius:12px!important;
+}
+.student-navbar .user-name-text{max-width:95px!important}
+.student-navbar .qt-student-nav-container>.order-xl-3{margin:0!important;order:4!important;flex:0 0 auto}
+.student-navbar .navbar-collapse{order:2}
+.student-navbar .navbar-toggler{order:3}
+.student-navbar .navbar-nav .nav-link:focus-visible,.student-navbar .user-pill-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (min-width:1200px) and (max-width:1399.98px){
+ .student-navbar .qt-student-nav-container{max-width:1140px!important;gap:4px!important}
+ .student-navbar .navbar-brand{font-size:17px!important;margin-right:5px!important}
+ .student-navbar .navbar-nav{gap:1px!important}
+ .student-navbar .navbar-nav .nav-link{font-size:11.5px!important;padding:9px 7px!important;gap:4px!important}
+ .student-navbar .user-name-text{max-width:85px!important}
+}
+@media (max-width:1199.98px){
+ .student-navbar .qt-student-nav-container{max-width:960px!important;flex-wrap:wrap}
+ .student-navbar .qt-student-nav-container>.order-xl-3{order:2!important;margin-left:auto!important}
+ .student-navbar .navbar-toggler{order:3}
+ .student-navbar .navbar-collapse{order:4;flex-basis:100%;width:100%}
+ .student-navbar .navbar-nav{align-items:stretch;gap:5px!important}
+ .student-navbar .navbar-nav .nav-link{display:flex;justify-content:flex-start;font-size:14px!important;padding:11px 13px!important}
+ .student-navbar .navbar-collapse>.dropdown{margin:10px 0 4px!important}
+ .student-navbar .user-name-text{max-width:170px!important}
+}
+@media (max-width:767.98px){.student-navbar .qt-student-nav-container{max-width:720px!important;padding-inline:16px!important}}
+@media (max-width:575.98px){.student-navbar .qt-student-nav-container{max-width:100%!important;padding-inline:14px!important}.student-navbar .brand-badge{display:none!important}}

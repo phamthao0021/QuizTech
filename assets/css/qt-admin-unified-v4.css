@@ -1,0 +1,27 @@
+/* Unified Admin UI v4: scoped, avoid forcing nested card body into banner height. */
+#adminWrapper main .admin-page-head,#adminWrapper main .hero-banner-admin,#adminWrapper main .pa-hero{min-height:112px!important;height:auto!important;max-height:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:24px 28px!important;margin-bottom:20px!important;flex-wrap:wrap!important;overflow:visible!important;background:linear-gradient(110deg,#4f46e5,#6d28d9)!important;border-radius:19px!important}
+#adminWrapper main .admin-page-head.card{display:block!important;padding:0!important}
+#adminWrapper main .admin-page-head.card>.card-body{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;flex-wrap:wrap!important;padding:24px 28px!important;min-height:112px!important;width:100%!important;margin:0!important}
+#adminWrapper main .admin-page-head :is(.header-actions,.admin-head-actions){display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;margin-left:auto!important}
+#adminWrapper main .admin-page-head :is(h1,h2,h3),#adminWrapper main .pa-hero :is(h1,h2,h3){color:#fff!important;font-size:clamp(23px,2.2vw,29px)!important;line-height:1.3!important;font-weight:750!important;margin:0 0 5px!important}
+#adminWrapper main .admin-page-head p,#adminWrapper main .pa-hero p{color:#e9e5ff!important;font-size:13px!important;margin-bottom:0!important}
+#adminWrapper main .admin-page-head .btn,#adminWrapper main .pa-hero .btn{min-height:41px!important;padding:9px 14px!important;font-size:13px!important;white-space:normal!important}
+#adminWrapper main .admin-page-head .btn-light,#adminWrapper main .pa-hero .btn-light{color:#5834c6!important;background:#fff!important}
+#adminWrapper main :is(.filter-bar,.filters-bar,.filter-toolbar,.toolbar-row,.qt-aq-toolbar,.qt-practice-toolbar){gap:10px!important}
+#adminWrapper main :is(.filter-bar,.filters-bar,.filter-toolbar,.toolbar-row,.qt-aq-toolbar,.qt-practice-toolbar) :is(input,select,.btn,button){min-height:40px;border-radius:10px}
+#adminWrapper main .table-responsive{overflow-x:auto;max-width:100%}
+#adminWrapper main :is(.bulk-toolbar,.bulk-bar,.bulk-selection-bar,.qt-bulk-toolbar-unified){border-radius:12px;padding:12px 14px;gap:12px;flex-wrap:wrap}
+#adminWrapper .qt-unified-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 4px;color:#665d78;font-size:13px}
+#adminWrapper .qt-unified-pager .qt-pager-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#adminWrapper .qt-unified-pager .form-select{width:82px;min-height:35px}
+#adminWrapper .qt-unified-pager .btn{min-width:75px;border-radius:9px}
+#adminWrapper .qt-unified-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 15px;background:#fff;border:1px solid #e5e7f2;border-radius:14px;padding:12px 14px}
+#adminWrapper .qt-unified-filter input{min-width:200px;flex:1 1 220px;border:1px solid #dce0eb;border-radius:10px;padding:10px 12px}
+#adminWrapper .qt-unified-filter select{border:1px solid #dce0eb;border-radius:10px;padding:10px 12px;background:#fff}
+#adminWrapper .qt-unified-filter button{min-height:40px;border-radius:10px}
+#adminWrapper .qt-notice-history .qt-notice-item[hidden],#adminWrapper .qt-unified-table tbody tr[hidden]{display:none!important}
+#adminWrapper .qt-notice-history{max-height:none!important;overflow:visible!important}
+#adminWrapper .qt-notice-page .qt-notice-hero{padding:25px 28px!important;min-height:116px!important}
+#adminWrapper .qt-notice-page .qt-notice-card{height:auto!important}
+@media(max-width:900px){#adminWrapper main .admin-page-head.card>.card-body{padding:20px!important}#adminWrapper main .admin-page-head :is(.header-actions,.admin-head-actions){margin-left:0!important;justify-content:flex-start!important}}
+@media(max-width:575px){#adminWrapper main .admin-page-head,#adminWrapper main .pa-hero{padding:18px!important}#adminWrapper main .admin-page-head.card>.card-body{padding:18px!important}#adminWrapper .qt-unified-pager{align-items:flex-start}}

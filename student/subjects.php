@@ -19,11 +19,26 @@ if ($q !== '') {
 $subjects = db_fetch_all("
     SELECT s.*, COUNT(DISTINCT e.id) AS total_exams
     FROM subjects s
-    LEFT JOIN exams e ON s.id = e.subject_id AND e.status = 'published'
+    LEFT JOIN exams e ON s.id = e.subject_id AND e.status IN ('active', 'published')
     $where
     GROUP BY s.id
     ORDER BY total_exams DESC, s.name ASC
 ", $params);
+
+// Phân trang: 8 môn học mỗi trang, giữ từ khóa tìm kiếm khi chuyển trang.
+$perPage = 8;
+$totalSubjects = count($subjects);
+$totalPages = max(1, (int) ceil($totalSubjects / $perPage));
+$page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+$page = ($page !== false && $page !== null && $page > 0) ? $page : 1;
+$page = min($page, $totalPages);
+$subjectsOnPage = array_slice($subjects, ($page - 1) * $perPage, $perPage);
+$paginationUrl = static function (int $targetPage) use ($q): string {
+    return 'subjects.php?' . http_build_query(array_filter([
+        'q' => $q,
+        'page' => $targetPage,
+    ], static fn($value) => $value !== ''));
+};
 
 $page_title = 'Danh sách môn học';
 require_once dirname(__DIR__) . '/includes/header_student.php';
@@ -88,6 +103,31 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
         border-color: #a855f7;
     }
 
+    .subject-card .card-body,
+    .subject-card .subject-header,
+    .subject-card .subject-heading { min-width: 0; max-width: 100%; }
+
+    .subject-card .subject-heading { flex: 1 1 0%; overflow: hidden; }
+
+    .subject-card .subject-name {
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .subject-card .subject-code {
+        display: inline-block;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
     .subject-icon-box {
         width: 50px;
         height: 50px;
@@ -122,6 +162,15 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
         color: #ffffff;
     }
 
+    .pagination .page-item.active .page-link {
+        background: var(--sub-purple-primary) !important;
+        border-color: var(--sub-purple-primary) !important;
+        color: #fff !important;
+    }
+    .pagination .page-link { color: var(--sub-purple-primary); border-color: var(--sub-card-border); }
+    .pagination .page-link:hover { background: #f3e8ff; }
+    .pagination .page-item.disabled .page-link { color: #94a3b8; background: #f1f5f9; }
+
     .hover-scale {
         transition: transform 0.2s ease;
     }
@@ -142,7 +191,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                 </div>
                 <h3 class="fw-bold mb-1 text-white text-truncate">Danh Sách Môn Học</h3>
                 <p class="text-white-50 small mb-0">
-                    Hiện có <strong class="text-white"><?= count($subjects) ?></strong> môn học <?= $q !== '' ? 'khớp với từ khóa tìm kiếm' : 'đang mở trên hệ thống' ?>.
+                    Hiện có <strong class="text-white"><?= $totalSubjects ?></strong> môn học <?= $q !== '' ? 'khớp với từ khóa tìm kiếm' : 'đang mở trên hệ thống' ?>.
                 </p>
             </div>
 
@@ -188,7 +237,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
         </div>
     <?php else: ?>
         <div class="row g-3 g-md-4">
-            <?php foreach ($subjects as $subject): ?>
+            <?php foreach ($subjectsOnPage as $subject): ?>
                 <?php
                     $total = (int)($subject['total_exams'] ?? 0);
                     $sid   = (int)$subject['id'];
@@ -199,16 +248,16 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                         <div class="card-body d-flex flex-column p-3 p-md-4">
                             
                             <!-- Card Header & Icon -->
-                            <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="d-flex align-items-start gap-3 mb-3 subject-header">
                                 <div class="subject-icon-box">
                                     <i class="bi bi-journal-bookmark-fill fs-4"></i>
                                 </div>
-                                <div class="min-w-0 flex-grow-1">
-                                    <h6 class="card-title fw-bold mb-0 text-dark text-truncate" title="<?= e($subject['name']) ?>">
+                                <div class="subject-heading">
+                                    <h6 class="card-title fw-bold mb-0 text-dark subject-name" title="<?= e($subject['name']) ?>">
                                         <?= e($subject['name']) ?>
                                     </h6>
                                     <?php if (!empty($subject['code'])): ?>
-                                        <span class="badge bg-light text-secondary border small mt-1 font-monospace">
+                                        <span class="badge bg-light text-secondary border small mt-1 font-monospace subject-code">
                                             <?= e($subject['code']) ?>
                                         </span>
                                     <?php else: ?>
@@ -245,6 +294,36 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <?php if ($totalPages > 1): ?>
+            <!-- Phân trang theo mẫu trang đề thi, 8 môn học/trang -->
+            <nav class="mt-4 d-flex justify-content-center" aria-label="Phân trang môn học">
+                <ul class="pagination pagination-sm mb-0 gap-1 align-items-center">
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link rounded-3 px-3" href="<?= e($paginationUrl(max(1, $page - 1))) ?>"
+                           aria-label="Trang trước" <?= $page <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                            <a class="page-link rounded-3 px-3 <?= $i === $page ? 'bg-purple border-purple text-white' : '' ?>"
+                               href="<?= e($paginationUrl($i)) ?>"
+                               <?= $i === $page ? 'aria-current="page"' : '' ?>><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                        <a class="page-link rounded-3 px-3" href="<?= e($paginationUrl(min($totalPages, $page + 1))) ?>"
+                           aria-label="Trang sau" <?= $page >= $totalPages ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <p class="text-center text-muted small mt-2 mb-0">
+                Hiển thị <?= ($page - 1) * $perPage + 1 ?>–<?= min($page * $perPage, $totalSubjects) ?> / <?= $totalSubjects ?> môn học
+            </p>
+        <?php endif; ?>
     <?php endif; ?>
 
 </div>

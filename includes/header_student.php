@@ -5,10 +5,11 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
 
 $page_title   = $page_title ?? 'QuizTech - Học viên';
-$current_page = basename($_SERVER['PHP_SELF']);
+$current_page = basename($_SERVER['PHP_SELF'] ?? '');
+
 
 // Xác định vị trí file gọi để tính toán prefix đường dẫn
-$in_student = strpos($_SERVER['PHP_SELF'], '/student/') !== false;
+$in_student = strpos($_SERVER['PHP_SELF'] ?? '', '/student/') !== false;
 $prefix     = $in_student ? '../' : '';
 $base_url   = $in_student ? '' : 'student/';
 
@@ -249,7 +250,7 @@ $user_email   = $user['email'] ?? $_SESSION['email'] ?? '';
     }
 
     /* Mobile & Tablet Responsive Layout Rules */
-    @media (max-width: 991.98px) {
+    @media (max-width: 1199.98px) {
       .student-navbar .navbar-collapse {
         background: rgba(109, 40, 217, 0.96);
         backdrop-filter: blur(16px);
@@ -280,7 +281,7 @@ $user_email   = $user['email'] ?? $_SESSION['email'] ?? '';
     }
 
     /* Responsive name clipping for laptops with smaller widths */
-    @media (min-width: 992px) and (max-width: 1200px) {
+    @media (min-width: 1200px) and (max-width: 1399.98px) {
       .user-name-text {
         max-width: 90px !important;
       }
@@ -306,17 +307,23 @@ main .dashboard-header h1,main .dashboard-header h2,main .dashboard-header h3,ma
 @media(max-width:767.98px){.student-main .page-header,main .page-header,main .dashboard-header,main .student-page-head{border-radius:16px!important;padding:16px!important}.student-main .table-responsive,main .table-responsive{overflow-x:auto}.student-main .table,main .table{min-width:680px}}
 
 </style>
+  <link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-student-notice-sender.css?v=1">
+  <link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-student-header-finish.css?v=3">
+  <link rel="stylesheet" href="<?= e($prefix) ?>assets/css/qt-crud-v39.css">
+  <script defer src="<?= e($prefix) ?>assets/js/qt-crud-v39.js"></script>
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark student-navbar sticky-top">
-    <div class="container">
+  <nav class="navbar navbar-expand-xl navbar-dark student-navbar sticky-top" aria-label="Điều hướng sinh viên">
+    <div class="container qt-student-nav-container">
       <!-- Logo Brand -->
-      <a class="navbar-brand d-flex align-items-center" href="<?= $base_url ?>dashboard.php">
+      <a class="navbar-brand d-flex align-items-center" href="<?= e($base_url) ?>dashboard.php">
         <img src="<?= $prefix ?>assets/images/Cardmoi_PLT_Trang.png" alt="QuizTech Logo" class="brand-logo">
         <span>QuizTech</span>
         <span class="brand-badge d-none d-sm-inline-block">Student</span>
       </a>
+
+      <div class="ms-auto me-2 order-xl-3 text-white"><?php include __DIR__ . '/qt_notice_widget.php'; ?></div>
 
       <!-- Mobile Navbar Toggler -->
       <button class="navbar-toggler border-0 shadow-none px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarStudent" aria-controls="navbarStudent" aria-expanded="false" aria-label="Toggle navigation">
@@ -325,9 +332,9 @@ main .dashboard-header h1,main .dashboard-header h2,main .dashboard-header h3,ma
 
       <div class="collapse navbar-collapse" id="navbarStudent">
         <!-- 1. STUDENT MENU -->
-        <ul class="navbar-nav me-auto ms-lg-2 py-2 py-lg-0 align-items-lg-center">
+        <ul class="navbar-nav me-auto ms-xl-2 py-2 py-xl-0 align-items-xl-center">
           <li class="nav-item">
-            <a class="nav-link <?= $current_page == 'dashboard.php' ? 'active' : '' ?>" href="<?= $base_url ?>dashboard.php">
+            <a class="nav-link <?= $current_page == 'dashboard.php' ? 'active' : '' ?>" href="<?= e($base_url) ?>dashboard.php">
               <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
           </li>
@@ -359,8 +366,8 @@ main .dashboard-header h1,main .dashboard-header h2,main .dashboard-header h3,ma
         </ul>
 
         <!-- 2. USER ACCOUNT DROPDOWN -->
-        <div class="dropdown ms-lg-auto mt-2 mt-lg-0">
-          <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2 user-pill-btn" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="dropdown ms-xl-auto mt-2 mt-xl-0 ms-auto me-2">
+          <a class="ms-2 nav-link dropdown-toggle text-white d-flex align-items-center gap-2 user-pill-btn" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <?php
               $raw_avatar = $user['avatar'] ?? $_SESSION['avatar'] ?? $_SESSION['user']['avatar'] ?? '';
 
@@ -371,7 +378,7 @@ main .dashboard-header h1,main .dashboard-header h2,main .dashboard-header h3,ma
             ?>
 
             <?php if ($has_avatar): ?>
-              <img src="<?= e($prefix . $clean_avatar_path) ?>?v=<?= time() ?>" alt="Avatar" class="rounded-circle avatar-img-header border border-2 border-white shadow-sm">
+              <img src="<?= e($prefix . $clean_avatar_path) ?>?v=<?= (int) @filemtime($server_file_path) ?>" alt="Avatar" class="rounded-circle avatar-img-header border border-2 border-white shadow-sm">
             <?php else: ?>
               <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold avatar-img-header shadow-sm" style="color: #7c3aed !important;">
                 <?= strtoupper(mb_substr($user_name, 0, 1, 'UTF-8')) ?>
@@ -392,6 +399,11 @@ main .dashboard-header h1,main .dashboard-header h2,main .dashboard-header h3,ma
             <li>
               <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="<?= e($prefix) ?>student/profile.php">
                 <i class="bi bi-person-circle fs-6 text-primary"></i> Thông tin cá nhân
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="<?= e($prefix) ?>student/submit_feedback.php">
+                <i class="bi bi-chat-heart-fill fs-6 text-primary"></i> Góp ý &amp; Đề xuất
               </a>
             </li>
             <li><hr class="dropdown-divider my-1"></li>

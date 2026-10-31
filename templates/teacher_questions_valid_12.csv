@@ -1,0 +1,13 @@
+﻿content,option_a,option_b,option_c,option_d,correct_answer,difficulty,explanation
+ISTQB: Error là gì?,Hành động của con người dẫn đến kết quả sai,Lỗi tồn tại trong mã nguồn,Biểu hiện sai khi chạy,Tài liệu kiểm thử,A,easy,Error là sai sót do con người gây ra.
+Defect khác Failure ở điểm nào?,Defect là kết quả hiển thị sai,Defect là khiếm khuyết; Failure là biểu hiện sai khi chạy,Hai khái niệm đồng nghĩa,Failure chỉ xuất hiện khi biên dịch,B,medium,Defect có thể gây failure khi được kích hoạt.
+Kiểm thử hồi quy nhằm mục đích gì?,Đảm bảo thay đổi không làm hỏng chức năng cũ,Kiểm tra tốc độ Internet,Tăng số lượng người dùng,Tối ưu ảnh,A,easy,Regression testing kiểm tra tác động ngoài ý muốn sau thay đổi.
+Boundary Value Analysis tập trung vào đâu?,Giá trị ngẫu nhiên,Các giá trị ở biên và sát biên,Chỉ giá trị hợp lệ,Chỉ giao diện,B,medium,Các lỗi thường xuất hiện tại ranh giới miền dữ liệu.
+Selenium WebDriver dùng để làm gì?,Thiết kế logo,Tự động hóa tương tác trình duyệt,Quản lý DNS,Mã hóa cơ sở dữ liệu,B,easy,WebDriver điều khiển trình duyệt để kiểm thử tự động.
+Smoke Testing thường được chạy khi nào?,Sau mỗi bản build để kiểm tra chức năng chính,Sau khi xóa database,Chỉ sau phát hành 1 năm,Chỉ khi người dùng khiếu nại,A,medium,Smoke test giúp xác định bản build đủ ổn định để kiểm thử tiếp.
+Exhaustive Testing có khả thi với hệ thống lớn?,Luôn khả thi,"Không, trừ trường hợp rất đơn giản",Bắt buộc với mọi dự án,Chỉ cần tăng số tester,B,hard,Không thể thử tất cả kết hợp đầu vào và trạng thái trong hệ thống phức tạp.
+Non-functional Testing kiểm tra điều gì?,Chỉ chức năng đăng nhập,"Hiệu năng, bảo mật, khả dụng...",Chỉ chính tả,Chỉ database schema,B,easy,Kiểm thử phi chức năng đánh giá thuộc tính chất lượng.
+Expected Result trong Test Case là gì?,Kết quả hệ thống phải đạt,Kết quả lỗi thực tế,Tên công cụ kiểm thử,Thời gian bắt đầu,A,easy,Expected result là kết quả mong đợi dựa trên yêu cầu.
+"Khi phát hiện Failure, tester nên làm gì?",Bỏ qua,"Ghi nhận bước tái hiện, dữ liệu, expected và actual",Xóa ngay mã nguồn,Chỉ gửi ảnh không mô tả,B,medium,Báo cáo lỗi cần đủ thông tin để tái hiện.
+Decision Table Testing phù hợp nhất với?,Nhiều điều kiện kết hợp tạo hành động,Một nhãn giao diện,Chọn màu nền,Tối ưu icon,A,hard,Decision table mô hình hóa các tổ hợp điều kiện và kết quả.
+Một Test Case có thể có nhiều điều kiện đầu vào?,Không bao giờ,"Có, nếu được định nghĩa rõ",Chỉ với Selenium,Chỉ với API,B,easy,"Test case gồm điều kiện, bước thực hiện và kết quả mong đợi."

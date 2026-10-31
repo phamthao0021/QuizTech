@@ -11,11 +11,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 pa_guard();
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
     $a = $_POST['action'] ?? '';
     try {
         if ($a === 'save') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = $auditId ? pa_record($pdo, 'practice_quiz_questions', $auditId) : null;
             $id = (int)($_POST['id'] ?? 0);
             $q = trim($_POST['question'] ?? '');
             $o = [];
@@ -32,30 +34,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $vals[] = $id;
                 $s->execute($vals);
             } else {
-                $s = $pdo->prepare("INSERT INTO practice_quiz_questions(question,option_a,option_b,option_c,option_d,correct_answer,explanation,category,time_limit_seconds,is_active) VALUES(?,?,?,?,?,?,?,?,?,?)");
-                $s->execute($vals);
+                $s = $pdo->prepare("INSERT INTO practice_quiz_questions(question,option_a,option_b,option_c,option_d,correct_answer,explanation,category,time_limit_seconds,is_active,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+                $s->execute(array_merge($vals, [pa_actor_id()]));
             }
             setFlash('success', $id ? 'Đã cập nhật câu hỏi.' : 'Đã thêm câu hỏi.');
+                    pa_audit_change($pdo, 'practice_quiz_questions', $auditId ?: (int)$pdo->lastInsertId(), $auditId ? 'update' : 'create', $auditBefore);
         } elseif ($a === 'toggle') {
+            $auditId = (int)($_POST['id'] ?? 0);
+            $auditBefore = pa_record($pdo, 'practice_quiz_questions', $auditId);
             $pdo->prepare("UPDATE practice_quiz_questions SET is_active=1-is_active WHERE id=?")->execute([(int)$_POST['id']]);
             setFlash('success', 'Đã đổi trạng thái.');
+                    pa_audit_change($pdo, 'practice_quiz_questions', $auditId, 'toggle', $auditBefore);
         } elseif ($a === 'delete' || $a === 'bulk_delete') {
             $ids = $a === 'delete' ? [(int)$_POST['id']] : pa_ids($_POST['ids'] ?? []);
             if ($ids) {
                 $in = implode(',', array_fill(0, count($ids), '?'));
-                $pdo->prepare("DELETE FROM practice_quiz_questions WHERE id IN($in)")->execute($ids);
+                pa_soft_delete($pdo, 'practice_quiz_questions', $ids);
             }
             setFlash('success', 'Đã xóa dữ liệu đã chọn.');
         } elseif ($a === 'import') {
             $rows = pa_assoc_rows(pa_csv_rows($_FILES['import_file'] ?? []));
             $pdo->beginTransaction();
-            $s = $pdo->prepare("INSERT INTO practice_quiz_questions(question,option_a,option_b,option_c,option_d,correct_answer,explanation,category,time_limit_seconds,is_active) VALUES(?,?,?,?,?,?,?,?,?,?)");
+            $s = $pdo->prepare("INSERT INTO practice_quiz_questions(question,option_a,option_b,option_c,option_d,correct_answer,explanation,category,time_limit_seconds,is_active,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
             $n = 0;
             foreach ($rows as $i => $r) {
                 $ok = strtoupper(trim($r['correct_answer'] ?? ''));
                 $vals = [trim($r['question'] ?? ''), trim($r['option_a'] ?? ''), trim($r['option_b'] ?? ''), trim($r['option_c'] ?? ''), trim($r['option_d'] ?? '')];
                 if (in_array('', $vals, true) || !in_array($ok, ['A', 'B', 'C', 'D'], true)) throw new RuntimeException('Dòng ' . ($i + 2) . ' không hợp lệ.');
-                $s->execute([$vals[0], $vals[1], $vals[2], $vals[3], $vals[4], $ok, trim($r['explanation'] ?? ''), trim($r['category'] ?? ''), max(5, (int)($r['time_limit_seconds'] ?? 5)), (int)($r['is_active'] ?? 1) ? 1 : 0]);
+                $s->execute([$vals[0], $vals[1], $vals[2], $vals[3], $vals[4], $ok, trim($r['explanation'] ?? ''), trim($r['category'] ?? ''), max(5, (int)($r['time_limit_seconds'] ?? 5)), (int)($r['is_active'] ?? 1) ? 1 : 0, pa_actor_id()]);
+                pa_audit_change($pdo, 'practice_quiz_questions', (int)$pdo->lastInsertId(), 'create', null);
                 $n++;
             }
             $pdo->commit();
@@ -73,7 +80,7 @@ $status = $_GET['status'] ?? '';
 $cat = trim($_GET['category'] ?? '');
 $limit = pa_page_size();
 $page = pa_page();
-$where = [];
+$where = ['is_deleted=0'];
 $par = [];
 if ($q !== '') {
     $where[] = '(question LIKE ? ESCAPE "\\\\" OR category LIKE ? ESCAPE "\\\\")';

@@ -2,3 +2,16 @@
     Order Allow,Deny
     Deny from all
 </Files>
+
+# QuizTech V39 deployment protection. Keep existing rules above.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule (^|/)\.git(/|$) - [F,L,NC]
+RewriteRule (^|/)(?:vendor|storage)/.*\.(?:sql|log|bak|zip|env)$ - [F,L,NC]
+</IfModule>
+<FilesMatch "(?i)^(phpinfo|check_db|hash_password|test_db|debug|db_test)\.php$">
+Require all denied
+</FilesMatch>
+<FilesMatch "(?i)\.(?:sql|bak|old|env|zip|tar|gz|log|md)$">
+Require all denied
+</FilesMatch>

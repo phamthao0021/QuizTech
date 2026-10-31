@@ -26,14 +26,14 @@ $role_display_map = [
 $role_label_text = $role_display_map[$role_clean] ?? 'Người dùng';
 
 // 3. Xử lý Prefix đường dẫn & Cấu trúc thư mục
-$in_admin   = strpos($_SERVER['PHP_SELF'], '/admin/') !== false;
-$in_teacher = strpos($_SERVER['PHP_SELF'], '/teacher/') !== false;
-$in_student = strpos($_SERVER['PHP_SELF'], '/student/') !== false;
+$in_admin   = strpos($_SERVER['PHP_SELF']??"", '/admin/') !== false;
+$in_teacher = strpos($_SERVER['PHP_SELF']??"", '/teacher/') !== false;
+$in_student = strpos($_SERVER['PHP_SELF']??"", '/student/') !== false;
 $in_sub     = $in_admin || $in_teacher || $in_student;
 
 $prefix = $in_sub ? '../' : '';
 
-$current_file   = basename($_SERVER['PHP_SELF']);
+$current_file   = basename($_SERVER['PHP_SELF']??"");
 $current_folder = $in_admin ? 'admin' : ($in_teacher ? 'teacher' : ($in_student ? 'student' : ''));
 $current_path   = $current_folder !== '' ? "$current_folder/$current_file" : $current_file;
 
@@ -177,12 +177,6 @@ $avatar_file_path = __DIR__ . '/../uploads/avatars/' . $user_avatar;
             <span>Sổ tay câu sai</span>
           </a>
         </li>
-        <li>
-          <a href="<?= $prefix ?>teacher/ai.php" class="<?= sidebar_active('teacher/ai.php', $current_path) ?>">
-            <i class="bi bi-robot me-2"></i>
-            <span>AI Generator</span>
-          </a>
-        </li>
 
         <li class="nav-divider my-2 border-top opacity-25"></li>
         <li>
@@ -240,18 +234,6 @@ $avatar_file_path = __DIR__ . '/../uploads/avatars/' . $user_avatar;
           <a href="<?= $prefix ?>admin/leaderboard.php" class="<?= sidebar_active('admin/leaderboard.php', $current_path) ?>">
             <i class="bi bi-trophy me-2"></i>
             <span>Bảng xếp hạng</span>
-          </a>
-        </li>
-        <li>
-          <a href="<?= $prefix ?>admin/ai.php" class="<?= sidebar_active('admin/ai.php', $current_path) ?>">
-            <i class="bi bi-robot me-2"></i>
-            <span>AI Generator</span>
-          </a>
-        </li>
-        <li>
-          <a href="<?= $prefix ?>admin/ai_logs.php" class="<?= sidebar_active('admin/ai_logs.php', $current_path) ?>">
-            <i class="bi bi-journal-text me-2"></i>
-            <span>AI Logs</span>
           </a>
         </li>
 

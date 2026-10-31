@@ -28,7 +28,7 @@ if ($exam_id > 0 && $user) {
             WHERE exam_id = ? AND student_id = ? AND status = 'in_progress'
         ");
         $stmt->execute([$exam_id, $user['id']]);
-        
+
         echo json_encode(['status' => 'success', 'cheat_count_updated' => true]);
         exit;
     } catch (PDOException $e) {

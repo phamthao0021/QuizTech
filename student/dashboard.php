@@ -50,6 +50,7 @@ $available_exams = db_fetch_all("
     FROM exams e
     WHERE e.status = 'active' OR e.status = '1'
     ORDER BY e.id DESC
+    LIMIT 4
 ");
 
 // 3. LẤY LỊCH SỬ LÀM BÀI GẦN ĐÂY CỦA HỌC SINH
@@ -65,15 +66,25 @@ $recent_submissions = db_fetch_all("
 ", [$student_id]);
 
 // Dữ liệu biểu đồ cá nhân từ cùng bảng kết quả đã được dashboard nhận diện
-$chart_attempts = db_fetch_all("SELECT score, {$dateCol} AS chart_date FROM {$attemptTable} WHERE {$userCol} = ? {$statusWhere} ORDER BY {$dateCol} ASC", [$student_id]);
-$score_distribution = [0,0,0,0];
-$trend_labels=[]; $trend_scores=[];
-foreach($chart_attempts as $attempt){
-    $score=(float)($attempt['score']??0);
-    if($score<5)$score_distribution[0]++; elseif($score<7)$score_distribution[1]++; elseif($score<8.5)$score_distribution[2]++; else $score_distribution[3]++;
-    if(!empty($attempt['chart_date'])){$trend_labels[]=date('d/m',strtotime($attempt['chart_date']));$trend_scores[]=round($score,2);}
+$distribution = db_fetch_one("SELECT
+    COALESCE(SUM(score < 5),0) AS a,
+    COALESCE(SUM(score >= 5 AND score < 7),0) AS b,
+    COALESCE(SUM(score >= 7 AND score < 8.5),0) AS c,
+    COALESCE(SUM(score >= 8.5),0) AS d
+    FROM {$attemptTable} WHERE {$userCol} = ? {$statusWhere}", [$student_id]);
+$score_distribution = [(int)($distribution['a'] ?? 0), (int)($distribution['b'] ?? 0), (int)($distribution['c'] ?? 0), (int)($distribution['d'] ?? 0)];
+$chart_attempts = db_fetch_all("SELECT score, {$dateCol} AS chart_date
+    FROM {$attemptTable} WHERE {$userCol} = ? {$statusWhere}
+    ORDER BY {$dateCol} DESC LIMIT 12", [$student_id]);
+$chart_attempts = array_reverse($chart_attempts);
+$trend_labels = [];
+$trend_scores = [];
+foreach ($chart_attempts as $attempt) {
+    if (!empty($attempt['chart_date'])) {
+        $trend_labels[] = date('d/m', strtotime($attempt['chart_date']));
+        $trend_scores[] = round((float)($attempt['score'] ?? 0), 2);
+    }
 }
-$trend_labels=array_slice($trend_labels,-12); $trend_scores=array_slice($trend_scores,-12);
 
 $page_title = 'Bảng điều khiển học sinh';
 
@@ -139,9 +150,20 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
         flex-shrink: 0;
     }
 
-    .stat-icon-purple { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
-    .stat-icon-emerald { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    .stat-icon-rose    { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+    .stat-icon-purple {
+        background: rgba(124, 58, 237, 0.1);
+        color: #7c3aed;
+    }
+
+    .stat-icon-emerald {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .stat-icon-rose {
+        background: rgba(244, 63, 94, 0.1);
+        color: #f43f5e;
+    }
 
     /* Exam Cards (Thẻ bài thi) */
     .exam-card-v2 {
@@ -201,6 +223,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
     .custom-history-list::-webkit-scrollbar {
         width: 5px;
     }
+
     .custom-history-list::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 10px;
@@ -290,19 +313,29 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
 
     <!-- BIỂU ĐỒ THỐNG KÊ CÁ NHÂN -->
     <div class="row g-4 mb-4">
-      <div class="col-12 col-xl-8"><div class="student-chart-card">
-        <div class="d-flex justify-content-between align-items-start gap-3 mb-3"><div><h5 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Tiến độ điểm số</h5><div class="text-muted small">12 lần làm bài gần nhất</div></div><a href="history.php" class="btn btn-sm btn-light text-primary fw-semibold">Lịch sử</a></div>
-        <div class="student-chart-wrap"><canvas id="studentScoreTrend"></canvas></div>
-      </div></div>
-      <div class="col-12 col-xl-4"><div class="student-chart-card">
-        <h5 class="fw-bold mb-1"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Phân bố kết quả</h5><div class="text-muted small mb-3">Theo toàn bộ bài đã hoàn thành</div>
-        <div class="student-chart-wrap"><canvas id="studentScoreDistribution"></canvas></div>
-      </div></div>
+        <div class="col-12 col-xl-8">
+            <div class="student-chart-card">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Tiến độ điểm số</h5>
+                        <div class="text-muted small">12 lần làm bài gần nhất</div>
+                    </div><a href="history.php" class="btn btn-sm btn-light text-primary fw-semibold">Lịch sử</a>
+                </div>
+                <div class="student-chart-wrap"><canvas id="studentScoreTrend"></canvas></div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="student-chart-card">
+                <h5 class="fw-bold mb-1"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Phân bố kết quả</h5>
+                <div class="text-muted small mb-3">Theo toàn bộ bài đã hoàn thành</div>
+                <div class="student-chart-wrap"><canvas id="studentScoreDistribution"></canvas></div>
+            </div>
+        </div>
     </div>
 
     <!-- 3. KHỐI NỘI DUNG CHÍNH (MAIN GRID) -->
     <div class="row g-4">
-        
+
         <!-- Khối 1: Danh sách bài thi mới khả dụng (Col 8) -->
         <div class="col-12 col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -337,7 +370,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                                                 <i class="bi bi-patch-check me-1"></i>Sẵn sàng
                                             </span>
                                         </div>
-                                        
+
                                         <h6 class="fw-bold text-dark mb-2 line-clamp-1" title="<?= e($exam['title'] ?? $exam['name'] ?? 'Bài thi') ?>">
                                             <?= e($exam['title'] ?? $exam['name'] ?? 'Bài thi') ?>
                                         </h6>
@@ -348,11 +381,11 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
 
                                         <div class="d-flex justify-content-between align-items-center text-muted small bg-light p-2 rounded-3 mb-3">
                                             <span class="d-flex align-items-center gap-1">
-                                                <i class="bi bi-clock text-primary"></i> 
+                                                <i class="bi bi-clock text-primary"></i>
                                                 <strong><?= (int)($exam['duration_minutes'] ?? $exam['duration'] ?? 45) ?></strong> phút
                                             </span>
                                             <span class="d-flex align-items-center gap-1">
-                                                <i class="bi bi-question-circle text-primary"></i> 
+                                                <i class="bi bi-question-circle text-primary"></i>
                                                 <strong><?= (int)($exam['question_count'] ?? 0) ?></strong> câu
                                             </span>
                                         </div>
@@ -389,11 +422,11 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                         </div>
                     <?php else: ?>
                         <div class="custom-history-list">
-                            <?php foreach ($recent_submissions as $sub): 
+                            <?php foreach ($recent_submissions as $sub):
                                 $examTitle = !empty($sub['exam_title']) ? $sub['exam_title'] : ($sub['exam_id'] == 0 ? 'Luyện tập tự do' : 'Bài thi #' . $sub['exam_id']);
                                 $scoreVal = (float)($sub['score'] ?? 0);
                                 $subTime = !empty($sub['date_submitted']) ? date('H:i - d/m/Y', strtotime($sub['date_submitted'])) : '--:--';
-                                
+
                                 // Phân loại màu badge điểm số
                                 $scoreBadgeClass = 'bg-danger-subtle text-danger border-danger-subtle';
                                 if ($scoreVal >= 8.0) {
@@ -411,7 +444,7 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
                                             <?= number_format($scoreVal, 1) ?> đ
                                         </span>
                                     </div>
-                                    
+
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <span class="text-muted small" style="font-size: 0.78rem;">
                                             <i class="bi bi-calendar3 me-1"></i><?= $subTime ?>
@@ -433,15 +466,74 @@ require_once dirname(__DIR__) . '/includes/header_student.php';
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',function(){
- if(typeof Chart==='undefined')return;
- const labels=<?= json_encode($trend_labels, JSON_UNESCAPED_UNICODE) ?>,scores=<?= json_encode($trend_scores, JSON_UNESCAPED_UNICODE) ?>,dist=<?= json_encode($score_distribution) ?>;
- const t=document.getElementById('studentScoreTrend'); if(t)new Chart(t,{type:'line',data:{labels:labels,datasets:[{data:scores,borderColor:'#6d28d9',backgroundColor:'rgba(109,40,217,.10)',fill:true,tension:.35,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:10,ticks:{stepSize:2}}},plugins:{legend:{display:false}}}});
- const d=document.getElementById('studentScoreDistribution'); if(d)new Chart(d,{type:'doughnut',data:{labels:['Dưới 5','5 - dưới 7','7 - dưới 8.5','8.5 - 10'],datasets:[{data:dist,backgroundColor:['#ef4444','#f59e0b','#6366f1','#22c55e'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8}}}}});
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Chart === 'undefined') return;
+        const labels = <?= json_encode($trend_labels, JSON_UNESCAPED_UNICODE) ?>,
+            scores = <?= json_encode($trend_scores, JSON_UNESCAPED_UNICODE) ?>,
+            dist = <?= json_encode($score_distribution) ?>;
+        const t = document.getElementById('studentScoreTrend');
+        if (t) new Chart(t, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: scores,
+                    borderColor: '#6d28d9',
+                    backgroundColor: 'rgba(109,40,217,.10)',
+                    fill: true,
+                    tension: .35,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        ticks: {
+                            stepSize: 2
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        const d = document.getElementById('studentScoreDistribution');
+        if (d) new Chart(d, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dưới 5', '5 - dưới 7', '7 - dưới 8.5', '8.5 - 10'],
+                datasets: [{
+                    data: dist,
+                    backgroundColor: ['#ef4444', '#f59e0b', '#6366f1', '#22c55e'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    }
+                }
+            }
+        });
+    });
 </script>
 
-<?php 
+<?php
 // Nạp Footer dùng chung
-require_once dirname(__DIR__) . '/includes/footer.php'; 
+require_once dirname(__DIR__) . '/includes/footer.php';
 ?>

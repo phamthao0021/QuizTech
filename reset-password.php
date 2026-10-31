@@ -11,7 +11,7 @@ if (!$reset || empty($reset['verified']) || time()>($reset['expires_at']??0)) {
     redirect('forgot-password.php');
 }
 $error='';
-if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['reset_password'])){
+if(($_SERVER['REQUEST_METHOD'] ?? 'GET')==='POST' && isset($_POST['reset_password'])){
     if(function_exists('verify_csrf'))verify_csrf();
     $password=$_POST['password']??'';$confirm=$_POST['confirm_password']??'';
     $valid=(bool)preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,20}$/',$password);

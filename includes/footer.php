@@ -1,5 +1,9 @@
 <?php
 // includes/footer.php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $footerScript = str_replace('\\', '/', $_SERVER['PHP_SELF'] ?? '');
 $parts = array_values(array_filter(explode('/', trim($footerScript, '/'))));
 $sectionIndex = null;
@@ -10,10 +14,70 @@ foreach (['admin', 'teacher', 'student'] as $section) {
     break;
   }
 }
+$currentSection = $sectionIndex !== null ? $parts[$sectionIndex] : '';
+$userRole = strtolower(trim((string)($_SESSION['user']['role'] ?? ($_SESSION['role'] ?? ''))));
+
+// Xóa hoàn toàn footer ở tất cả màn hình thuộc tài khoản Admin và Giảng viên
+$isNoFooterScreen = in_array($currentSection, ['admin', 'teacher'], true) 
+                 || in_array($userRole, ['admin', 'teacher', 'admin_test'], true);
+
 $asset_prefix = $sectionIndex !== null
   ? str_repeat('../', max(1, count($parts) - $sectionIndex - 1))
   : '';
 ?>
+<?php if ($isNoFooterScreen): ?>
+<style>
+  /* Tối ưu bố cục khi xóa footer cho Admin và Giảng viên: không khoảng trắng thừa, không cuộn thừa */
+  html, body {
+    min-height: 100vh;
+  }
+  .admin-wrapper, .teacher-wrapper {
+    min-height: 100vh;
+    display: flex;
+  }
+  .admin-content, .teacher-content {
+    flex: 1 1 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .admin-content > main, .teacher-content > main {
+    flex: 1 0 auto;
+    padding-bottom: 2rem;
+  }
+  .quiztech-footer {
+    display: none !important;
+  }
+  .quiztech-back-to-top {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 1040;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #6366f1;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: all .25s ease;
+  }
+  .quiztech-back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+</style>
+</main>
+<?php else: ?>
 <style>
   .quiztech-footer {
     margin-top: 2rem;
@@ -71,80 +135,22 @@ $asset_prefix = $sectionIndex !== null
 
   .quiztech-footer-brand-name {
     margin: 0;
-    color: #fff;
-    font-size: 1.15rem;
+    font-size: 1.45rem;
     font-weight: 800;
-    line-height: 1.25;
+    letter-spacing: -.02em;
+    color: #fff;
   }
 
   .quiztech-footer-brand-note {
     margin: .15rem 0 0;
-    font-size: .72rem;
-    color: #c4b5fd;
-    font-weight: 600;
-    letter-spacing: .02em;
+    font-size: .83rem;
+    color: rgba(233, 227, 244, .7);
   }
 
   .quiztech-footer-description {
-    margin: 0 0 1.2rem;
-    line-height: 1.65;
-    max-width: 290px;
-  }
-
-  .quiztech-footer-title {
-    margin: 0 0 1.15rem;
-    font-size: .88rem;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .quiztech-footer-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: .85rem;
-  }
-
-  .quiztech-footer-list li {
-    line-height: 1.45;
-  }
-
-  .quiztech-footer a {
-    color: #e9e3f4;
-    text-decoration: none;
-  }
-
-  .quiztech-footer a:hover,
-  .quiztech-footer a:focus-visible {
-    color: #ddd6fe;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .quiztech-footer-contact {
-    display: grid;
-    gap: .8rem;
-  }
-
-  .quiztech-footer-contact-item {
-    display: flex;
-    align-items: flex-start;
-    gap: .7rem;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .quiztech-footer-contact-item i {
-    color: #c4b5fd;
-    font-size: 1rem;
-    line-height: 1.4;
-    flex: 0 0 18px;
-  }
-
-  .quiztech-footer-hours {
-    margin: .2rem 0 0 1.9rem;
-    font-size: .82rem;
+    margin: 0 0 1.25rem;
+    line-height: 1.62;
+    color: rgba(233, 227, 244, .8);
   }
 
   .quiztech-footer-social {
@@ -153,29 +159,88 @@ $asset_prefix = $sectionIndex !== null
   }
 
   .quiztech-footer-social a {
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid rgba(196, 181, 253, .4);
-    background: rgba(255, 255, 255, .07);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .08);
     color: #fff;
+    text-decoration: none;
+    transition: background .2s ease, transform .2s ease;
   }
 
   .quiztech-footer-social a:hover {
+    background: #a855f7;
+    transform: translateY(-2px);
+  }
+
+  .quiztech-footer-title {
+    margin: 0 0 1.1rem;
+    font-size: .95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #fff;
+  }
+
+  .quiztech-footer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .quiztech-footer-list li {
+    margin-bottom: .6rem;
+    color: rgba(233, 227, 244, .82);
+  }
+
+  .quiztech-footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+
+  .quiztech-footer-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    color: rgba(233, 227, 244, .86);
+  }
+
+  .quiztech-footer-contact-item i {
+    color: #c084fc;
+    margin-top: .15rem;
+    flex-shrink: 0;
+  }
+
+  .quiztech-footer-contact-item a {
+    color: rgba(233, 227, 244, .86);
     text-decoration: none;
-    border-color: #a78bfa;
+  }
+
+  .quiztech-footer-contact-item a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .quiztech-footer-hours {
+    margin: .85rem 0 0;
+    font-size: .82rem;
+    color: rgba(233, 227, 244, .62);
   }
 
   .quiztech-footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, .09);
-    padding-top: 2rem;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem 2rem;
+    gap: 1rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    font-size: .83rem;
+    color: rgba(233, 227, 244, .65);
   }
 
   .quiztech-footer-bottom p {
@@ -184,31 +249,35 @@ $asset_prefix = $sectionIndex !== null
 
   .quiztech-footer-policy {
     display: flex;
-    align-items: center;
+    gap: 1.25rem;
     flex-wrap: wrap;
-    gap: 1rem 1.5rem;
+  }
+
+  .quiztech-footer-policy span {
+    color: rgba(233, 227, 244, .65);
   }
 
   .quiztech-back-to-top {
     position: fixed;
-    right: 24px;
-    bottom: 24px;
+    right: 1.5rem;
+    bottom: 1.5rem;
     z-index: 1040;
-    width: 46px;
-    height: 46px;
-    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #7c3aed;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, .4);
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    color: #6d28d9;
-    border: 1px solid #ddd6fe;
-    border-radius: 50%;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, .2);
+    font-size: 1.1rem;
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
-    transition: opacity .25s, transform .25s, visibility .25s, background .25s;
+    transform: translateY(12px);
+    transition: all .25s ease;
   }
 
   .quiztech-back-to-top.show {
@@ -217,54 +286,33 @@ $asset_prefix = $sectionIndex !== null
     transform: translateY(0);
   }
 
-  .quiztech-back-to-top:hover {
-    background: #6d28d9;
-    color: #fff;
-  }
-
-  .quiztech-back-to-top:focus-visible {
-    outline: 3px solid #a78bfa;
-    outline-offset: 3px;
-  }
-
-  @media (max-width: 900px) {
+  @media (max-width: 991.98px) {
     .quiztech-footer-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr 1fr;
     }
   }
 
   @media (max-width: 575.98px) {
     .quiztech-footer-inner {
-      width: min(100% - 2rem, 1240px);
-      padding: 1rem 0 2rem;
+      width: calc(100% - 2rem);
+      padding: 2.2rem 0 2rem;
     }
 
     .quiztech-footer-grid {
       grid-template-columns: 1fr;
       gap: 2rem;
-      padding: 2rem 0;
-    }
-
-    .quiztech-footer-description {
-      max-width: none;
+      padding-top: 2rem;
     }
 
     .quiztech-footer-bottom {
+      flex-direction: column;
       align-items: flex-start;
-      padding-top: 1.5rem;
-    }
-
-    .quiztech-footer-policy {
-      gap: .8rem 1rem;
-    }
-
-    .quiztech-back-to-top {
-      right: 16px;
-      bottom: 16px;
+      gap: .75rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .quiztech-footer-social a,
     .quiztech-back-to-top {
       transition: none;
     }
@@ -318,6 +366,7 @@ $asset_prefix = $sectionIndex !== null
     </div>
   </div>
 </footer>
+<?php endif; ?>
 <button type="button" class="quiztech-back-to-top" id="quiztechBackToTop" aria-label="Cuộn lên đầu trang" title="Lên đầu trang"><i class="bi bi-chevron-up" aria-hidden="true"></i></button>
 <script>
   (function() {

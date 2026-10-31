@@ -8,7 +8,7 @@ $reset = $_SESSION['password_reset_dev'] ?? null;
 if (!$reset) { setFlash('danger','Phiên khôi phục mật khẩu không tồn tại.'); redirect('forgot-password.php'); }
 
 $error='';
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['verify_otp'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET')==='POST' && isset($_POST['verify_otp'])) {
     if (function_exists('verify_csrf')) verify_csrf();
     $otp=preg_replace('/\D/','',$_POST['otp'] ?? '');
     if (time() > ($reset['expires_at'] ?? 0)) {

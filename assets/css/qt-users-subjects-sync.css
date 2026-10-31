@@ -1,0 +1,27 @@
+/* User management toolbar & pager – match Subjects. Scoped to users datatable. */
+.users-wrapper .datatable-component .qt-users-filters{display:flex;align-items:center;gap:10px;margin:0!important}
+.users-wrapper .datatable-component .qt-users-filters > div{padding:0!important;flex:0 1 auto;width:auto}
+.users-wrapper .datatable-component .qt-users-filters > div:first-child{flex:1 1 360px;max-width:440px;min-width:220px}
+.users-wrapper .datatable-component .qt-users-filters > .qt-users-filter-select{flex:1 1 180px;max-width:260px;min-width:160px}
+.users-wrapper .datatable-component .qt-users-filters .form-control,.users-wrapper .datatable-component .qt-users-filters .form-select{height:40px;border:1px solid #e0e5f0!important;background:#f8fafc!important;border-radius:10px!important;font-size:13px;box-shadow:none}
+.users-wrapper .datatable-component .qt-users-filters .input-group-text{height:40px;border-color:#e0e5f0!important;background:#f8fafc!important}
+.users-wrapper .datatable-component .qt-users-filters .form-control{border-left:0!important;border-radius:0 10px 10px 0!important}
+.users-wrapper .datatable-component .qt-users-filters .input-group-text{border-radius:10px 0 0 10px!important}
+.users-wrapper .datatable-component .qt-users-filters .form-control:focus,.users-wrapper .datatable-component .qt-users-filters .form-select:focus{border-color:#8b5cf6!important;box-shadow:0 0 0 2px #8b5cf625!important}
+.users-wrapper .datatable-component .qt-users-table-bottom{padding:12px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:12px;color:#dc2626;min-height:58px}
+.users-wrapper .datatable-component .qt-users-table-bottom .small{font-weight:600;color:#dc2626!important}
+.users-wrapper .datatable-component .qt-users-table-bottom .small::before{content:'☑';font-size:16px;margin-right:8px}
+.users-wrapper .datatable-component .qt-users-table-bottom:has(#btnBulkAction.d-none){background:transparent;border:0;padding:4px 0;min-height:0}
+.users-wrapper .datatable-component .qt-users-table-bottom:has(#btnBulkAction.d-none) .small{color:#64748b!important;font-weight:400}
+.users-wrapper .datatable-component .qt-users-table-bottom:has(#btnBulkAction.d-none) .small::before{content:'ⓘ'}
+.users-wrapper .datatable-component .qt-users-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 0 2px;border-top:1px solid #edf0f7}
+.users-wrapper .datatable-component .qt-users-pager-info{color:#475569;font-size:13px}
+.users-wrapper .datatable-component .qt-users-pager-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.users-wrapper .datatable-component .qt-users-pager-actions label{font-size:13px;color:#475569}
+.users-wrapper .datatable-component #dt-limit-select{width:78px;min-height:38px;border-radius:10px}
+.users-wrapper .datatable-component .qt-users-page-btn{border:1px solid #c7d2fe;color:#4f46e5;background:white;border-radius:9px;min-height:38px;padding:8px 12px;font-weight:600}
+.users-wrapper .datatable-component .qt-users-page-btn:hover:not(.disabled){background:#4f46e5;color:white}
+.users-wrapper .datatable-component .qt-users-page-btn.disabled{opacity:.4;pointer-events:none}
+.users-wrapper .datatable-component .qt-users-page-counter{font-size:13px;font-weight:700;min-width:42px;text-align:center}
+@media(max-width:991px){.users-wrapper .datatable-component .qt-users-filters > div:first-child{max-width:none;flex-basis:100%}.users-wrapper .datatable-component .qt-users-filters > .qt-users-filter-select{max-width:none;flex:1 1 180px}}
+@media(max-width:575px){.users-wrapper .datatable-component .qt-users-filters > .qt-users-filter-select{flex-basis:100%}.users-wrapper .datatable-component .qt-users-pager{flex-direction:column;align-items:stretch}.users-wrapper .datatable-component .qt-users-pager-actions{justify-content:center}}

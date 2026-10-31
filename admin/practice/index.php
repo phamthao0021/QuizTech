@@ -42,4 +42,5 @@ require_once $root.'/includes/header_admin.php';
   <div class="pa-mobile p-3"><?php foreach($recent as $r):?><div class="border rounded-3 p-3 mb-2"><div class="d-flex justify-content-between"><b><?=e($r['fullname']??($r['username']??'Sinh viên'))?></b><span><?=e($r['game_type'])?></span></div><small class="text-muted">Điểm <?=e($r['score'])?> · <?=($r['total_count']??0)>0?number_format(($r['correct_count']*100)/$r['total_count'],1):'0.0'?>% · <?=(int)$r['duration_seconds']?>s</small></div><?php endforeach;?></div>
  </div>
 </div>
+<script src="../../assets/js/qt-admin-practice-filter.js?v=3" defer></script>
 <?php require_once $root.'/includes/footer.php';?>

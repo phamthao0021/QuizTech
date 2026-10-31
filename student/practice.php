@@ -883,47 +883,97 @@ $csrf = csrf_token();
         max-width: 760px;
         margin: 0 auto
     }
+  /* Practice-only typography and responsive refinements */
+  .pv, .pv-panel, #game, #hub { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #game button, #hub button { min-height:44px; }
+  #game button:focus-visible, #hub button:focus-visible { outline:3px solid #7048e8; outline-offset:2px; }
+  #game .quick-question { font-size:clamp(19px,2.1vw,26px); line-height:1.45; }
+  #game .cw-grid { max-width:100%; }
+  @media(max-width:600px) { #game .cw-cellwrap, #game .cw-block { max-width:40px; } #game .cw-cell { max-width:40px; } }
+
+/* Practice visual system: readable, minimal, responsive */
+.pv {max-width:1200px;padding:32px 24px 72px;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#162b49}
+.pv * {font-family:inherit}
+.pv-head {padding:30px 34px;background:linear-gradient(110deg,#fff,#f5f7ff)}
+.pv h1 {font-size:clamp(28px,3vw,36px);line-height:1.2;letter-spacing:-.025em}
+.pv h2 {font-size:clamp(23px,2.3vw,28px);line-height:1.3}
+.pv p,.pv .small,.pv .text-muted {font-size:15px;line-height:1.6}
+.pv .eyebrow,.pv .game-card small {font-size:12px;letter-spacing:0;font-weight:700}
+.pv .game-card {padding:26px;display:flex;flex-direction:column;gap:12px;min-height:315px}
+.pv .game-card h3 {font-size:23px;line-height:1.3;margin:0!important}
+.pv .game-card p {margin:0;flex:1}
+.pv .game-icon {width:52px;height:52px;font-size:24px;margin-bottom:4px!important}
+.pv .game-card>.d-flex:last-child {margin-top:12px!important;gap:12px;flex-wrap:wrap}
+.pv-card-actions {display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pv .play,.pv-guide {min-height:46px;padding:11px 16px;border-radius:11px;font-size:15px;font-weight:750;cursor:pointer}
+.pv-guide {background:#fff;border:1px solid #b8c9df;color:#243f60}
+.pv-guide:hover {background:#f0f5fc}
+.pv .stat {padding:17px 19px;border:1px solid #e5eaf4;background:#fff}
+.pv .stat span,.pv .scorebox span,.pv .quick-stat span {font-size:13px;line-height:1.4;letter-spacing:0;text-transform:none}
+.pv .stat b,.pv .scorebox b,.pv .quick-stat b {font-size:22px;line-height:1.35;font-family:inherit}
+.pv-panel,.game-shell {padding:26px}
+.pv .clue,.pv .match-item,.pv .q-option {font-size:16px;line-height:1.5}
+.pv .match-term small,.pv .match-help,.pv .quick-note {font-size:14px;line-height:1.5}
+.pv .quick-question {font-size:clamp(21px,2.4vw,28px)}
+.pv .quick-count,.pv .clue-group h4 {font-size:15px}
+.pv .quick-stat {padding:16px}
+.pv .history {font-size:15px}
+.pv .history th,.pv .history td {padding:13px 12px}
+.pv-result-status {display:inline-block;border-radius:999px;padding:8px 18px;font-size:16px;font-weight:800;margin:8px auto;background:#fff3e0;color:#985a00}
+.pv-result-status.complete {background:#e2f7eb;color:#0c7043}
+.pv-review-status {display:inline-block;margin-left:12px;font-size:13px;font-weight:700;padding:3px 9px;border-radius:8px;background:#fff0ec;color:#a13c2b}
+.pv-review-status.ok {background:#e4f8ee;color:#137448}
+.pv-guide-overlay {position:fixed;inset:0;z-index:10050;background:rgba(15,28,51,.56);display:grid;place-items:center;padding:20px}
+.pv-guide-dialog {position:relative;width:min(100%,540px);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 24px 70px rgba(0,0,0,.2);color:#172c48}
+.pv-guide-dialog h2 {font-size:27px;font-weight:800;margin:0 36px 12px 0}
+.pv-guide-time {font-size:16px;font-weight:700;color:#355f96;background:#edf4ff;padding:11px 14px;border-radius:10px}
+.pv-guide-dialog ol {padding-left:23px;font-size:16px;line-height:1.65}
+.pv-guide-dialog li {margin-bottom:12px}
+.pv-guide-close {position:absolute;right:20px;top:16px;border:0;background:transparent;font-size:32px;line-height:1;color:#55657c}
+.pv-guide-footer {display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}
+@media(max-width:991px){.pv {padding:22px 16px 60px}.pv .game-card {min-height:0}.pv .cw-layout {grid-template-columns:1fr}.pv .match-grid {grid-template-columns:1fr}}
+@media(max-width:600px){.pv {padding:16px 12px 45px}.pv-head,.pv-panel,.game-shell {padding:18px;border-radius:15px}.pv .game-card {padding:20px}.pv .stat {padding:12px}.pv .stat b {font-size:19px}.pv .quick-status {grid-template-columns:repeat(2,minmax(0,1fr))}.pv .cw-grid {transform-origin:top left}.pv .cw-cellwrap,.pv .cw-cell,.pv .cw-block {width:38px;height:38px;max-width:38px}.pv .cw-cell {font-size:17px}.pv .clue-group {width:100%}.pv .match-item {min-height:58px}.pv-guide-dialog {padding:23px}.pv-card-actions {width:100%}.pv-card-actions button {flex:1}}
 </style>
 <div class="pv">
     <section id="hub">
         <div class="pv-head mb-4">
             <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                 <div>
-                    <div class="eyebrow">Mini game • Công nghệ thông tin</div>
+                    
                     <h1 class="mb-1">Luyện tập tự do</h1>
-                    <p class="mb-0 small">Mỗi ngày một bộ nội dung mới để ôn kiến thức CNTT theo cách trực quan và ngắn gọn.</p>
+                    <p class="mb-0 small">Chọn một trò chơi, xem hướng dẫn và bắt đầu luyện tập.</p>
                 </div>
-                <div class="mode-tabs"><button onclick="startGame('crossword')">Ô chữ</button><button class="green" onclick="startGame('concept_match')">Nối cặp</button><button class="amber" onclick="startGame('quick_quiz')">Phản xạ nhanh</button></div>
+                
             </div>
         </div>
         <div class="row g-3 mb-4" id="stats">
             <div class="text-muted">Đang tải dữ liệu...</div>
         </div>
-        <div class="eyebrow mb-1">Chọn chế độ</div>
+        
         <h2 class="mb-3">Bạn muốn luyện tập thế nào?</h2>
         <div class="row g-3 mb-4">
             <div class="col-lg-4">
                 <div class="game-card blue">
-                    <div class="game-icon mb-4"><i class="bi bi-grid-3x3-gap-fill"></i></div><small class="text-primary">01 • DAILY CROSSWORD</small>
-                    <h3 class="mt-2">Daily Crossword</h3>
-                    <p class="small">Ô chữ CNTT hằng ngày với Across / Down và giải thích sau khi hoàn thành.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small text-primary">Cao nhất: <span id="best-crossword">0</span></b><button class="play" onclick="startGame('crossword')">Bắt đầu</button></div>
+                    <div class="game-icon mb-4"><i class="bi bi-grid-3x3-gap-fill"></i></div><small class="text-primary">Ô CHỮ</small>
+                    <h3 class="mt-2">Ô chữ mỗi ngày</h3>
+                    <p class="small">Giải ô chữ theo gợi ý ngang và dọc.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small text-primary">Cao nhất: <span id="best-crossword">0</span></b><div class="pv-card-actions"><button class="pv-guide" onclick="showGuide('crossword')"><i class="bi bi-info-circle"></i> Hướng dẫn</button><button class="play" onclick="startGame('crossword')">Bắt đầu</button></div></div>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="game-card green">
-                    <div class="game-icon mb-4"><i class="bi bi-bezier2"></i></div><small style="color:#148a55">02 • CONCEPT MATCHER</small>
-                    <h3 class="mt-2">Nối Cặp Từ</h3>
+                    <div class="game-icon mb-4"><i class="bi bi-bezier2"></i></div><small style="color:#148a55">NỐI CẶP</small>
+                    <h3 class="mt-2">Nối cặp kiến thức</h3>
                     <p class="small">Ghép từ khóa ở cột A với khái niệm hoặc đặc điểm chính xác ở cột B.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small" style="color:#148a55">Cao nhất: <span id="best-concept_match">0</span></b><button class="play" onclick="startGame('concept_match')">Bắt đầu</button></div>
+                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small" style="color:#148a55">Cao nhất: <span id="best-concept_match">0</span></b><div class="pv-card-actions"><button class="pv-guide" onclick="showGuide('concept_match')"><i class="bi bi-info-circle"></i> Hướng dẫn</button><button class="play" onclick="startGame('concept_match')">Bắt đầu</button></div></div>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="game-card amber">
-                    <div class="game-icon mb-4"><i class="bi bi-lightning-charge-fill"></i></div><small style="color:#b36c00">03 • QUICK QUIZ</small>
-                    <h3 class="mt-2">IT Core Concepts Challenge</h3>
+                    <div class="game-icon mb-4"><i class="bi bi-lightning-charge-fill"></i></div><small style="color:#b36c00">PHẢN XẠ</small>
+                    <h3 class="mt-2">Phản xạ nhanh</h3>
                     <p class="small">Phản xạ nhanh với timer từng câu, chuỗi đúng, giải thích đúng/sai và điểm tốc độ.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small" style="color:#b36c00">Cao nhất: <span id="best-quick_quiz">0</span></b><button class="play" onclick="startGame('quick_quiz')">Bắt đầu</button></div>
+                    <div class="d-flex justify-content-between align-items-center mt-4"><b class="small" style="color:#b36c00">Cao nhất: <span id="best-quick_quiz">0</span></b><div class="pv-card-actions"><button class="pv-guide" onclick="showGuide('quick_quiz')"><i class="bi bi-info-circle"></i> Hướng dẫn</button><button class="play" onclick="startGame('quick_quiz')">Bắt đầu</button></div></div>
                 </div>
             </div>
         </div>
@@ -944,6 +994,8 @@ $csrf = csrf_token();
         busy = false,
         combo = 0,
         quizScore = 0;
+    let clockDeadline = 0, quizResolved = false, gameGeneration = 0;
+    let resumeCandidate = null;
     const E = s => String(s ?? '').replace(/[&<>"']/g, m => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -977,7 +1029,7 @@ $csrf = csrf_token();
     }
 
     function name(t) {
-        return t === 'crossword' ? 'Daily Crossword' : t === 'concept_match' ? 'Nối Cặp Từ' : 'IT Quick Quiz'
+        return t === 'crossword' ? 'Ô chữ mỗi ngày' : t === 'concept_match' ? 'Nối cặp kiến thức' : 'Phản xạ nhanh'
     }
     async function dashboard() {
         try {
@@ -985,29 +1037,73 @@ $csrf = csrf_token();
                 s = d.stats || {};
             document.getElementById('stats').innerHTML = [
                 ['Lượt luyện', s.sessions || 0],
-                ['Điểm trung bình', (+s.avg_score || 0).toFixed(0)],
-                ['Điểm cao nhất', s.best_score || 0],
+                ['Chế độ luyện tập', 3],
                 ['Độ chính xác', (+s.avg_accuracy || 0).toFixed(0) + '%'],
-                ['Tổng thời gian', Math.round((+s.total_time || 0) / 60) + ' phút']
+                ['Tổng thời gian', Math.floor((+s.total_time || 0) / 60) + ' phút ' + Math.floor((+s.total_time || 0) % 60) + ' giây']
             ].map(x => `<div class="col-6 col-lg"><div class="stat"><span>${x[0]}</span><b>${x[1]}</b></div></div>`).join('');
             (d.games || []).forEach(g => {
                 let e = document.getElementById('best-' + g.game_type);
                 if (e) e.textContent = g.best_score
             });
-            let h = d.history || [];
-            document.getElementById('history').innerHTML = h.length ? `<div class="table-responsive"><table class="table history align-middle mb-0"><thead><tr><th>Chế độ</th><th>Ngày</th><th>Điểm</th><th>Kết quả</th><th>Thời gian</th><th></th></tr></thead><tbody>${h.map(x=>`<tr><td><b>${name(x.game_type)}</b></td><td>${E(x.daily_key)}</td><td>${x.score}</td><td>${x.correct_count}/${x.total_count}</td><td>${x.duration_seconds}s</td><td><button class="btn btn-sm btn-outline-primary" onclick="result(${x.id})">Xem</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty"><b>Chưa có lịch sử luyện tập</b><div class="small">Hãy chọn một chế độ để bắt đầu.</div></div>`
+            let h = (d.history || []).filter(x => x.status === 'completed' || x.status === 'timeout');
+            document.getElementById('history').innerHTML = h.length ? `<div class="table-responsive"><table class="table history align-middle mb-0"><thead><tr><th>Chế độ</th><th>Ngày</th><th>Điểm</th><th>Kết quả</th><th>Thời gian</th><th></th></tr></thead><tbody>${h.map(x=>`<tr><td><b>${name(x.game_type)}</b></td><td>${E(x.daily_key)}</td><td>${x.score}</td><td>${x.correct_count}/${x.total_count}</td><td>${x.duration_seconds}s • ${E(x.status)}</td><td><button class="btn btn-sm btn-outline-primary" onclick="result(${x.id})">Xem</button></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty"><b>Chưa có lịch sử luyện tập</b><div class="small">Hãy chọn một chế độ để bắt đầu.</div></div>`
         } catch (e) {
             document.getElementById('history').innerHTML = `<div class="alert alert-danger">${E(e.message)}</div>`
         }
     }
+    async function checkResume() {
+        try {
+            const candidate = await api('resume', {});
+            if (!candidate || !candidate.id) return;
+            resumeCandidate = candidate;
+            const history = document.getElementById('history');
+            if (history) history.insertAdjacentHTML('beforebegin', `<div id="resume-banner" class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2"><span>Bạn có lượt <b>${E(name(candidate.game_type))}</b> đang chơi (${candidate.answered_count}/${candidate.total} nội dung đã hoàn thành).</span><button class="btn btn-primary btn-sm" onclick="resumeGame()">Tiếp tục luyện tập</button></div>`);
+        } catch (e) { console.warn('Không thể tải phiên luyện tập:', e); }
+    }
+    async function resumeGame() {
+        if (!resumeCandidate || busy) return;
+        S = resumeCandidate;
+        resumeCandidate = null;
+        gameGeneration++;
+        S.solved = new Set(S.resolved_tokens || []);
+        S.done = S.solved.size;
+        combo = 0;
+        quizScore = Number(S.score || 0);
+        document.getElementById('hub').style.display = 'none';
+        document.getElementById('game').classList.add('on');
+        if (S.game_type === 'quick_quiz') quiz(Number(S.answered_count || 0));
+        else render();
+    }
+    const practiceGuides = {
+        crossword: {title:'Ô chữ mỗi ngày', time:'120 giây / toàn bộ ô chữ', rules:['Chọn gợi ý ngang hoặc dọc rồi nhập đáp án vào lưới.','Mỗi từ đúng được 100 điểm; gợi ý trừ 20 điểm.','Giải hết các từ để hoàn thành. Hết 120 giây sẽ tự kết thúc và hiện kết quả.']},
+        concept_match: {title:'Nối cặp kiến thức', time:'60 giây / lượt chơi', rules:['Chọn thuật ngữ ở cột A, sau đó chọn định nghĩa tương ứng ở cột B.','Mỗi cặp đúng được 100 điểm và bị khóa để không ghép lại.','Ghép hết các cặp để hoàn thành; hết 60 giây sẽ hiện kết quả chưa hoàn thành.']},
+        quick_quiz: {title:'Phản xạ nhanh', time:'5 giây / câu', rules:['Đọc câu hỏi và chọn một trong bốn đáp án.','Đúng được 100 điểm cộng thưởng combo; sai bị trừ 25 điểm.','Hết 5 giây, câu được ghi nhận là hết giờ (0 điểm) và tự chuyển sang câu tiếp theo.']}
+    };
+    function showGuide(type) {
+        const g = practiceGuides[type]; if (!g) return;
+        const old = document.getElementById('pv-guide-overlay'); if (old) old.remove();
+        const overlay = document.createElement('div'); overlay.id='pv-guide-overlay'; overlay.className='pv-guide-overlay';
+        overlay.innerHTML = `<section class="pv-guide-dialog" role="dialog" aria-modal="true" aria-label="Hướng dẫn ${E(g.title)}"><button class="pv-guide-close" aria-label="Đóng" onclick="closeGuide()">×</button><h2>${E(g.title)}</h2><p class="pv-guide-time"><i class="bi bi-clock"></i> ${E(g.time)}</p><ol>${g.rules.map(x=>`<li>${E(x)}</li>`).join('')}</ol><div class="pv-guide-footer"><button class="pv-guide" onclick="closeGuide()">Đóng</button><button class="play" onclick="closeGuide();startGame('${type}')">Bắt đầu chơi</button></div></section>`;
+        overlay.addEventListener('click', e=>{if(e.target===overlay) closeGuide();});
+        document.body.appendChild(overlay); overlay.querySelector('.pv-guide-close').focus();
+    }
+    function closeGuide(){ document.getElementById('pv-guide-overlay')?.remove(); }
     async function startGame(t) {
+        if (busy) return;
+        if (resumeCandidate && !confirm('Bạn đang có một lượt luyện tập chưa hoàn thành. Bắt đầu lượt mới sẽ giữ lại lượt cũ trong lịch sử. Tiếp tục?')) return;
+        if (!confirm('Bắt đầu ' + name(t) + '? Đồng hồ chỉ chạy sau khi bạn xác nhận.')) return;
+        busy = true;
         try {
             clearInterval(T);
             S = await api('start', {
                 game_type: t,
                 count: 8
             });
+            gameGeneration++;
             S.done = 0;
+            S.solved = new Set();
+            resumeCandidate = null;
+            document.getElementById('resume-banner')?.remove();
             combo = 0;
             quizScore = 0;
             document.getElementById('hub').style.display = 'none';
@@ -1015,7 +1111,7 @@ $csrf = csrf_token();
             render()
         } catch (e) {
             alert(e.message)
-        }
+        } finally { busy = false; }
     }
 
     function shell(label, title, body) {
@@ -1024,23 +1120,23 @@ $csrf = csrf_token();
 
     function runClock(sec, onEnd) {
         clearInterval(T);
-        let left = sec,
-            el = () => document.getElementById('clock');
-        if (el()) el().textContent = left;
-        T = setInterval(() => {
-            left--;
-            if (el()) el().textContent = left;
-            if (left <= 0) {
-                clearInterval(T);
-                onEnd && onEnd()
-            }
-        }, 1000)
+        const generation = gameGeneration;
+        clockDeadline = performance.now() + Math.max(0, Number(sec)) * 1000;
+        const tick = () => {
+            if (generation !== gameGeneration) { clearInterval(T); return; }
+            const left = Math.max(0, Math.ceil((clockDeadline - performance.now()) / 1000));
+            const el = document.getElementById('clock');
+            if (el) el.textContent = left;
+            if (left === 0) { clearInterval(T); onEnd && onEnd(); }
+        };
+        tick();
+        T = setInterval(tick, 150);
     }
 
     function render() {
         if (S.game_type === 'crossword') crossword();
         else if (S.game_type === 'concept_match') matcher();
-        else quiz(0)
+        else quiz(Number(S.answered_count || 0))
     }
 
     function crossword() {
@@ -1059,9 +1155,16 @@ $csrf = csrf_token();
         });
         let cells = g.flatMap((row, r) => row.map((v, co) => v ? `<div class="cw-cellwrap">${nums[r+'-'+co]?`<span class="cw-num">${nums[r+'-'+co]}</span>`:''}<input class="cw-cell" maxlength="1" data-r="${r}" data-c="${co}" autocomplete="off" oninput="cwInput(this)" onkeydown="cwKey(event,this)" onmouseenter="hoverCell(this,true)" onmouseleave="hoverCell(this,false)" onclick="selectCellClue(this)" onfocus="this.classList.add('cell-focus')" onblur="this.classList.remove('cell-focus')"></div>` : `<div class="cw-block"></div>`)).join('');
         let clues = d => c.clues.filter(x => x.direction === d).map(x => `<button class="clue" data-clue="${x.token}" onclick="selectClue('${x.token}')" onmouseenter="hoverClue('${x.token}',true)" onmouseleave="hoverClue('${x.token}',false)"><b>${x.no}.</b> ${E(x.clue)} <span class="text-muted">(${x.length})</span></button>`).join('');
-        document.getElementById('game').innerHTML = shell('GAME 01 • DAILY CROSSWORD', 'Daily Crossword', `<div class="game-shell"><div class="d-flex justify-content-between flex-wrap gap-2 mb-4"><div><h3 class="h5 fw-bold mb-1">${E(c.title)}</h3><p class="small mb-0">${E(c.description)}</p></div><div class="d-flex gap-2"><div class="scorebox"><span>Ngày</span><b>${E(S.daily_key)}</b></div><div class="scorebox"><span>Thời gian</span><b><span id="clock">${c.time_limit}</span>s</b></div></div></div><div class="cw-layout"><div class="overflow-auto"><div class="cw-grid" style="grid-template-columns:repeat(${c.cols},48px)">${cells}</div></div><div><div class="row g-3"><div class="col-6 clue-group"><h4>Across</h4>${clues('across')}</div><div class="col-6 clue-group"><h4>Down</h4>${clues('down')}</div></div><div class="d-flex gap-2 flex-wrap mt-3"><button class="btn btn-outline-warning btn-sm" onclick="cwHint()">💡 Hint</button><button class="solve" onclick="solvePuzzle()">Solve Puzzle</button></div><div id="cwmsg" class="small mt-3 text-muted">Chọn một clue để bắt đầu.</div></div></div></div>`);
+        document.getElementById('game').innerHTML = shell('TRÒ CHƠI 01 • Ô CHỮ', 'Ô chữ mỗi ngày', `<div class="game-shell"><div class="d-flex justify-content-between flex-wrap gap-2 mb-4"><div><h3 class="h5 fw-bold mb-1">${E(c.title)}</h3><p class="small mb-0">${E(c.description)}</p></div><div class="d-flex gap-2"><div class="scorebox"><span>Ngày</span><b>${E(S.daily_key)}</b></div><div class="scorebox"><span>Thời gian</span><b><span id="clock">${c.time_limit}</span>s</b></div></div></div><div class="cw-layout"><div class="overflow-auto"><div class="cw-grid" style="grid-template-columns:repeat(${c.cols},48px)">${cells}</div></div><div><div class="row g-3"><div class="col-6 clue-group"><h4>Hàng ngang</h4>${clues('across')}</div><div class="col-6 clue-group"><h4>Hàng dọc</h4>${clues('down')}</div></div><div class="d-flex gap-2 flex-wrap mt-3"><button class="btn btn-outline-warning btn-sm" onclick="cwHint()">💡 Gợi ý</button><button class="solve" onclick="solvePuzzle()">Kiểm tra từ</button></div><div id="cwmsg" class="small mt-3 text-muted">Chọn một clue để bắt đầu.</div></div></div></div>`);
         S.current = null;
-        runClock(c.time_limit, () => finish(true))
+        (S.solved_words || []).forEach(w => {
+            const clue = S.content.clues.find(x => x.token === w.token);
+            if (!clue) return;
+            getClueCells(clue).forEach((el, i) => { el.value = w.answer[i] || ''; el.classList.add('good'); });
+            const clueEl = [...document.querySelectorAll('.clue')].find(el => el.dataset.clue === w.token);
+            if (clueEl) clueEl.classList.add('good');
+        });
+        runClock(S.remaining_seconds ?? c.time_limit, () => finish(true))
     }
 
     function getCellClues(row, col) {
@@ -1118,6 +1221,7 @@ $csrf = csrf_token();
     function selectClue(tok, focusFirst = true) {
         let x = S.content.clues.find(a => a.token === tok);
         if (!x) return;
+        if (S.solved?.has(tok)) { document.getElementById('cwmsg').textContent = 'Từ này đã hoàn thành.'; return; }
         S.current = x;
         document.querySelectorAll('.clue').forEach(e => e.classList.toggle('sel', e.dataset.clue === tok));
         document.querySelectorAll('.cw-cell').forEach(e => e.classList.remove('active', 'word-active'));
@@ -1171,7 +1275,9 @@ $csrf = csrf_token();
         }
     }
     async function checkWord() {
-        if (!S.current) return;
+        if (!S || !S.current || busy) return;
+        busy = true;
+        try {
         let x = S.current,
             a = '',
             cells = [];
@@ -1194,12 +1300,17 @@ $csrf = csrf_token();
         });
         document.getElementById('cwmsg').innerHTML = r.correct ? `<span class="text-success fw-bold">✓ Chính xác.</span> ${E(r.explanation)}` : `<span class="text-danger fw-bold">Chưa đúng.</span> Hãy kiểm tra lại từ này.`;
         if (r.correct) {
-            S.done++;
-            if (S.done >= S.total) finish(false)
+            if (!S.solved) S.solved = new Set();
+            if (!S.solved.has(x.token)) { S.solved.add(x.token); S.done = S.solved.size; }
+            if (S.done >= S.total) { busy = false; return finish(false); }
         }
+        } catch (e) { alert(e.message); } finally { busy = false; }
     }
     async function cwHint() {
-        if (!S.current) return alert('Hãy chọn một clue trước.');
+        if (!S.current) return alert('Hãy chọn một gợi ý trước.');
+        if (busy) return;
+        busy = true;
+        try {
         let h = await api('hint', {
                 session_id: S.id,
                 item_token: S.current.token
@@ -1209,7 +1320,8 @@ $csrf = csrf_token();
             c = x.col,
             e = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
         if (e && !e.value) e.value = h.letter;
-        document.getElementById('cwmsg').textContent = 'Đã mở một chữ cái. Hint trừ 20 điểm.'
+        document.getElementById('cwmsg').textContent = 'Đã mở một chữ cái. Gợi ý trừ 20 điểm.';
+        } catch (e) { alert(e.message); } finally { busy = false; }
     }
     async function solvePuzzle() {
         if (!S.current) {
@@ -1223,12 +1335,24 @@ $csrf = csrf_token();
     function matcher() {
         let c = S.content,
             count = Math.max(c.terms.length, c.definitions.length);
-        document.getElementById('game').innerHTML = shell('GAME 02 • CONCEPT MATCHER', 'Nối Cặp Từ', `<div class="game-shell"><div class="match-toolbar"><div><div class="small text-muted fw-bold">Tiến độ ghép cặp</div><div class="h4 mb-0"><span id="done">0</span> / ${S.total}</div></div><div class="match-actions"><div class="scorebox green"><span>Điểm</span><b id="mscore">0</b></div><div class="scorebox"><span>Lỗi</span><b id="mwrong">0</b></div><div class="scorebox"><span>Thời gian</span><b><span id="clock">${c.time_limit}</span>s</b></div><button class="restart-btn" onclick="restartCurrentMatch()"><i class="bi bi-arrow-counterclockwise me-1"></i>Bắt đầu lại</button></div></div><div class="progress mb-3"><div id="mprog" class="progress-bar" style="width:0"></div></div><div class="match-help"><i class="bi bi-cursor-fill me-1"></i> Chọn một từ khóa ở Cột A, sau đó chọn khái niệm tương ứng ở Cột B. Cặp đúng chuyển xanh và được khóa.</div><div class="match-grid" style="--match-count:${count}"><div class="match-col"><div class="match-col-head"><strong>Cột A • Từ khóa</strong><span>${c.terms.length} thuật ngữ</span></div><div class="match-list">${c.terms.map(x=>`<button class="match-item" data-t="${x.token}" onclick="pickTerm(this)"><span class="match-term"><b>${E(x.term)}</b><small>${E(x.category||'Công nghệ thông tin')}</small></span></button>`).join('')}</div></div><div class="match-col"><div class="match-col-head"><strong>Cột B • Khái niệm / đặc điểm</strong><span>${c.definitions.length} mô tả</span></div><div class="match-list">${c.definitions.map(x=>`<button class="match-item" data-d="${x.token}" onclick="pickDef(this)">${E(x.definition)}</button>`).join('')}</div></div></div></div>`);
-        S.score = 0;
-        S.wrong = 0;
-        S.done = 0;
+        document.getElementById('game').innerHTML = shell('TRÒ CHƠI 02 • NỐI CẶP', 'Nối cặp kiến thức', `<div class="game-shell"><div class="match-toolbar"><div><div class="small text-muted fw-bold">Tiến độ ghép cặp</div><div class="h4 mb-0"><span id="done">0</span> / ${S.total}</div></div><div class="match-actions"><div class="scorebox green"><span>Điểm</span><b id="mscore">0</b></div><div class="scorebox"><span>Lỗi</span><b id="mwrong">0</b></div><div class="scorebox"><span>Thời gian</span><b><span id="clock">${c.time_limit}</span>s</b></div><button class="restart-btn" onclick="restartCurrentMatch()"><i class="bi bi-arrow-counterclockwise me-1"></i>Bắt đầu lại</button></div></div><div class="progress mb-3"><div id="mprog" class="progress-bar" style="width:0"></div></div><div class="match-help"><i class="bi bi-cursor-fill me-1"></i> Chọn một từ khóa ở Cột A, sau đó chọn khái niệm tương ứng ở Cột B. Cặp đúng chuyển xanh và được khóa.</div><div class="match-grid" style="--match-count:${count}"><div class="match-col"><div class="match-col-head"><strong>Cột A • Từ khóa</strong><span>${c.terms.length} thuật ngữ</span></div><div class="match-list">${c.terms.map(x=>`<button class="match-item" data-t="${x.token}" onclick="pickTerm(this)"><span class="match-term"><b>${E(x.term)}</b><small>${E(x.category||'Công nghệ thông tin')}</small></span></button>`).join('')}</div></div><div class="match-col"><div class="match-col-head"><strong>Cột B • Khái niệm / đặc điểm</strong><span>${c.definitions.length} mô tả</span></div><div class="match-list">${c.definitions.map(x=>`<button class="match-item" data-d="${x.token}" onclick="pickDef(this)">${E(x.definition)}</button>`).join('')}</div></div></div></div>`);
+        S.score = Number(S.score || 0);
+        S.wrong = Number(S.wrong_count || 0);
+        S.done = (S.resolved_tokens || []).length;
+        document.getElementById('done').textContent = S.done;
+        document.getElementById('mscore').textContent = S.score;
+        document.getElementById('mwrong').textContent = S.wrong;
+        document.getElementById('mprog').style.width = (S.done / S.total * 100) + '%';
+        (S.resolved_pairs || []).forEach(pair => {
+            const def = [...document.querySelectorAll('[data-d]')].find(el => el.dataset.d === pair.def_token);
+            if (def) { def.classList.add('ok'); def.disabled = true; }
+        });
+        (S.resolved_tokens || []).forEach(tok => {
+            const t = [...document.querySelectorAll('[data-t]')].find(el => el.dataset.t === tok);
+            if (t) { t.classList.add('ok'); t.disabled = true; }
+        });
         term = null;
-        runClock(c.time_limit, () => finish(true))
+        runClock(S.remaining_seconds ?? c.time_limit, () => finish(true))
     }
     async function restartCurrentMatch() {
         if (!S || S.game_type !== 'concept_match') return;
@@ -1238,6 +1362,7 @@ $csrf = csrf_token();
             S = await api('restart', {
                 session_id: S.id
             });
+            gameGeneration++;
             S.done = 0;
             term = null;
             matcher()
@@ -1270,16 +1395,21 @@ $csrf = csrf_token();
                 document.getElementById('mscore').textContent = S.score;
                 document.getElementById('mprog').style.width = (S.done / S.total * 100) + '%';
                 term = null;
-                if (S.done >= S.total) return finish(false)
+                if (S.done >= S.total) {
+                    busy = false;
+                    return finish(false);
+                }
             } else {
                 S.wrong++;
                 e.classList.add('no');
                 term.classList.add('no');
                 document.getElementById('mwrong').textContent = S.wrong;
+                const selectedTerm = term, generation = gameGeneration;
+                term = null;
                 setTimeout(() => {
+                    if (generation !== gameGeneration) return;
                     e.classList.remove('no');
-                    if (term) term.classList.remove('no', 'sel');
-                    term = null
+                    selectedTerm.classList.remove('no', 'sel');
                 }, 450)
             }
         } catch (x) {
@@ -1289,13 +1419,13 @@ $csrf = csrf_token();
         }
     }
 
-    function quiz(i) {
+    async function quiz(i) {
         if (i >= S.content.items.length) return finish(false);
         S.qi = i;
         let q = S.content.items[i],
-            limit = 5,
+            limit = Math.max(1, Number(q.time_limit || 5)),
             best = document.getElementById('best-quick_quiz')?.textContent || 0;
-        document.getElementById('game').innerHTML = shell('GAME 03 • QUICK QUIZ', 'IT Core Concepts Challenge', `<div class="game-shell quick-shell">
+        document.getElementById('game').innerHTML = shell('TRÒ CHƠI 03 • PHẢN XẠ', 'Phản xạ nhanh', `<div class="game-shell quick-shell">
   <div class="quick-status">
    <div class="quick-stat"><span>Thời gian</span><b><span id="clock">${limit}</span>s</b></div>
    <div class="quick-stat"><span>Điểm</span><b id="quickScore">${quizScore}</b></div>
@@ -1308,23 +1438,28 @@ $csrf = csrf_token();
    <div class="quick-question">${E(q.question)}</div>
    <div id="qopts">${q.options.map((o,k)=>`<button class="q-option" data-o="${o.token}" onclick="qAnswer(this)"><span class="opt-key">${String.fromCharCode(65+k)}</span><span>${E(o.text)}</span></button>`).join('')}</div>
    <div id="qfeed"></div>
-   <div class="quick-note">Mỗi câu có 5 giây • Đúng +100 điểm • Sai -25 điểm • Hết giờ 0 điểm.</div>
+   <div class="quick-note">Thời gian theo từng câu • Đúng +100 điểm (có thưởng chuỗi đúng) • Sai −25 điểm • Hết giờ 0 điểm.</div>
   </div>
  </div>`);
-        S.left = limit;
-        clearInterval(T);
-        T = setInterval(() => {
-            S.left--;
-            let e = document.getElementById('clock');
-            if (e) e.textContent = Math.max(0, S.left);
-            if (S.left <= 0) {
-                clearInterval(T);
-                qTimeout()
-            }
-        }, 1000)
+        quizResolved = false;
+        document.querySelectorAll('.q-option').forEach(x => x.disabled = true);
+        try {
+            const active = await api('activate_question', {session_id:S.id, item_token:q.token});
+            if (!S || S.qi !== i || S.game_type !== 'quick_quiz') return;
+            const remaining = Math.max(0, Number(active.remaining_seconds || 0));
+            document.querySelectorAll('.q-option').forEach(x => x.disabled = remaining <= 0);
+            runClock(remaining, () => { if (!quizResolved) setTimeout(() => { if (!quizResolved) qTimeout(); }, 120); });
+            if (remaining <= 0) qTimeout();
+        } catch (err) {
+            const feed = document.getElementById('qfeed');
+            if (feed) feed.innerHTML = `<div class="alert alert-danger">${E(err.message)}. Không thể bắt đầu đồng hồ của câu hỏi.</div>`;
+        }
     }
+
     async function qAnswer(el) {
-        if (busy) return;
+        if (busy || quizResolved || !S || S.game_type !== 'quick_quiz') return;
+        if (performance.now() >= clockDeadline) { qTimeout(); return; }
+        quizResolved = true;
         busy = true;
         clearInterval(T);
         let q = S.content.items[S.qi];
@@ -1336,7 +1471,10 @@ $csrf = csrf_token();
                 answer: el.dataset.o,
                 combo
             });
-            if (r.correct) {
+            if (r.is_timeout) {
+                combo = 0;
+                document.getElementById('qfeed').innerHTML = `<div class="feedback no">Hết thời gian theo máy chủ. Đáp án đúng: <b>${E(r.correct_answer)}</b></div>`;
+            } else if (r.correct) {
                 combo++;
                 quizScore += Number(r.points || 100);
                 el.classList.add('ok');
@@ -1349,18 +1487,19 @@ $csrf = csrf_token();
             }
             let sc = document.getElementById('quickScore');
             if (sc) sc.textContent = quizScore;
-            setTimeout(() => {
-                busy = false;
-                quiz(S.qi + 1)
-            }, 1100);
+            document.getElementById('qfeed').innerHTML += `<div class="mt-2">${E(r.explanation || '')}</div><button class="btn btn-primary mt-2" onclick="quizNext()">${S.qi + 1 >= S.total ? 'Xem kết quả' : 'Câu tiếp theo'}</button>`;
+            busy = false;
         } catch (e) {
             busy = false;
-            alert(e.message)
+            const feed = document.getElementById('qfeed');
+            if (feed) feed.innerHTML = `<div class="alert alert-danger">${E(e.message)}. Trạng thái gửi đáp án chưa xác định; vui lòng quay lại trang chính để tránh ghi nhận trùng.</div>`;
         }
     }
     async function qTimeout() {
-        if (busy) return;
+        if (busy || quizResolved || !S || S.game_type !== 'quick_quiz') return;
+        quizResolved = true;
         busy = true;
+        clearInterval(T);
         let q = S.content.items[S.qi];
         try {
             let r = await api('answer', {
@@ -1372,19 +1511,21 @@ $csrf = csrf_token();
             });
             combo = 0;
             document.querySelectorAll('.q-option').forEach(x => x.disabled = true);
-            document.getElementById('qfeed').innerHTML = `<div class="feedback no"><b><i class="bi bi-clock-history me-1"></i> Hết 5 giây.</b> Câu này 0 điểm.<div class="mt-1">Đáp án đúng: <b>${E(r.correct_answer)}</b></div></div>`;
-            setTimeout(() => {
-                busy = false;
-                quiz(S.qi + 1)
-            }, 1100);
+            document.getElementById('qfeed').innerHTML = `<div class="feedback no"><b><i class="bi bi-clock-history me-1"></i> Hết thời gian.</b> Câu này 0 điểm.<div class="mt-1">Đáp án đúng: <b>${E(r.correct_answer)}</b></div></div>`;
+            document.getElementById('qfeed').innerHTML += `<div class="mt-2">${E(r.explanation || '')}</div><button class="btn btn-primary mt-2" onclick="quizNext()">${S.qi + 1 >= S.total ? 'Xem kết quả' : 'Câu tiếp theo'}</button>`;
+            busy = false;
+            const generation = gameGeneration;
+            setTimeout(() => { if (generation === gameGeneration && !busy && S && S.game_type === 'quick_quiz' && quizResolved) quizNext(); }, 850);
         } catch (e) {
             busy = false;
-            alert(e.message)
+            const feed = document.getElementById('qfeed');
+            if (feed) feed.innerHTML = `<div class="alert alert-danger">${E(e.message)}. Không thể xác nhận trạng thái câu hỏi. Vui lòng quay lại trang chính.</div>`;
         }
     }
+    function quizNext() { if (!busy && quizResolved && S && S.game_type === 'quick_quiz' && document.querySelector('#qfeed button')) quiz(S.qi + 1); }
     async function finish(timeout = false) {
+        if (busy || !S || !S.id) return;
         clearInterval(T);
-        if (busy) return;
         busy = true;
         try {
             let r = await api('finish', {
@@ -1413,21 +1554,26 @@ $csrf = csrf_token();
     }
 
     function showResult(r) {
+        clearInterval(T);
+        gameGeneration++;
+        quizResolved = true;
+        S = null; // The result view is read-only; no active session to cancel.
         let s = r.session,
             isMatch = s.game_type === 'concept_match',
             isQuiz = s.game_type === 'quick_quiz';
-        let title = isMatch ? 'Chúc mừng! Bạn đã hoàn thành Nối Cặp Từ' : (isQuiz ? 'Hoàn thành thử thách Phản Xạ Nhanh!' : 'Chúc mừng bạn đã hoàn thành Daily Crossword!');
-        let message = isMatch ? 'Bạn đã ghép xong toàn bộ các cặp khái niệm.' : (isQuiz ? 'Bạn đã hoàn thành toàn bộ câu hỏi trong lượt phản xạ.' : 'Bạn đã giải xong ô chữ hôm nay.');
+        let title = isMatch ? 'Kết quả Nối cặp kiến thức' : (isQuiz ? 'Kết quả Phản xạ nhanh' : 'Kết quả Ô chữ mỗi ngày');
+        let message = s.status === 'timeout' ? 'Đã hết thời gian luyện tập. Đây là kết quả các phần bạn đã thực hiện.' : s.status === 'cancelled' ? 'Lượt luyện tập đã hủy.' : (isMatch ? 'Bạn đã ghép xong toàn bộ các cặp khái niệm.' : (isQuiz ? 'Bạn đã hoàn thành toàn bộ câu hỏi trong lượt phản xạ.' : 'Bạn đã giải xong ô chữ hôm nay.'));
         document.getElementById('game').innerHTML = shell('KẾT QUẢ • ' + name(s.game_type), title, `<div class="game-shell"><div class="result-hero">
   <div class="game-icon mx-auto mb-3"><i class="bi bi-trophy-fill"></i></div>
   <p class="mb-1 fw-semibold">${E(message)}</p>
-  <div class="result-score">${s.score}</div><p>ĐIỂM</p>
+  <div class="pv-result-status ${s.is_fully_completed ? 'complete' : 'incomplete'}">${s.is_fully_completed ? 'Hoàn thành' : 'Chưa hoàn thành'}</div><div class="result-score">${s.score}</div><p>ĐIỂM</p>
   <div class="row g-2 justify-content-center mt-2">
    <div class="col-6 col-md-2"><div class="stat"><span>Đúng</span><b>${s.correct_count}/${s.total_count}</b></div></div>
    <div class="col-6 col-md-2"><div class="stat"><span>Chính xác</span><b>${s.accuracy}%</b></div></div>
-   <div class="col-6 col-md-2"><div class="stat"><span>Thời gian</span><b>${s.duration_seconds}s</b></div></div>
+   <div class="col-6 col-md-2"><div class="stat"><span>Thời gian</span><b>${s.duration_seconds}s</b></div></div><div class="col-6 col-md-2"><div class="stat"><span>Chưa giải / hết giờ</span><b>${Math.max(0,Number(s.total_count)-Number(s.resolved_count||0))}</b></div></div><div class="col-6 col-md-2"><div class="stat"><span>Câu hết giờ</span><b>${s.timeout_count||0}</b></div></div><div class="col-6 col-md-2"><div class="stat"><span>Giới hạn</span><b>${isQuiz ? '5s/câu' : isMatch ? '60s' : '120s'}</b></div></div>
    ${isQuiz?`<div class="col-6 col-md-2"><div class="stat"><span>Combo cao nhất</span><b>${s.max_combo||0}</b></div></div>`:''}
   </div>
+  <div class="text-start mt-4"><h3 class="h5">Ôn lại kiến thức</h3>${(r.review || []).map(x=>`<div class="border rounded p-3 mb-2"><strong>${E(x.label)}</strong><span class="pv-review-status ${x.ok ? 'ok' : 'missing'}">${x.ok ? 'Đúng' : 'Chưa đúng / chưa trả lời'}</span><div>${E(x.prompt)}</div><div>Đáp án: <b>${E(x.correct)}</b></div><small>${E(x.explanation)}</small></div>`).join('') || '<p>Chưa có câu trả lời được lưu.</p>'}</div>
   <div class="mt-4">
    <button class="play me-2" onclick="restartResult(${s.id})"><i class="bi bi-arrow-counterclockwise me-1"></i>Bắt đầu lại</button>
    <button class="btn btn-outline-secondary" onclick="backHub()">Về Practice</button>
@@ -1439,17 +1585,26 @@ $csrf = csrf_token();
             S = await api('restart', {
                 session_id: id
             });
+            gameGeneration++;
             S.done = 0;
             combo = 0;
             quizScore = 0;
+            quizResolved = false;
+            clearInterval(T);
             render()
         } catch (e) {
             alert(e.message)
         }
     }
 
-    function backHub() {
+    async function backHub() {
+        if (S && S.id && document.getElementById('game').classList.contains('on') && !document.querySelector('.result-hero')) {
+            if (!confirm('Hủy lượt luyện tập đang chơi và quay về trang chính?')) return;
+            try { await api('cancel', {session_id:S.id}); } catch(e) { alert('Không thể hủy phiên: ' + e.message); return; }
+        }
         clearInterval(T);
+        gameGeneration++;
+        quizResolved = false;
         S = null;
         document.getElementById('game').classList.remove('on');
         document.getElementById('hub').style.display = 'block';
@@ -1459,6 +1614,6 @@ $csrf = csrf_token();
             behavior: 'smooth'
         })
     }
-    dashboard();
+    dashboard().then(checkResume);
 </script>
 <?php require_once $root . '/includes/footer.php'; ?>

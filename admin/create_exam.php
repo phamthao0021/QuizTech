@@ -144,10 +144,10 @@ include '../includes/header_admin.php';
                 <p class="text-white-50 mb-0 small">Hỗ trợ tự động trích xuất file Excel, Word, PDF & Soạn thảo đa dạng câu hỏi.</p>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-light text-dark fw-bold rounded-3 px-3 py-2 shadow-sm" onclick="openPreviewModal()">
+                <button type="button" class="btn btn-outline-light fw-bold rounded-3 px-3 py-2" onclick="openPreviewModal()">
                     <i class="bi bi-eye-fill me-1 text-primary"></i> Xem trước
                 </button>
-                <button type="button" class="btn btn-warning text-dark fw-bold rounded-3 px-4 py-2 shadow-sm" onclick="saveExam()">
+                <button type="button" class="btn btn-light text-primary fw-bold rounded-3 px-4 py-2 shadow-sm" onclick="saveExam()">
                     <i class="bi bi-cloud-arrow-up-fill me-1"></i> Lưu Đề Thi
                 </button>
             </div>
@@ -237,7 +237,7 @@ include '../includes/header_admin.php';
                         </button>
                         
                         <div class="d-flex align-items-center gap-3">
-                            <span class="small fw-semibold text-secondary d-none d-sm-inline" id="page_info">Trang 0 / 0</span>
+                            <span class="small fw-semibold text-secondary d-none d-sm-inline" id="page_info" aria-live="polite">Chưa có câu hỏi</span>
                             <select class="form-select form-select-sm rounded-2" style="width: 140px;" onchange="changePerPage(this.value)">
                                 <option value="10" selected>10 câu / trang</option>
                                 <option value="20">20 câu / trang</option>
@@ -477,7 +477,7 @@ function renderQuestions() {
                 Chưa có câu hỏi nào. Hãy tải file lên hoặc bấm thêm câu hỏi thủ công!
             </div>`;
         document.getElementById('pagination_list').innerHTML = '';
-        document.getElementById('page_info').innerText = 'Trang 0 / 0';
+        document.getElementById('page_info').innerText = 'Chưa có câu hỏi';
         return;
     }
 

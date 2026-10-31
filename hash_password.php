@@ -14,7 +14,9 @@ $password = '';
 $hash = '';
 
 // Xử lý khi submit form
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$requestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
+
+if ($requestMethod === 'POST') {
     verify_csrf();
     $password = $_POST['password'] ?? '';
     

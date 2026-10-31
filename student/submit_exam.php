@@ -20,7 +20,7 @@ if (!isLoggedIn()) {
 $user = currentUser();
 $user_id = (int)($user['id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     header('Location: dashboard.php');
     exit();
 }
@@ -130,6 +130,15 @@ try {
     $stmtInsert->execute($insertData);
     
     $result_id = $pdo->lastInsertId();
+
+    // Thông báo kết quả sau khi lưu; lỗi gửi thông báo không hủy kết quả thi.
+    if ($targetTable === 'results') {
+        try {
+            require_once dirname(__DIR__).'/includes/qt_notifications.php';
+            qt_notice_publish($pdo, 0, 'Hoàn thành bài thi', 'Bạn đã hoàn thành bài thi. Điểm đạt được: '.$score.'/10.', 'student', $user_id,
+                'student/exam_result.php?id='.(int)$result_id, 'exam');
+        } catch (Throwable $e) { error_log('QuizTech notify exam: '.$e->getMessage()); }
+    }
 
     // Lưu tạm kết quả giải thích vào Session để hiển thị ở result.php
     $_SESSION['last_exam_result'] = [

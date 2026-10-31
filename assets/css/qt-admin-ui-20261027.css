@@ -1,0 +1,38 @@
+/* QuizTech Admin visual system: scope all rules to #adminWrapper */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+#adminWrapper{--qt-purple:#6d28d9;--qt-indigo:#4f46e5;--qt-border:#e9e5f2;--qt-bg:#f8f7fc;--qt-shadow:0 8px 26px rgba(46,16,101,.055);font-family:'Be Vietnam Pro',Arial,sans-serif}
+#adminWrapper :is(button,input,select,textarea,.btn,.form-control,.form-select,.dropdown-menu,.modal,.toast,.pagination,.page-link,.table){font-family:'Be Vietnam Pro',Arial,sans-serif}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header){background:linear-gradient(115deg,#4f46e5 0%,#6d28d9 100%)!important;color:#fff!important;border:0!important;border-radius:20px!important;padding:24px!important;min-height:112px;box-shadow:0 10px 25px rgba(79,70,229,.12)!important;margin-bottom:22px!important;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(h1,h2,h3,h4){font-size:clamp(24px,2.1vw,28px)!important;line-height:1.3;font-weight:700!important;color:#fff!important;margin-bottom:5px!important}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) p{font-size:14px!important;color:#ede9fe!important;margin-bottom:0!important}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(.btn,.btn-primary,.btn-success){min-height:42px;border-radius:11px!important;padding:9px 15px!important;font-size:13px!important;font-weight:700!important;white-space:normal}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(.btn-primary,.btn-success,.btn-light){background:#fff!important;border:1px solid #fff!important;color:#5b21b6!important;box-shadow:none!important}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(.btn-outline-light,.btn-outline-primary,.btn-import){background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.75)!important;color:#fff!important}
+#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(.btn:hover,.btn:focus-visible){filter:brightness(.96);transform:translateY(-1px)}
+#adminWrapper :is(.card,.creative-table-card,.card-modern,.qt-panel){border-color:var(--qt-border);box-shadow:var(--qt-shadow);border-radius:16px}
+#adminWrapper :is(.form-control,.form-select,.filter-control,.rows-control select){min-height:42px;border-radius:10px;border-color:#ddd8e9;font-size:14px}
+#adminWrapper :is(.form-control,.form-select):focus{border-color:#8b5cf6!important;box-shadow:0 0 0 3px rgba(139,92,246,.12)!important}
+#adminWrapper :is(.btn,.dropdown-item){font-weight:600}
+#adminWrapper .table-responsive{overflow-x:auto;max-width:100%}
+#adminWrapper :is(.table,.creative-table) :is(td,th){vertical-align:middle;font-size:13px}
+#adminWrapper :is(.table,.creative-table) tbody td{padding-top:12px;padding-bottom:12px}
+#adminWrapper .pagination .page-link{border-radius:9px;margin:0 2px;color:#5b21b6}
+#adminWrapper .pagination .active .page-link{background:#6d28d9;border-color:#6d28d9;color:#fff}
+#adminWrapper .modal-content{border:0;border-radius:18px;overflow:hidden;box-shadow:0 24px 65px rgba(30,27,75,.2)}
+#adminWrapper .modal-header{background:linear-gradient(110deg,#4f46e5,#7c3aed)!important;color:#fff!important;border-bottom:0!important;padding:19px 22px}
+#adminWrapper .modal-header :is(.modal-title,h4,h5){color:#fff!important;font-size:20px!important;font-weight:700!important}
+#adminWrapper .modal-header .btn-close{filter:brightness(0) invert(1);opacity:.9}
+#adminWrapper .modal-body{padding:22px;max-height:min(70vh,650px);overflow-y:auto}
+#adminWrapper .modal-footer{padding:15px 22px;border-top:1px solid #ede9f5;background:#fff;gap:9px}
+#adminWrapper .modal-footer .btn-primary{background:linear-gradient(110deg,#4f46e5,#7c3aed);border:0}
+#adminWrapper .modal-footer :is(.btn,.btn-secondary){min-height:41px;border-radius:10px}
+#adminWrapper :is(.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible){outline:2px solid #a78bfa;outline-offset:2px}
+/* create_exam: respect original DOM and JavaScript, only presentation */
+#adminWrapper .header-banner~.card-modern .file-dropzone{padding:15px;border-color:#c4b5fd;background:#faf8ff}
+#adminWrapper .header-banner~.card-modern .file-dropzone:hover{background:#f3efff}
+#adminWrapper .question-card{border-radius:14px;box-shadow:var(--qt-shadow)}
+#adminWrapper .sticky-toolbar{z-index:50}
+#adminWrapper .qt-ad7 .qt-eyebrow{display:none!important}
+@media(max-width:991.98px){#adminWrapper :is(.admin-page-head,.header-banner,.page-header){padding:20px!important;align-items:flex-start}#adminWrapper :is(.admin-page-head,.header-banner,.page-header)>.d-flex{width:100%}#adminWrapper :is(.admin-page-head,.header-banner,.page-header) .btn{flex-shrink:0}}
+@media(max-width:575.98px){#adminWrapper :is(.admin-page-head,.header-banner,.page-header){padding:17px!important;border-radius:15px!important;min-height:0}#adminWrapper :is(.admin-page-head,.header-banner,.page-header) :is(h1,h2,h3){font-size:24px!important}#adminWrapper :is(.admin-page-head,.header-banner,.page-header) .d-flex{flex-wrap:wrap}#adminWrapper .modal-body{padding:16px}#adminWrapper .modal-header,#adminWrapper .modal-footer{padding:15px}}
+@media(prefers-reduced-motion:reduce){#adminWrapper *{scroll-behavior:auto!important;transition:none!important}}
