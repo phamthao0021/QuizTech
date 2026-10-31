@@ -22,3 +22,7 @@
 
 # Local settings
 /php.ini
+
+__pycache__/
+/uploads/avatars/*
+!/uploads/avatars/.gitkeep
